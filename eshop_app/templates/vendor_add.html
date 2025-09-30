@@ -1,0 +1,76 @@
+{% extends 'admin_base.html' %}
+
+{% block title %}Add New Vendor{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+
+    <!-- Page Heading -->
+    <div class="d-flex align-items-center justify-content-between mb-3">
+        <h1 class="h3 text-gray-800">Vendor Management</h1>
+    </div>
+
+    <!-- Add Vendor Form -->
+    <div class="card shadow mb-4">
+        <div class="card-header py-3">
+            <h6 class="m-0 font-weight-bold text-primary">Add Vendor</h6>
+        </div>
+        <div class="card-body">
+            {% if error_message %}
+            <div class="alert alert-danger">{{ error_message }}</div>
+            {% endif %}
+            {% if success_message %}
+            <div class="alert alert-success">{{ success_message }}</div>
+            {% endif %}
+
+            <form method="post" enctype="multipart/form-data">
+                {% csrf_token %}
+
+                <!-- Name -->
+                <div class="form-group mb-3">
+                    <label for="name">Full Name <span class="text-danger">*</span></label>
+                    <input id="name" type="text" name="name" placeholder="Enter full name"
+                        value="{{ request.POST.name }}" class="form-control">
+                </div>
+
+                <!-- Email -->
+                <div class="form-group mb-3">
+                    <label for="email">Email <span class="text-danger">*</span></label>
+                    <input id="email" type="email" name="email" placeholder="Enter email"
+                        value="{{ request.POST.email }}" class="form-control">
+                </div>
+
+                <!-- Password -->
+                <div class="form-group mb-3">
+                    <label for="password">Password <span class="text-danger">*</span></label>
+                    <input id="password" type="password" name="password" placeholder="Enter password"
+                        class="form-control">
+                </div>
+
+                <!-- Phone -->
+                <div class="form-group mb-3">
+                    <label for="phone">Phone</label>
+                    <input id="phone" type="text" name="phone" placeholder="Enter phone number"
+                        value="{{ request.POST.phone }}" class="form-control">
+                </div>
+
+                <!-- Address -->
+                <div class="form-group mb-3">
+                    <label for="address">Address</label>
+                    <textarea id="address" name="address" class="form-control">{{ request.POST.address }}</textarea>
+                </div>
+
+                <!-- Profile Image -->
+                <div class="form-group mb-3">
+                    <label for="profile_image">Profile Image</label>
+                    <input id="profile_image" type="file" name="profile_image" class="form-control">
+                </div>
+
+
+                <button type="submit" class="btn btn-success mt-3">💾 Save Vendor</button>
+                <a href="{% url 'vendor_list' %}" class="btn btn-secondary mt-3">Cancel</a>
+            </form>
+        </div>
+    </div>
+</div>
+{% endblock %}

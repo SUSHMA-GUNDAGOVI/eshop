@@ -10,6 +10,7 @@ urlpatterns = [
     path("register/", views.register, name="register"),
     path("admin/dashboard/", views.admin_dashboard, name="admin_dashboard"),
     path("user/dashboard/", views.user_dashboard, name="user_dashboard"),
+    path('vendor/dashboard/', views.vendor_dashboard, name='vendor_dashboard'),
     path('banners/add/', views.add_banner, name='add_banner'),
     path('banners/list/', views.banner_list, name='banner_list'),
     path('banners/edit/<int:id>/', views.edit_banner, name='edit_banner'),
@@ -33,4 +34,6 @@ urlpatterns = [
     path('settings/', views.settings_view, name='settings'),
     path('profile/', views.profile_view, name='profile'),
     path('change-password/', views.change_password, name='change_password'),
+    path('vendors/list/', views.vendor_list, name='vendor_list'),       
+    path('vendors/add/', views.add_vendor, name='vendor_add'),          
 ]

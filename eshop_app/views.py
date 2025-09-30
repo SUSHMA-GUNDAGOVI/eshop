@@ -1,7 +1,7 @@
 from django.shortcuts import render, redirect
 from django.contrib import messages
 from django.contrib.auth import authenticate, login, logout
-from django.contrib.auth.decorators import login_required
+from django.contrib.auth.decorators import login_required, user_passes_test
 from .models import CustomUser
 from django.contrib.auth.models import User
 from django.db import transaction, IntegrityError
@@ -75,16 +75,21 @@ def register(request):
 
 
 
+# Dashboard views
 @login_required
 def admin_dashboard(request):
     return render(request, 'admin_dashboard.html')
-
 
 @login_required
 def user_dashboard(request):
     return render(request, 'user_dashboard.html')
 
+@login_required
+def vendor_dashboard(request):
+    return render(request, 'vendor_dashboard.html')
 
+
+# Login view
 def login_view(request):
     if request.method == "POST":
         email = request.POST.get('email')
@@ -94,13 +99,18 @@ def login_view(request):
 
         if user is not None:
             login(request, user)
+            
+            # Redirect based on role
             if user.is_superuser or user.role == 'admin':
                 return redirect('admin_dashboard')
+            elif user.role == 'vendor':
+                return redirect('vendor_dashboard')
             else:
                 return redirect('user_dashboard')
         else:
             error = "Invalid email or password"
             return render(request, 'login.html', {'error': error})
+
     return render(request, 'login.html')
 
 
@@ -830,3 +840,108 @@ def change_password(request):
         "error_message": error_message,
     }
     return render(request, "change_password.html", context)
+
+def admin_required(user):
+    return user.is_superuser or user.role == 'admin'
+
+# Helper to generate unique username from email
+def generate_username(email):
+    base = email.split('@')[0]
+    rand = ''.join(random.choices(string.digits, k=4))
+    return base + rand
+
+@login_required
+@user_passes_test(admin_required)
+def add_vendor(request):
+    if request.method == "POST":
+        name = request.POST.get("name", "").strip()
+        email = request.POST.get("email", "").strip()
+        password = request.POST.get("password", "").strip()
+        phone = request.POST.get("phone", "").strip()
+        address = request.POST.get("address", "").strip()
+        profile_image = request.FILES.get("profile_image")
+
+        # Split full name
+        first_name = ""
+        last_name = ""
+        if name:
+            parts = name.split(' ', 1)
+            first_name = parts[0]
+            last_name = parts[1] if len(parts) > 1 else ""
+
+        # Check if email already exists
+        if CustomUser.objects.filter(email=email).exists():
+            error_message = "Email already exists."
+            return render(request, "vendor_add.html", {"error_message": error_message})
+
+        try:
+            with transaction.atomic():
+                user = CustomUser.objects.create_user(
+                    username=generate_username(email),
+                    email=email,
+                    password=password,
+                    first_name=first_name,
+                    last_name=last_name,
+                    phone=phone,
+                    address=address,
+                    role='vendor',
+                    is_staff=False
+                )
+                if profile_image:
+                    user.profile_image = profile_image
+                    user.save()
+
+                # ✅ Redirect with success query param
+                return redirect("/vendors/list/?success=1")
+
+        except IntegrityError:
+            error_message = "An error occurred. Try again."
+            return render(request, "vendor_add.html", {"error_message": error_message})
+
+    return render(request, "vendor_add.html")
+
+@login_required
+@user_passes_test(admin_required)
+def vendor_list(request):
+    vendors_qs = CustomUser.objects.filter(role='vendor').order_by('-id')
+
+    search_query = request.GET.get('q', '').strip()
+    if search_query:
+        vendors_qs = vendors_qs.filter(
+            Q(first_name__icontains=search_query) |
+            Q(last_name__icontains=search_query) |
+            Q(email__icontains=search_query)
+        )
+
+    per_page = request.GET.get('per_page', '10')
+    try:
+        per_page = int(per_page)
+        if per_page not in [10, 25, 50, 100]:
+            per_page = 10
+    except (ValueError, TypeError):
+        per_page = 10
+
+    paginator = Paginator(vendors_qs, per_page)
+    page_number = request.GET.get('page')
+    try:
+        vendors = paginator.page(page_number)
+    except PageNotAnInteger:
+        vendors = paginator.page(1)
+    except EmptyPage:
+        vendors = paginator.page(paginator.num_pages)
+
+    # Toastify success messages from query param
+    success_messages = {
+        "1": "Vendor added successfully!",
+        "2": "Vendor updated successfully!",
+        "3": "Vendor deleted successfully!"
+    }
+    success_code = request.GET.get("success")
+    success_message = success_messages.get(success_code, "")
+
+    return render(request, "vendor_list.html", {
+        "vendors": vendors,
+        "per_page": per_page,
+        "search_query": search_query,
+        "success_message": success_message
+    })
