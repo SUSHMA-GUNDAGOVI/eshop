@@ -1,0 +1,112 @@
+{% extends 'admin_base.html' %}
+
+{% block title %}Add New Category{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+
+    <!-- Page Heading -->
+    <div class="d-flex align-items-center justify-content-between mb-3">
+        <h1 class="h3 text-gray-800">Banner Management</h1>
+    </div>
+
+    <!-- Add Banner Form -->
+    <div class="card shadow mb-4">
+        <div class="card-header py-3">
+            <h6 class="m-0 font-weight-bold text-primary">Add Banner</h6>
+        </div>
+        <div class="card-body">
+            {% if error %}
+            <div class="alert alert-danger">{{ error }}</div>
+            {% endif %}
+            {% if success %}
+            <div class="alert alert-success">{{ success }}</div>
+            {% endif %}
+
+            <form method="post" enctype="multipart/form-data">
+                {% csrf_token %}
+
+                {# Title Field #}
+                <div class="form-group">
+                    <label for="id_title">Category Title <span class="text-danger">*</span></label>
+                    <input type="text" class="form-control" id="id_title" name="title" required>
+                </div>
+
+                {# Summary Field #}
+                <div class="form-group">
+                    <label for="id_summary">Summary</label>
+                    <textarea class="form-control" id="id_summary" name="summary" rows="3"></textarea>
+                </div>
+
+                {# Is Parent Checkbox & Dynamic Parent Select #}
+                <div class="form-group">
+                    <div class="custom-control custom-checkbox">
+                        <input type="checkbox" class="custom-control-input" id="id_is_parent" name="is_parent" value="1"
+                            checked>
+                        <label class="custom-control-label" for="id_is_parent">Is Parent Category?</label>
+                    </div>
+                </div>
+
+                {# Parent Category Dropdown (Initially Hidden) #}
+                <div class="form-group" id="parent_category_group" style="display: none;">
+                    <label for="id_parent_id">Select Parent Category <span class="text-danger">*</span></label>
+                    <select class="form-control" id="id_parent_id" name="parent_id">
+                        <option value="">--- Select Parent ---</option>
+                        {# Loop through the active parent categories passed from the view #}
+                        {% for cat in parent_cats %}
+                        <option value="{{ cat.id }}">{{ cat.title }}</option>
+                        {% endfor %}
+                    </select>
+                </div>
+
+                {# Status Field #}
+                <div class="form-group">
+                    <label for="id_status">Status</label>
+                    <select class="form-control" id="id_status" name="status">
+                        <option value="active" selected>Active</option>
+                        <option value="inactive">Inactive</option>
+                    </select>
+                </div>
+
+                {# Photo Upload Field #}
+                <div class="form-group">
+                    <label for="id_photo">Category Image</label>
+                    <input type="file" class="form-control-file" id="id_photo" name="photo" accept="image/*">
+                </div>
+
+                <button type="submit" class="btn btn-success mt-3">💾 Add Category</button>
+                <a href="" class="btn btn-secondary mt-3">Cancel</a>
+            </form>
+        </div>
+    </div>
+</div>
+
+{# JAVASCRIPT FOR DYNAMIC BEHAVIOR #}
+<script>
+    document.addEventListener('DOMContentLoaded', function () {
+        const isParentCheckbox = document.getElementById('id_is_parent');
+        const parentCategoryGroup = document.getElementById('parent_category_group');
+        const parentIdSelect = document.getElementById('id_parent_id');
+
+        // Function to toggle the visibility and requirement of the parent category field
+        function toggleParentField() {
+            if (isParentCheckbox.checked) {
+                // It is a parent category, hide the parent select
+                parentCategoryGroup.style.display = 'none';
+                parentIdSelect.removeAttribute('required'); // Remove required attribute
+            } else {
+                // It is a sub-category, show the parent select
+                parentCategoryGroup.style.display = 'block';
+                parentIdSelect.setAttribute('required', 'required'); // Add required attribute for sub-category
+            }
+        }
+
+        // 1. Initial check when the page loads
+        toggleParentField();
+
+        // 2. Add event listener to the checkbox
+        isParentCheckbox.addEventListener('change', toggleParentField);
+    });
+</script>
+
+{% endblock %}

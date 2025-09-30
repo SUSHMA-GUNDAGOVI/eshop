@@ -1,0 +1,179 @@
+{% extends 'admin_base.html' %}
+
+{% block title %}Add New Product{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+
+    <!-- Page Heading -->
+    <div class="d-flex align-items-center justify-content-between mb-3">
+        <h1 class="h3 text-gray-800">Product Management</h1>
+    </div>
+
+    <!-- Add Brand Form -->
+    <div class="card shadow mb-4">
+        <div class="card-header py-3">
+            <h6 class="m-0 font-weight-bold text-primary">Add Product</h6>
+        </div>
+        <div class="card-body">
+            {% if error_message %}
+            <div class="alert alert-danger">{{ error_message }}</div>
+            {% endif %}
+            {% if success_message %}
+            <div class="alert alert-success">{{ success_message }}</div>
+            {% endif %}
+
+            <form method="post" enctype="multipart/form-data">
+                {% csrf_token %}
+
+                <div class="form-group">
+                    <label for="inputTitle">Title <span class="text-danger">*</span></label>
+                    <input id="inputTitle" type="text" name="title" placeholder="Enter title"
+                        value="{{ request.POST.title }}" class="form-control">
+                </div>
+
+                <!-- Summary -->
+                <div class="form-group">
+                    <label for="summary">Summary <span class="text-danger">*</span></label>
+                    <textarea class="form-control" id="summary" name="summary">{{ request.POST.summary }}</textarea>
+                </div>
+
+                <!-- Description -->
+                <div class="form-group">
+                    <label for="description">Description</label>
+                    <textarea class="form-control" id="description"
+                        name="description">{{ request.POST.description }}</textarea>
+                </div>
+
+                <!-- Featured -->
+               <div class="form-group">
+    <label for="is_featured">Is Featured</label><br>
+    <input type="checkbox" name="is_featured" id="is_featured" value="1" {% if request.POST.is_featured %}checked{% endif %}> Yes
+</div>
+                <!-- Category -->
+                <div class="form-group">
+                    <label for="cat_id">Category <span class="text-danger">*</span></label>
+                    <select name="cat_id" id="cat_id" class="form-control">
+                        <option value="">--Select any category--</option>
+                        {% for cat in categories %}
+                        <option value="{{ cat.id }}">{{ cat.title }}</option>
+                        {% endfor %}
+                    </select>
+                </div>
+
+                <!-- Sub Category -->
+                <div class="form-group d-none" id="child_cat_div">
+                    <label for="child_cat_id">Sub Category</label>
+                    <select name="child_cat_id" id="child_cat_id" class="form-control">
+                        <option value="">--Select any sub category--</option>
+                    </select>
+                </div>
+
+                <!-- Price -->
+                <div class="form-group">
+                    <label for="price">Price (₹) <span class="text-danger">*</span></label>
+                    <input id="price" type="number" name="price" placeholder="Enter price"
+                        value="{{ request.POST.price }}" class="form-control">
+                </div>
+
+                <!-- Discount -->
+                <div class="form-group">
+                    <label for="discount">Discount (%)</label>
+                    <input id="discount" type="number" name="discount" min="0" max="100" placeholder="Enter discount"
+                        value="{{ request.POST.discount }}" class="form-control">
+                </div>
+
+                <!-- Size -->
+                <div class="form-group">
+                    <label for="size">Size</label>
+                    <select name="size" class="form-control">
+                        <option value="">--Select any size--</option>
+                        <option value="S">Small (S)</option>
+                        <option value="M">Medium (M)</option>
+                        <option value="L">Large (L)</option>
+                        <option value="XL">Extra Large (XL)</option>
+                    </select>
+                </div>
+
+                <!-- Brand -->
+                <div class="form-group">
+                    <label for="brand_id">Brand</label>
+                    <select name="brand_id" class="form-control">
+                        <option value="">--Select Brand--</option>
+                        {% for brand in brands %}
+                        <option value="{{ brand.id }}">{{ brand.title }}</option>
+                        {% endfor %}
+                    </select>
+                </div>
+
+                <!-- Condition -->
+                <div class="form-group">
+                    <label for="condition">Condition</label>
+                    <select name="condition" class="form-control">
+                        <option value="">--Select Condition--</option>
+                        <option value="default">Default</option>
+                        <option value="new">New</option>
+                        <option value="hot">Hot</option>
+                    </select>
+                </div>
+
+                <!-- Quantity -->
+                <div class="form-group">
+                    <label for="stock">Quantity <span class="text-danger">*</span></label>
+                    <input id="quantity" type="number" name="stock" min="0" placeholder="Enter quantity"
+                        value="{{ request.POST.stock }}" class="form-control">
+                </div>
+
+                <!-- Photo -->
+                <div class="form-group">
+                    <label for="photo">Upload Photo/Video <span class="text-danger">*</span></label>
+                    <input id="photo" class="form-control" type="file" name="photo">
+                </div>
+
+                <!-- Status -->
+                <div class="form-group">
+                    <label for="status">Status <span class="text-danger">*</span></label>
+                    <select name="status" class="form-control">
+                        <option value="active">Active</option>
+                        <option value="inactive">Inactive</option>
+                    </select>
+                </div>
+                <button type="submit" class="btn btn-success mt-3">💾 Save Product</button>
+                <a href="{% url 'product_list' %}" class="btn btn-secondary mt-3">Cancel</a>
+            </form>
+        </div>
+    </div>
+</div>
+
+<script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+<script>
+$(document).ready(function() {
+    $("#cat_id").change(function() {
+        var parent_id = $(this).val();
+        if(parent_id) {
+            $.ajax({
+                url: "{% url 'get_child_categories' %}",
+                data: { parent_id: parent_id },
+                dataType: "json",
+                success: function(response) {
+                    var childCatSelect = $("#child_cat_id");
+                    childCatSelect.empty(); // Clear old options
+                    if(response.child_categories.length > 0){
+                        $("#child_cat_div").removeClass("d-none");
+                        childCatSelect.append('<option value="">--Select any sub category--</option>');
+                        $.each(response.child_categories, function(i, cat) {
+                            childCatSelect.append('<option value="'+cat.id+'">'+cat.title+'</option>');
+                        });
+                    } else {
+                        $("#child_cat_div").addClass("d-none");
+                    }
+                }
+            });
+        } else {
+            $("#child_cat_div").addClass("d-none");
+        }
+    });
+});
+</script>
+
+{% endblock %}
