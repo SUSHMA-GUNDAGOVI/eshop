@@ -5,9 +5,6 @@
             <!-- API banners will be injected here -->
         </div>
 
-        <!-- Static Shop Now button -->
-        <a href="#" class="btn shop-now-btn">Shop Now</a>
-
         <button class="carousel-control-prev" type="button" data-bs-target="#carouselId" data-bs-slide="prev">
             <span class="carousel-control-prev-icon" aria-hidden="true"></span>
             <span class="visually-hidden">Previous</span>
@@ -35,15 +32,17 @@
     height: 100%;
 }
 
-/* Caption directly on image */
+/* Centered caption on image */
 #carouselId .carousel-caption {
     position: absolute;
     top: 50%;
-    left: 10%;
-    transform: translateY(-50%);
-    text-align: left;
-    max-width: 45%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    text-align: center;
+    width: 80%;
+    max-width: 700px;
     text-shadow: 1px 1px 6px rgba(0,0,0,0.6);
+    color: #fff;
 }
 
 /* Title style */
@@ -57,14 +56,12 @@
 /* Description style */
 #carouselId .carousel-caption p {
     font-size: 1.2rem;
-    margin-bottom: 15px;
+    margin-bottom: 20px;
 }
 
-/* Static Shop Now button */
-.shop-now-btn {
-    position: absolute;
-    bottom: 30px;
-    left: 10%;
+/* Shop Now button inside caption - fixed in place */
+#carouselId .carousel-caption .shop-now-btn {
+    margin-top: 30px;
     padding: 12px 25px;
     font-size: 1rem;
     background: #ff6b6b;
@@ -72,13 +69,12 @@
     border: none;
     border-radius: 50px;
     text-transform: uppercase;
-    transition: all 0.3s ease;
-    z-index: 10;
+    transition: background 0.3s ease; /* only background changes */
+    display: inline-block;
 }
 
-.shop-now-btn:hover {
-    background: #f06595;
-    transform: scale(1.05);
+#carouselId .carousel-caption .shop-now-btn:hover {
+    background: #f06595; /* no scale, so it never moves */
 }
 
 /* Carousel controls bigger and more visible */
@@ -90,9 +86,8 @@
 /* Responsive adjustments */
 @media (max-width: 768px) {
     #carouselId .carousel-caption {
-        max-width: 80%;
-        left: 5%;
-        transform: translateY(-50%);
+        width: 90%;
+        max-width: 90%;
     }
     #carouselId .carousel-caption h5 {
         font-size: 1.8rem;
@@ -100,17 +95,14 @@
     #carouselId .carousel-caption p {
         font-size: 1rem;
     }
-    .shop-now-btn {
-        left: 5%;
-        bottom: 20px;
+    #carouselId .carousel-caption .shop-now-btn {
         padding: 10px 20px;
+        font-size: 0.9rem;
     }
 }
 </style>
 
 <script>
-const shopBtn = document.querySelector('.shop-now-btn');
-
 fetch('http://127.0.0.1:8000/orders/banners/')
     .then(response => response.json())
     .then(data => {
@@ -130,39 +122,17 @@ fetch('http://127.0.0.1:8000/orders/banners/')
                 <div class="carousel-caption d-none d-md-block" style="color:${textColor}">
                     <h5>${banner.title}</h5>
                     <p>${banner.description}</p>
+                    <a href="${banner.link || '#'}" 
+                       class="btn shop-now-btn" 
+                       style="background:${btnColor};color:#fff;"
+                       onmouseover="this.style.background='${btnHover}'"
+                       onmouseout="this.style.background='${btnColor}'">
+                       Shop Now
+                    </a>
                 </div>
             `;
 
             carouselInner.appendChild(carouselItem);
-
-            // Set initial button for first slide
-            if(index === 0){
-                shopBtn.style.background = btnColor;
-                shopBtn.href = banner.link || '#';
-                shopBtn.onmouseover = () => shopBtn.style.background = btnHover;
-                shopBtn.onmouseout = () => shopBtn.style.background = btnColor;
-                shopBtn.style.color = '#fff';
-            }
-        });
-
-        // Change button & caption color on slide change
-        const carouselEl = document.getElementById('carouselId');
-        carouselEl.addEventListener('slid.bs.carousel', (e) => {
-            const currentIndex = e.to;
-            const currentBanner = data[currentIndex];
-            const textColor = currentBanner.text_color || '#fff';
-            const btnColor = currentBanner.button_color || '#ff6b6b';
-            const btnHover = currentBanner.button_hover || '#f06595';
-
-            // Change Shop Now button
-            shopBtn.href = currentBanner.link || '#';
-            shopBtn.style.background = btnColor;
-            shopBtn.onmouseover = () => shopBtn.style.background = btnHover;
-            shopBtn.onmouseout = () => shopBtn.style.background = btnColor;
-
-            // Change caption text color
-            const caption = carouselInner.children[currentIndex].querySelector('.carousel-caption');
-            caption.style.color = textColor;
         });
     })
     .catch(error => console.error('Error fetching banners:', error));
