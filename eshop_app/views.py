@@ -17,6 +17,7 @@ from django.db import transaction
 from .models import SiteSettings 
 from django.core.files.storage import default_storage
 from django.contrib.auth import update_session_auth_hash
+from django.contrib.auth import logout
 
 
 
@@ -1182,3 +1183,7 @@ def vendor_list(request):
         "search_query": search_query,
         "success_message": success_message
     })
+
+def custom_logout(request):
+    logout(request)  # End session
+    return redirect('login')  # Redirect to login page

@@ -35,6 +35,32 @@ class ProductListAPI(APIView):
     
 class CategoryListAPI(APIView):
     def get(self, request):
-        categories = Category.objects.filter(status='active').order_by('title')
+        # Fetch only active parent categories that have a photo
+        categories = Category.objects.filter(
+            status='active',
+            is_parent=True
+        ).exclude(photo='')  # exclude empty photo fields
+        # Optionally also exclude null
+        categories = categories.exclude(photo__isnull=True)
+
         serializer = CategorySerializer(categories, many=True, context={'request': request})
         return Response(serializer.data, status=status.HTTP_200_OK)
+    
+    
+class SubCategoryListAPI(APIView):
+    def get(self, request, category_id):
+        """
+        Fetch all active subcategories of a given parent category.
+        Only return subcategories that have an image.
+        """
+        subcategories = Category.objects.filter(
+            status='active',
+            is_parent=False,
+            parent_id=category_id
+        ).exclude(photo='').exclude(photo__isnull=True).order_by('title')
+
+        serializer = CategorySerializer(subcategories, many=True, context={'request': request})
+        # Remove None items from serializer (to_representation may return None)
+        data = [item for item in serializer.data if item is not None]
+
+        return Response(data, status=status.HTTP_200_OK)
