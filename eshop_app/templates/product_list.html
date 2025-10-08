@@ -78,10 +78,18 @@
     </td>
     <td>{{ product.price|floatformat:2 }}</td>
     <td>
+    {% if user.is_superuser or user.is_staff %}
+        <a href="{% url 'product_toggle_status' product.id %}?{{ request.GET.urlencode }}" 
+           class="badge text-white text-decoration-none {% if product.status == 'active' %}bg-success{% else %}bg-danger{% endif %}"
+           title="Click to change status to ...">
+            {{ product.status|title }}
+        </a>
+    {% else %}
         <span class="badge text-white {% if product.status == 'active' %}bg-success{% else %}bg-danger{% endif %}">
             {{ product.status|title }}
         </span>
-    </td>
+    {% endif %}
+</td>
    <td>
     {% if product.photo %}
         {% with url=product.photo.url|lower %}

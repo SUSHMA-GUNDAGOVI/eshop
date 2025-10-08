@@ -1,0 +1,104 @@
+{% extends "admin_base.html" %}
+{% block title %}Edit Category - E-Shop{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+    <!-- Page Heading -->
+    <div class="d-flex align-items-center justify-content-between mb-3">
+        <h1 class="h3 text-gray-800">Edit Category</h1>
+    </div>
+
+    <!-- Edit Category Form -->
+    <div class="card shadow mb-4">
+        <div class="card-header py-3">
+            <h6 class="m-0 font-weight-bold text-primary">Edit Category</h6>
+        </div>
+        <div class="card-body">
+            {% if error_message %}
+            <div class="alert alert-danger">{{ error_message }}</div>
+            {% endif %}
+            {% if success_message %}
+            <div class="alert alert-success">{{ success_message }}</div>
+            {% endif %}
+
+            <form method="post" enctype="multipart/form-data">
+                {% csrf_token %}
+
+                <div class="form-group">
+                    <label for="inputTitle">Title <span class="text-danger">*</span></label>
+                    <input id="inputTitle" type="text" name="title" placeholder="Enter title"
+                        value="{{ category.title }}" class="form-control" required>
+                </div>
+
+                <div class="form-group">
+                    <label for="summary">Summary</label>
+                    <textarea class="form-control" id="summary" name="summary">{{ category.summary }}</textarea>
+                </div>
+
+                <div class="form-group">
+                    <label for="is_parent">Is Parent Category</label><br>
+                    <input type="checkbox" name="is_parent" id="is_parent" value="1" 
+                           {% if category.is_parent %}checked{% endif %} 
+                           onchange="toggleParentSelect()"> Yes
+                </div>
+
+                <div class="form-group" id="parentCategoryGroup" 
+                     {% if category.is_parent %}style="display: none;"{% endif %}>
+                    <label for="parent_id">Parent Category</label>
+                    <select name="parent_id" id="parent_id" class="form-control">
+                        <option value="">--Select parent category--</option>
+                        {% for cat in parent_cats %}
+                        <option value="{{ cat.id }}" 
+                                {% if category.parent_id == cat.id %}selected{% endif %}>
+                            {{ cat.title }}
+                        </option>
+                        {% endfor %}
+                    </select>
+                </div>
+
+                <div class="form-group">
+                    <label for="status">Status <span class="text-danger">*</span></label>
+                    <select name="status" class="form-control" required>
+                        <option value="active" {% if category.status == 'active' %}selected{% endif %}>Active</option>
+                        <option value="inactive" {% if category.status == 'inactive' %}selected{% endif %}>Inactive</option>
+                    </select>
+                </div>
+
+                <div class="form-group">
+                    <label for="photo">Category Image</label>
+                    <input id="photo" type="file" name="photo" class="form-control-file">
+                    {% if category.photo %}
+                    <img src="{{ category.photo.url }}" alt="{{ category.title }}" class="img-thumbnail mt-2"
+                        style="max-width: 150px;">
+                    {% endif %}
+                    <small class="form-text text-muted">Leave blank to keep current image.</small>
+                </div>
+
+                <button type="submit" class="btn btn-success mt-3">💾 Update Category</button>
+                <a href="{% url 'category_list' %}" class="btn btn-secondary mt-3">Cancel</a>
+            </form>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+    function toggleParentSelect() {
+        const isParent = document.getElementById('is_parent').checked;
+        const parentGroup = document.getElementById('parentCategoryGroup');
+        
+        if (isParent) {
+            parentGroup.style.display = 'none';
+            document.getElementById('parent_id').value = '';
+        } else {
+            parentGroup.style.display = 'block';
+        }
+    }
+
+    // Initialize on page load
+    document.addEventListener('DOMContentLoaded', function() {
+        toggleParentSelect();
+    });
+</script>
+{% endblock %}

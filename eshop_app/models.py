@@ -1,4 +1,4 @@
-from django.contrib.auth.models import AbstractUser
+from django.contrib.auth.models import User, AbstractUser
 from django.db import models
 from django.conf import settings  # import this
 from django.utils import timezone
@@ -103,8 +103,9 @@ class Product(models.Model):
     photo = models.ImageField(upload_to="products/")
     status = models.CharField(max_length=10, choices=[('active', 'Active'), ('inactive', 'Inactive')], default="active")
 
+    user = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.SET_NULL, null=True, related_name="products_created")
     created_at = models.DateTimeField(auto_now_add=True)
-
+    
     def __str__(self):
         return self.title
 

@@ -1,5 +1,5 @@
 {% extends "admin_base.html" %}
-{% block title %}Category List{% endblock %}
+{% block title %}product List{% endblock %}
 {% block content %}
 
 <div class="container-fluid my-4">
@@ -93,8 +93,8 @@
                             </td>
                             <td>{{ category.created_at|date:"d M Y H:i" }}</td>
                             <td style="white-space: nowrap;">
-    <a href="" class="btn btn-sm btn-primary"><i class="fas fa-edit"></i></a>
-    <a href="" class="btn btn-sm btn-danger" onclick="return confirm('Are you sure?');">
+    <a href="{% url 'category_edit' category.id %}" class="btn btn-sm btn-primary"><i class="fas fa-edit"></i></a>
+    <a href="{% url 'category_delete' category.id %}" class="btn btn-sm btn-danger" onclick="return confirm('Are you sure?');">
         <i class="fas fa-trash-alt"></i>
     </a>
 </td>

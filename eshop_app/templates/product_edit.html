@@ -1,0 +1,203 @@
+{% extends 'admin_base.html' %}
+
+{% block title %}Edit Product: {{ product.title }}{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+
+    <div class="d-flex align-items-center justify-content-between mb-3">
+        <h1 class="h3 text-gray-800">Product Management</h1>
+    </div>
+
+    <div class="card shadow mb-4">
+        <div class="card-header py-3">
+            <h6 class="m-0 font-weight-bold text-primary">Edit Product: {{ product.title }}</h6>
+        </div>
+        <div class="card-body">
+            {% if error_message %}
+            <div class="alert alert-danger">{{ error_message }}</div>
+            {% endif %}
+
+            <form method="post" enctype="multipart/form-data" action="{% url 'product_edit' product.id %}">
+                {% csrf_token %}
+
+                <div class="form-group">
+                    <label for="inputTitle">Title <span class="text-danger">*</span></label>
+                    <input id="inputTitle" type="text" name="title" placeholder="Enter title"
+                        value="{% if request.POST.title %}{{ request.POST.title }}{% else %}{{ product.title }}{% endif %}" 
+                        class="form-control" required>
+                </div>
+
+                <div class="form-group">
+                    <label for="summary">Summary <span class="text-danger">*</span></label>
+                    <textarea class="form-control" id="summary" name="summary" required>{% if request.POST.summary %}{{ request.POST.summary }}{% else %}{{ product.summary }}{% endif %}</textarea>
+                </div>
+
+                <div class="form-group">
+                    <label for="description">Description</label>
+                    <textarea class="form-control" id="description" name="description">{% if request.POST.description %}{{ request.POST.description }}{% else %}{{ product.description }}{% endif %}</textarea>
+                </div>
+
+                <div class="form-group">
+                    <label for="is_featured">Is Featured</label><br>
+                    <input type="checkbox" name="is_featured" id="is_featured" value="1" 
+                           {% if request.POST.is_featured or product.is_featured %}checked{% endif %}> Yes
+                </div>
+
+                <div class="form-group">
+                    <label for="cat_id">Category <span class="text-danger">*</span></label>
+                    <select name="cat_id" id="cat_id" class="form-control" required>
+                        <option value="">--Select any category--</option>
+                        {% for cat in categories %}
+                        <option value="{{ cat.id }}" 
+                            {% if product.category.id == cat.id %}selected{% endif %}>{{ cat.title }}</option>
+                        {% endfor %}
+                    </select>
+                </div>
+
+                <div class="form-group {% if not product.child_category %}d-none{% endif %}" id="child_cat_div">
+                    <label for="child_cat_id">Sub Category</label>
+                    <select name="child_cat_id" id="child_cat_id" class="form-control">
+                        {% if product.child_category %}
+                            <option value="{{ product.child_category.id }}" selected>{{ product.child_category.title }}</option>
+                        {% endif %}
+                    </select>
+                </div>
+
+                <div class="form-group">
+                    <label for="price">Price (₹) <span class="text-danger">*</span></label>
+                    <input id="price" type="number" name="price" placeholder="Enter price"
+                        value="{% if request.POST.price %}{{ request.POST.price }}{% else %}{{ product.price|default_if_none:'' }}{% endif %}" 
+                        class="form-control" required>
+                </div>
+
+                <div class="form-group">
+                    <label for="discount">Discount (%)</label>
+                    <input id="discount" type="number" name="discount" min="0" max="100" placeholder="Enter discount"
+                        value="{% if request.POST.discount %}{{ request.POST.discount }}{% else %}{{ product.discount|default:0 }}{% endif %}" 
+                        class="form-control">
+                </div>
+
+                <div class="form-group">
+                    <label for="size">Size</label>
+                    <select name="size" class="form-control">
+                        <option value="">--Select any size--</option>
+                        {% for s in sizes %} 
+                        <option value="{{ s }}" {% if product.size == s %}selected{% endif %}>{{ s }}</option>
+                        {% endfor %}
+                    </select>
+                </div>
+
+                <div class="form-group">
+                    <label for="brand_id">Brand</label>
+                    <select name="brand_id" class="form-control">
+                        <option value="">--Select Brand--</option>
+                        {% for brand in brands %}
+                        <option value="{{ brand.id }}" {% if product.brand.id == brand.id %}selected{% endif %}>{{ brand.title }}</option>
+                        {% endfor %}
+                    </select>
+                </div>
+
+                <div class="form-group">
+                    <label for="condition">Condition</label>
+                     <select name="condition" class="form-control">
+        <option value="">--Select Condition--</option>
+        
+        {% for cond in conditions %} 
+        <option value="{{ cond }}" 
+            {% if product.condition == cond %}selected{% endif %}>
+            {{ cond|title }}
+        </option>
+        {% endfor %}
+    </select>
+                </div>
+
+                <div class="form-group">
+                    <label for="stock">Quantity <span class="text-danger">*</span></label>
+                    <input id="stock" type="number" name="stock" min="0" placeholder="Enter quantity"
+                        value="{% if request.POST.stock %}{{ request.POST.stock }}{% else %}{{ product.stock|default_if_none:'' }}{% endif %}" 
+                        class="form-control" required>
+                </div>
+
+                <div class="mb-3">
+                    <label>Current Photo/Video</label><br>
+                    {% if product.photo %}
+                        {% if product.photo.url|lower|slice:"-4:" == '.mp4' or product.photo.url|lower|slice:"-5:" == '.webm' %}
+                            <video width="320" height="240" controls><source src="{{ product.photo.url }}" type="video/mp4"></video>
+                        {% else %}
+                            <img src="{{ product.photo.url }}" width="150" class="img-thumbnail">
+                        {% endif %}
+                    {% else %}
+                        <p>No current file uploaded.</p>
+                    {% endif %}
+                </div>
+
+                <div class="form-group">
+                    <label for="photo">Change Photo/Video</label>
+                    <input id="photo" class="form-control" type="file" name="photo">
+                    <small class="form-text text-muted">Leave blank to keep current file.</small>
+                </div>
+
+                <div class="form-group d-none">
+                    <label for="status">Status <span class="text-danger">*</span></label>
+                    <select name="status" class="form-control">
+                        <option value="active" {% if product.status == 'active' %}selected{% endif %}>Active</option>
+                        <option value="inactive" {% if product.status == 'inactive' %}selected{% endif %}>Inactive</option>
+                    </select>
+                </div>
+
+                <button type="submit" class="btn btn-primary mt-3">✅ Update Product</button>
+                <a href="{% url 'product_list' %}" class="btn btn-secondary mt-3">Cancel</a>
+            </form>
+        </div>
+    </div>
+</div>
+
+<script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+<script>
+$(document).ready(function() {
+    
+    // Function to load child categories via AJAX
+    function loadChildCategories(parent_id, child_cat_id_to_select) {
+        if(parent_id) {
+            $.ajax({
+                url: "{% url 'get_child_categories' %}", // Ensure this URL is defined in urls.py
+                data: { parent_id: parent_id },
+                dataType: "json",
+                success: function(response) {
+                    var childCatSelect = $("#child_cat_id");
+                    childCatSelect.empty();
+                    
+                    if(response.child_categories.length > 0){
+                        $("#child_cat_div").removeClass("d-none");
+                        childCatSelect.append('<option value="">--Select any sub category--</option>');
+                        $.each(response.child_categories, function(i, cat) {
+                            var is_selected = (cat.id == child_cat_id_to_select);
+                            childCatSelect.append('<option value="'+cat.id+'" ' + (is_selected ? 'selected' : '') + '>'+cat.title+'</option>');
+                        });
+                    } else {
+                        $("#child_cat_div").addClass("d-none");
+                    }
+                }
+            });
+        } else {
+            $("#child_cat_div").addClass("d-none");
+        }
+    }
+    
+    // 1. Initial Load: Check if a parent category is already selected and load children
+    var initialParentId = $("#cat_id").val();
+    var initialChildId = "{{ product.child_category.id|default:'' }}";
+    if (initialParentId) {
+        // If a child category exists, make sure to pass its ID to pre-select it
+        loadChildCategories(initialParentId, initialChildId);
+    }
+    
+    // 2. Change Event: Handle when the parent category is changed
+    $("#cat_id").change(function() {
+        var parent_id = $(this).val();
+        loadChildCategories(parent_id, ''); // Don't pre-select any child on manual change
+    });
+});
+</script>
+{% endblock %}

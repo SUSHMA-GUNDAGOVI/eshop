@@ -45,15 +45,115 @@
                 <div class="container-fluid">
 
                     <!-- Page Heading -->
-                    <h1 class="h3 mb-4 text-gray-800">Welcome to your Dashboard 🎉</h1>
+                    <div class="d-sm-flex align-items-center justify-content-between mb-4">
+                        <h1 class="h3 mb-0 text-gray-800">Dashboard Overview</h1>
+                        <a href="#" class="d-none d-sm-inline-block btn btn-sm btn-primary shadow-sm">
+                            <i class="fas fa-download fa-sm text-white-50"></i> Generate Report
+                        </a>
+                    </div>
 
+                    <!-- Content Row -->
                     <div class="row">
 
-                        <!-- Example Card -->
-                        <div class="col-lg-6">
+                        <!-- Total Users Card -->
+                        <div class="col-xl-3 col-md-6 mb-4">
+                            <div class="card border-left-primary shadow h-100 py-2">
+                                <div class="card-body">
+                                    <div class="row no-gutters align-items-center">
+                                        <div class="col mr-2">
+                                            <div class="text-xs font-weight-bold text-primary text-uppercase mb-1">
+                                                Total Users</div>
+                                            <div class="h5 mb-0 font-weight-bold text-gray-800">{{ total_users }}</div>
+                                        </div>
+                                        <div class="col-auto">
+                                            <i class="fas fa-users fa-2x text-gray-300"></i>
+                                        </div>
+                                    </div>
+                                    <div class="mt-2">
+                                        <a href="{% url 'user_list' %}" class="text-xs text-primary">
+                                            View All Users <i class="fas fa-arrow-right"></i>
+                                        </a>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Total Vendors Card -->
+                        <div class="col-xl-3 col-md-6 mb-4">
+                            <div class="card border-left-success shadow h-100 py-2">
+                                <div class="card-body">
+                                    <div class="row no-gutters align-items-center">
+                                        <div class="col mr-2">
+                                            <div class="text-xs font-weight-bold text-success text-uppercase mb-1">
+                                                Total Vendors</div>
+                                            <div class="h5 mb-0 font-weight-bold text-gray-800">{{ total_vendors }}</div>
+                                        </div>
+                                        <div class="col-auto">
+                                            <i class="fas fa-store fa-2x text-gray-300"></i>
+                                        </div>
+                                    </div>
+                                    <div class="mt-2">
+                                        <a href="{% url 'vendor_list' %}" class="text-xs text-success">
+                                            View All Vendors <i class="fas fa-arrow-right"></i>
+                                        </a>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Total Products Card -->
+                        <div class="col-xl-3 col-md-6 mb-4">
+                            <div class="card border-left-info shadow h-100 py-2">
+                                <div class="card-body">
+                                    <div class="row no-gutters align-items-center">
+                                        <div class="col mr-2">
+                                            <div class="text-xs font-weight-bold text-info text-uppercase mb-1">
+                                                Total Products</div>
+                                            <div class="h5 mb-0 font-weight-bold text-gray-800">{{ total_products }}</div>
+                                        </div>
+                                        <div class="col-auto">
+                                            <i class="fas fa-box fa-2x text-gray-300"></i>
+                                        </div>
+                                    </div>
+                                    <div class="mt-2">
+                                        <a href="{% url 'product_list' %}" class="text-xs text-info">
+                                            View All Products <i class="fas fa-arrow-right"></i>
+                                        </a>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Total Brands Card -->
+                        <div class="col-xl-3 col-md-6 mb-4">
+                            <div class="card border-left-warning shadow h-100 py-2">
+                                <div class="card-body">
+                                    <div class="row no-gutters align-items-center">
+                                        <div class="col mr-2">
+                                            <div class="text-xs font-weight-bold text-warning text-uppercase mb-1">
+                                                Total Brands</div>
+                                            <div class="h5 mb-0 font-weight-bold text-gray-800">{{ total_brands }}</div>
+                                        </div>
+                                        <div class="col-auto">
+                                            <i class="fas fa-tags fa-2x text-gray-300"></i>
+                                        </div>
+                                    </div>
+                                    <div class="mt-2">
+                                        <a href="{% url 'brand_list' %}" class="text-xs text-warning">
+                                            View All Brands <i class="fas fa-arrow-right"></i>
+                                        </a>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Welcome Card -->
+                    <div class="row">
+                        <div class="col-lg-12">
                             <div class="card shadow mb-4">
                                 <div class="card-header py-3">
-                                    <h6 class="m-0 font-weight-bold text-primary">Quick Overview</h6>
+                                    <h6 class="m-0 font-weight-bold text-primary">Welcome to Admin Dashboard 🎉</h6>
                                 </div>
                                 <div class="card-body">
                                     <p>
@@ -63,10 +163,39 @@
                                         Use the sidebar to navigate between different sections.  
                                         You can manage your profile, view reports, and explore other features.
                                     </p>
+                                    <div class="row mt-4">
+                                        <div class="col-md-3 text-center">
+                                            <div class="text-primary">
+                                                <i class="fas fa-users fa-2x"></i>
+                                                <p class="mt-2 mb-0">Manage Users</p>
+                                                <small>{{ total_users }} Users</small>
+                                            </div>
+                                        </div>
+                                        <div class="col-md-3 text-center">
+                                            <div class="text-success">
+                                                <i class="fas fa-store fa-2x"></i>
+                                                <p class="mt-2 mb-0">Manage Vendors</p>
+                                                <small>{{ total_vendors }} Vendors</small>
+                                            </div>
+                                        </div>
+                                        <div class="col-md-3 text-center">
+                                            <div class="text-info">
+                                                <i class="fas fa-box fa-2x"></i>
+                                                <p class="mt-2 mb-0">Manage Products</p>
+                                                <small>{{ total_products }} Products</small>
+                                            </div>
+                                        </div>
+                                        <div class="col-md-3 text-center">
+                                            <div class="text-warning">
+                                                <i class="fas fa-tags fa-2x"></i>
+                                                <p class="mt-2 mb-0">Manage Brands</p>
+                                                <small>{{ total_brands }} Brands</small>
+                                            </div>
+                                        </div>
+                                    </div>
                                 </div>
                             </div>
                         </div>
-
                     </div>
 
                 </div>

@@ -73,6 +73,79 @@ def register(request):
 
     return render(request, "register.html")
 
+# Edit User Profile (Admin/Staff only)
+def edit_user(request, user_id):
+    user = get_object_or_404(CustomUser, id=user_id)
+    
+    if request.method == "POST":
+        name = request.POST.get('name')
+        email = request.POST.get('email')
+        phone = request.POST.get('phone')
+        address = request.POST.get('address')
+        profile_image = request.FILES.get('profile_image')
+        
+        # Optional: Password update
+        new_password = request.POST.get('new_password')
+        confirm_password = request.POST.get('confirm_password')
+
+        # Split full name into first and last name
+        first_name = ""
+        last_name = ""
+        if name:
+            parts = name.strip().split(' ', 1)
+            first_name = parts[0]
+            last_name = parts[1] if len(parts) > 1 else ""
+
+        try:
+            with transaction.atomic():
+                # Check if email already exists (excluding current user)
+                if CustomUser.objects.filter(email=email).exclude(id=user.id).exists():
+                    messages.error(request, "Email already exists.")
+                    return render(request, "edit_user.html", {"user": user})
+
+                # Update user details
+                user.first_name = first_name
+                user.last_name = last_name
+                user.email = email
+                user.username = email
+                user.phone = phone
+                user.address = address
+
+                # Handle profile image
+                if profile_image:
+                    user.profile_image = profile_image
+
+                # Handle password change if provided
+                if new_password:
+                    if new_password == confirm_password:
+                        user.set_password(new_password)
+                    else:
+                        messages.error(request, "Passwords do not match.")
+                        return render(request, "edit_user.html", {"user": user})
+
+                user.save()
+
+                # Redirect with success code 2 (User updated successfully)
+                return redirect(f"{reverse('user_list')}?success=2")
+
+        except Exception as e:
+            messages.error(request, f"Error updating user: {str(e)}")
+            return render(request, "edit_user.html", {"user": user})
+
+    # Pre-fill the name field by combining first and last name
+    full_name = f"{user.first_name} {user.last_name}".strip()
+    
+    context = {
+        'user': user,
+        'full_name': full_name
+    }
+    return render(request, "edit_user.html", context)
+
+
+def delete_user(request, user_id):
+    user = get_object_or_404(CustomUser, id=user_id)
+    user.delete()
+    return redirect(f"{reverse('user_list')}?success=3")
 
 
 # Dashboard views
@@ -117,6 +190,8 @@ def login_view(request):
 def logout_view(request):
     logout(request)
     return redirect('login')
+
+
 
 # Add Banner
 def add_banner(request):
@@ -478,7 +553,8 @@ def product_add(request):
             condition=condition,
             stock=stock,
             status=status,
-            photo=photo
+            photo=photo,
+            user=request.user 
         )
 
         return redirect(f"{reverse('product_list')}?success=1")
@@ -494,6 +570,9 @@ def product_edit(request, pk):
     product = get_object_or_404(Product, pk=pk)
     categories = Category.objects.filter(parent__isnull=True, status="active")
     brands = Brand.objects.filter(status="active")
+ # Define the lists for the template
+    AVAILABLE_SIZES = ['S', 'M', 'L', 'XL']
+    AVAILABLE_CONDITIONS = ['default', 'new', 'hot'] # Define conditions list too
 
     if request.method == "POST":
         product.title = request.POST.get("title")
@@ -535,7 +614,34 @@ def product_edit(request, pk):
         "product": product,
         "categories": categories,
         "brands": brands,
+         "sizes": AVAILABLE_SIZES,
+        "conditions": AVAILABLE_CONDITIONS,
     })
+
+def product_toggle_status(request, pk):
+    # Security Check: Only Admin/Staff can toggle status
+    if not request.user.is_staff and not request.user.is_superuser:
+        raise PermissionDenied("You do not have permission to change product status.")
+
+    product = get_object_or_404(Product, pk=pk)
+
+    # Toggle the status
+    if product.status == 'active':
+        product.status = 'inactive'
+        success_code = "4" # Deactivation message
+    else:
+        product.status = 'active'
+        success_code = "5" # Activation message
+
+    product.save()
+
+    # Redirect back to the product list, preserving URL parameters
+    redirect_url = f"{reverse('product_list')}?success={success_code}"
+    query_params = request.GET.urlencode()
+    if query_params:
+        redirect_url += f"&{query_params}"
+        
+    return redirect(redirect_url)
 
 
 # ✅ Delete Product
@@ -545,11 +651,33 @@ def product_delete(request, pk):
     return redirect(f"{reverse('product_list')}?success=3")
 
 
-# ✅ List Products with Search + Pagination
 def product_list(request):
+    # 1. Initialize QuerySet
+    # Start with all products, ordered by descending ID (newest first)
     products_list = Product.objects.all().order_by("-id")
 
-    # Search filter
+    # --- 2. ROLE-BASED FILTERING ---
+    user = request.user
+    
+    # 🚨 Admin Role (Highest Priority)
+    if user.is_authenticated and (user.is_superuser or user.is_staff):
+        # Admin sees ALL products (Active and Inactive). No filtering needed here.
+        pass
+
+    # 🚨 Vendor Role
+    elif user.is_authenticated:
+        # Vendor sees ONLY products they have added (Active and Inactive).
+        # We filter the initial QuerySet by the logged-in user.
+        products_list = products_list.filter(user=user)
+
+    # 🚨 Customer/Public Role (Default)
+    else:
+        # Customer (or any unauthenticated user) sees ONLY active products.
+        products_list = products_list.filter(status='active')
+    
+    # -------------------------------
+
+    # 3. Search filter (Applied AFTER role filtering)
     search_query = request.GET.get("q", "").strip()
     if search_query:
         products_list = products_list.filter(
@@ -558,7 +686,7 @@ def product_list(request):
             Q(description__icontains=search_query)
         )
 
-    # Per page filter
+    # 4. Per page filter (Pagination setup)
     per_page = request.GET.get("per_page", "10")
     try:
         per_page = int(per_page)
@@ -576,21 +704,26 @@ def product_list(request):
     except EmptyPage:
         products = paginator.page(paginator.num_pages)
 
-    # ✅ Toastify success messages
+    # 5. Toastify success messages
     success_messages = {
         "1": "Product added successfully!",
         "2": "Product updated successfully!",
-        "3": "Product deleted successfully!"
+        "3": "Product deleted successfully!",
+        # Add new codes for status toggle if needed (4 and 5)
+        "4": "Product deactivated successfully!",
+        "5": "Product activated successfully!"    
     }
     success_code = request.GET.get("success")
     success_message = success_messages.get(success_code, "")
 
+    # 6. Render context
     return render(request, "product_list.html", {
         "products": products,
         "per_page": per_page,
         "search_query": search_query,
         "success_message": success_message
-    })
+    })  
+
 
 def get_child_categories(request):
     parent_id = request.GET.get("parent_id")
@@ -647,7 +780,10 @@ def coupon_edit(request, pk):
         coupon.save()
         return redirect(f"{reverse('coupon_list')}?success=2")
 
-    return render(request, "coupon_edit.html", {"coupon": coupon})
+    # The template name must be exactly this
+    return render(request, "coupon_edit.html", { 
+    "coupon": coupon, 
+    })
 
 # ✅ Delete Coupon
 def coupon_delete(request, pk):
@@ -714,15 +850,41 @@ def users_list(request):
             Q(email__icontains=search_query)
         )
 
+    # Convert per_page to integer and validate
+    try:
+        per_page = int(per_page)
+        if per_page not in [10, 25, 50, 100]:
+            per_page = 10
+    except (ValueError, TypeError):
+        per_page = 10
+
     # Pagination
     paginator = Paginator(users, per_page)
     page_number = request.GET.get('page')
-    users_page = paginator.get_page(page_number)
+    try:
+        users_page = paginator.page(page_number)
+    except PageNotAnInteger:
+        users_page = paginator.page(1)
+    except EmptyPage:
+        users_page = paginator.page(paginator.num_pages)
+
+    # Success message logic
+    success_messages = {
+        '1': 'User added successfully!',
+        '2': 'User updated successfully!', 
+        '3': 'User deleted successfully!',
+        '4': 'User activated successfully!',
+        '5': 'User deactivated successfully!'
+    }
+    
+    success_code = request.GET.get("success")
+    if success_code in success_messages:
+        messages.success(request, success_messages[success_code])
 
     context = {
         'users': users_page,
         'search_query': search_query,
-        'per_page': str(per_page),  # keep as string for template comparison
+        'per_page': per_page,
     }
     return render(request, 'user_list.html', context)
 
@@ -899,6 +1061,81 @@ def add_vendor(request):
             return render(request, "vendor_add.html", {"error_message": error_message})
 
     return render(request, "vendor_add.html")
+
+from django.shortcuts import render, get_object_or_404, redirect
+from django.urls import reverse
+from django.contrib import messages
+from django.db import transaction
+from .models import CustomUser
+
+def edit_vendor(request, vendor_id):
+    vendor = get_object_or_404(CustomUser, id=vendor_id, role='vendor')
+    
+    if request.method == "POST":
+        name = request.POST.get("name", "").strip()
+        email = request.POST.get("email", "").strip()
+        phone = request.POST.get("phone", "").strip()
+        address = request.POST.get("address", "").strip()
+        profile_image = request.FILES.get("profile_image")
+        
+        # Optional: Password update
+        new_password = request.POST.get("new_password", "").strip()
+        confirm_password = request.POST.get("confirm_password", "").strip()
+
+        # Split full name into first and last name
+        first_name = ""
+        last_name = ""
+        if name:
+            parts = name.split(' ', 1)
+            first_name = parts[0]
+            last_name = parts[1] if len(parts) > 1 else ""
+
+        try:
+            with transaction.atomic():
+                # Check if email already exists (excluding current vendor)
+                if CustomUser.objects.filter(email=email).exclude(id=vendor.id).exists():
+                    messages.error(request, "Email already exists.")
+                    return render(request, "vendor_edit.html", {"vendor": vendor})
+
+                # Update vendor details
+                vendor.first_name = first_name
+                vendor.last_name = last_name
+                vendor.email = email
+                vendor.username = email  # Update username to match email
+                vendor.phone = phone
+                vendor.address = address
+
+                # Handle profile image
+                if profile_image:
+                    vendor.profile_image = profile_image
+
+                # Handle password change if provided
+                if new_password:
+                    if new_password == confirm_password:
+                        vendor.set_password(new_password)
+                        messages.success(request, "Password updated successfully.")
+                    else:
+                        messages.error(request, "Passwords do not match.")
+                        return render(request, "vendor_edit.html", {"vendor": vendor})
+
+                vendor.save()
+
+                # Redirect with success code 2 (Vendor updated successfully)
+                return redirect(f"{reverse('vendors_list')}?success=2")
+
+        except Exception as e:
+            messages.error(request, f"Error updating vendor: {str(e)}")
+            return render(request, "vendor_edit.html", {"vendor": vendor})
+
+    # Pre-fill the name field by combining first and last name
+    full_name = f"{vendor.first_name} {vendor.last_name}".strip()
+    
+    context = {
+        'vendor': vendor,
+        'full_name': full_name
+    }
+    return render(request, "vendor_edit.html", context)
+
 
 @login_required
 @user_passes_test(admin_required)
