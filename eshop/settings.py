@@ -39,6 +39,8 @@ INSTALLED_APPS = [
     'django.contrib.staticfiles',
     'eshop_app',
     'orders',
+    'rest_framework',
+    'corsheaders',
 ]
 
 AUTH_USER_MODEL = 'eshop_app.CustomUser'
@@ -51,7 +53,9 @@ MIDDLEWARE = [
     'django.contrib.auth.middleware.AuthenticationMiddleware',
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
+    'corsheaders.middleware.CorsMiddleware',
 ]
+CORS_ALLOW_ALL_ORIGINS = True
 
 ROOT_URLCONF = 'eshop.urls'
 
@@ -63,6 +67,7 @@ TEMPLATES = [
         'OPTIONS': {
             'context_processors': [
                 'django.template.context_processors.request',
+                'django.contrib.auth.context_processors.auth',
                 'django.contrib.auth.context_processors.auth',
                 'django.contrib.messages.context_processors.messages',
             ],

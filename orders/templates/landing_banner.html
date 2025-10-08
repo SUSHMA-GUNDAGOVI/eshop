@@ -1,139 +1,189 @@
-<!-- Carousel Only Start -->
-<div class="container-fluid p-0 hero-header position-relative">
-    <div id="carouselId" class="carousel slide" data-bs-ride="carousel">
-        <div class="carousel-inner" id="carousel-inner">
-            <!-- API banners will be injected here -->
-        </div>
+<div class="carousel">
+    <div class="carousel-inner" id="carousel-inner">
+        <!-- Banner items will be injected here via JS -->
+    </div>
 
-        <button class="carousel-control-prev" type="button" data-bs-target="#carouselId" data-bs-slide="prev">
-            <span class="carousel-control-prev-icon" aria-hidden="true"></span>
-            <span class="visually-hidden">Previous</span>
-        </button>
-        <button class="carousel-control-next" type="button" data-bs-target="#carouselId" data-bs-slide="next">
-            <span class="carousel-control-next-icon" aria-hidden="true"></span>
-            <span class="visually-hidden">Next</span>
-        </button>
+    <div class="carousel-arrow prev"><i class="fas fa-chevron-left"></i></div>
+    <div class="carousel-arrow next"><i class="fas fa-chevron-right"></i></div>
+
+    <div class="carousel-controls" id="carousel-controls">
+        <!-- Dots will be injected here via JS -->
     </div>
 </div>
-<!-- Carousel Only End -->
 
 <style>
-/* Full-height carousel */
-#carouselId .carousel-item {
-    height: 500px;
+.carousel {
     position: relative;
+    width: 100%;
+    height: 500px; /* adjust as needed */
     overflow: hidden;
-    border-radius: 8px;
 }
 
-#carouselId .carousel-item img {
-    object-fit: cover;
+.carousel-inner {
     width: 100%;
     height: 100%;
+    position: relative;
 }
 
-/* Centered caption on image */
-#carouselId .carousel-caption {
+.carousel-item {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background-size: cover;
+    background-position: center;
+    transition: opacity 0.5s ease-in-out;
+    opacity: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.carousel-item.active {
+    opacity: 1;
+    z-index: 1;
+}
+
+.carousel-content {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    width: 90%;
+    max-width: 1200px;
+    color: #fff;
+}
+
+.carousel-text h1 {
+    font-size: 3rem;
+    margin-bottom: 10px;
+}
+
+.carousel-text p.subtitle {
+    font-size: 1.2rem;
+    margin-bottom: 15px;
+}
+
+.btn-shop {
+    background-color: #ff7f50;
+    color: #fff;
+    padding: 10px 20px;
+    text-decoration: none;
+    border-radius: 5px;
+}
+
+.carousel-arrow {
     position: absolute;
     top: 50%;
+    transform: translateY(-50%);
+    cursor: pointer;
+    font-size: 2rem;
+    color: #fff;
+    z-index: 2;
+}
+
+.carousel-arrow.prev {
+    left: 20px;
+}
+
+.carousel-arrow.next {
+    right: 20px;
+}
+
+.carousel-controls {
+    position: absolute;
+    bottom: 15px;
     left: 50%;
-    transform: translate(-50%, -50%);
-    text-align: center;
-    width: 80%;
-    max-width: 700px;
-    text-shadow: 1px 1px 6px rgba(0,0,0,0.6);
-    color: #fff;
+    transform: translateX(-50%);
+    display: flex;
+    gap: 10px;
 }
 
-/* Title style */
-#carouselId .carousel-caption h5 {
-    font-size: 2.5rem;
-    font-weight: 700;
-    margin-bottom: 15px;
-    line-height: 1.2;
+.carousel-dot {
+    width: 12px;
+    height: 12px;
+    border-radius: 50%;
+    background-color: rgba(255,255,255,0.5);
+    cursor: pointer;
 }
 
-/* Description style */
-#carouselId .carousel-caption p {
-    font-size: 1.2rem;
-    margin-bottom: 20px;
-}
-
-/* Shop Now button inside caption - fixed in place */
-#carouselId .carousel-caption .shop-now-btn {
-    margin-top: 30px;
-    padding: 12px 25px;
-    font-size: 1rem;
-    background: #ff6b6b;
-    color: #fff;
-    border: none;
-    border-radius: 50px;
-    text-transform: uppercase;
-    transition: background 0.3s ease; /* only background changes */
-    display: inline-block;
-}
-
-#carouselId .carousel-caption .shop-now-btn:hover {
-    background: #f06595; /* no scale, so it never moves */
-}
-
-/* Carousel controls bigger and more visible */
-.carousel-control-prev-icon,
-.carousel-control-next-icon {
-    background-size: 50px 50px;
-}
-
-/* Responsive adjustments */
-@media (max-width: 768px) {
-    #carouselId .carousel-caption {
-        width: 90%;
-        max-width: 90%;
-    }
-    #carouselId .carousel-caption h5 {
-        font-size: 1.8rem;
-    }
-    #carouselId .carousel-caption p {
-        font-size: 1rem;
-    }
-    #carouselId .carousel-caption .shop-now-btn {
-        padding: 10px 20px;
-        font-size: 0.9rem;
-    }
+.carousel-dot.active {
+    background-color: #fff;
 }
 </style>
 
 <script>
-fetch('http://127.0.0.1:8000/orders/banners/')
-    .then(response => response.json())
-    .then(data => {
-        const carouselInner = document.getElementById('carousel-inner');
+document.addEventListener('DOMContentLoaded', function () {
+    const carouselInner = document.getElementById('carousel-inner');
+    const carouselControls = document.getElementById('carousel-controls');
+    const prevBtn = document.querySelector('.carousel-arrow.prev');
+    const nextBtn = document.querySelector('.carousel-arrow.next');
 
-        data.forEach((banner, index) => {
-            const isActive = index === 0 ? 'active' : '';
-            const textColor = banner.text_color || '#fff';
-            const btnColor = banner.button_color || '#ff6b6b';
-            const btnHover = banner.button_hover || '#f06595';
+    let currentIndex = 0;
+    let banners = [];
 
-            const carouselItem = document.createElement('div');
-            carouselItem.className = `carousel-item ${isActive}`;
+    fetch('http://127.0.0.1:8000/orders/banners/')
+        .then(response => response.json())
+        .then(data => {
+            banners = data;
+            renderBanners();
+            startAutoSlide();
+        })
+        .catch(error => console.error('Error fetching banners:', error));
 
-            carouselItem.innerHTML = `
-                <img src="${banner.image_url}" class="d-block w-100" alt="${banner.title}">
-                <div class="carousel-caption d-none d-md-block" style="color:${textColor}">
-                    <h5>${banner.title}</h5>
-                    <p>${banner.description}</p>
-                    <a href="${banner.link || '#'}" 
-                       class="btn shop-now-btn" 
-                       style="background:${btnColor};color:#fff;"
-                       onmouseover="this.style.background='${btnHover}'"
-                       onmouseout="this.style.background='${btnColor}'">
-                       Shop Now
-                    </a>
+    function renderBanners() {
+        carouselInner.innerHTML = '';
+        carouselControls.innerHTML = '';
+
+        banners.forEach((banner, index) => {
+            const item = document.createElement('div');
+            item.className = 'carousel-item' + (index === 0 ? ' active' : '');
+            item.style.backgroundImage = `url(${banner.image_url})`;
+
+            item.innerHTML = `
+                <div class="carousel-content">
+                    <div class="carousel-text">
+                        <h1>${banner.title}</h1>
+                        <p class="subtitle">${banner.description}</p>
+                        <a href="${banner.link || '#'}" class="btn-shop">SHOP NOW</a>
+                    </div>
                 </div>
             `;
 
-            carouselInner.appendChild(carouselItem);
+            carouselInner.appendChild(item);
+
+            const dot = document.createElement('div');
+            dot.className = 'carousel-dot' + (index === 0 ? ' active' : '');
+            dot.addEventListener('click', () => goToSlide(index));
+            carouselControls.appendChild(dot);
         });
-    })
-    .catch(error => console.error('Error fetching banners:', error));
+    }
+
+    function goToSlide(index) {
+        const items = document.querySelectorAll('.carousel-item');
+        const dots = document.querySelectorAll('.carousel-dot');
+
+        items.forEach((item, i) => item.classList.toggle('active', i === index));
+        dots.forEach((dot, i) => dot.classList.toggle('active', i === index));
+
+        currentIndex = index;
+    }
+
+    prevBtn.addEventListener('click', () => {
+        currentIndex = (currentIndex - 1 + banners.length) % banners.length;
+        goToSlide(currentIndex);
+    });
+
+    nextBtn.addEventListener('click', () => {
+        currentIndex = (currentIndex + 1) % banners.length;
+        goToSlide(currentIndex);
+    });
+
+    function startAutoSlide() {
+        setInterval(() => {
+            currentIndex = (currentIndex + 1) % banners.length;
+            goToSlide(currentIndex);
+        }, 5000);
+    }
+});
 </script>

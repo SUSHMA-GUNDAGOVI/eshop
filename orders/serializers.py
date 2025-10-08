@@ -69,3 +69,15 @@ class CategorySerializer(serializers.ModelSerializer):
             return request.build_absolute_uri(obj.photo.url)
         return None
 
+    def to_representation(self, instance):
+        # Get normal representation
+        representation = super().to_representation(instance)
+
+        # Exclude if no photo_url
+        if not representation.get('photo_url'):
+            return None
+
+        return representation
+    
+
+        

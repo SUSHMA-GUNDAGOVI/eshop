@@ -1,11 +1,14 @@
 {% extends 'landing_base.html' %}
 
-{% block title %}Add New Product{% endblock %}
+{% block title %}Home - Eshop{% endblock %}
 
 {% block content %}
 
-    <!-- Include Banner -->
-    {% include "landing_banner.html" %}
-    
+<!-- Include the banner/carousel -->
+{% include 'landing_banner.html' %}
+
+{% include 'landing_category.html' %}
+
+
 
 {% endblock %}
