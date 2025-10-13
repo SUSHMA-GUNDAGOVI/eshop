@@ -507,10 +507,12 @@ def brand_list(request):
         "search_query": search_query,
         "success_message": success_message
     })
-
 def product_add(request):
     categories = Category.objects.filter(parent__isnull=True, status="active")
     brands = Brand.objects.filter(status="active")
+    
+    # Define product status choices
+    STATUS_CHOICES = ['active', 'inactive', 'pending']
 
     if request.method == "POST":
         title = request.POST.get("title")
@@ -525,7 +527,15 @@ def product_add(request):
         brand_id = request.POST.get("brand_id")
         condition = request.POST.get("condition")
         stock = request.POST.get("stock")
-        status = request.POST.get("status")
+        
+        # 🚨 FIX 1: Safely get status, default to 'inactive' if not provided (e.g., by vendor)
+        status_from_post = request.POST.get("status")
+        if status_from_post in STATUS_CHOICES:
+            final_status = status_from_post
+        else:
+            # Default to 'inactive' for new product submission
+            final_status = 'inactive'
+            
         photo = request.FILES.get("photo")
 
         # Optional: Validate file type
@@ -553,9 +563,9 @@ def product_add(request):
             brand=brand,
             condition=condition,
             stock=stock,
-            status=status,
+            status=final_status, # ⬅️ Use the safely determined status
             photo=photo,
-            user=request.user 
+            user=request.user
         )
 
         return redirect(f"{reverse('product_list')}?success=1")
@@ -564,6 +574,7 @@ def product_add(request):
         "categories": categories,
         "brands": brands,
     })
+
 
 
 # ✅ Edit Product

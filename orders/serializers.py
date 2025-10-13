@@ -1,24 +1,5 @@
 from rest_framework import serializers
 from eshop_app.models import Product,Category
-
-class ProductSerializer(serializers.ModelSerializer):
-    category_name = serializers.CharField(source='category.name', read_only=True)
-    child_category_name = serializers.CharField(source='child_category.name', read_only=True)
-    brand_name = serializers.CharField(source='brand.name', read_only=True)
-
-    class Meta:
-        model = Product
-        fields = [
-            'id', 'title', 'summary', 'description', 'is_featured',
-            'category', 'category_name',
-            'child_category', 'child_category_name',
-            'price', 'discount', 'size',
-            'brand', 'brand_name',
-            'condition', 'stock', 'photo',
-            'status', 'created_at',
-        ]
-
-
 class ProductSerializer(serializers.ModelSerializer):
     category_name = serializers.CharField(source='category.title', read_only=True)
     child_category_name = serializers.CharField(source='child_category.title', read_only=True)
@@ -39,10 +20,11 @@ class ProductSerializer(serializers.ModelSerializer):
 
     def get_photo_url(self, obj):
         request = self.context.get('request')
-        if obj.photo and request:
-            return request.build_absolute_uri(obj.photo.url)
+        if obj.photo and hasattr(obj.photo, 'url'):
+            if request:
+                return request.build_absolute_uri(obj.photo.url)
+            return obj.photo.url
         return None
-    
 
 class CategorySerializer(serializers.ModelSerializer):
     parent_title = serializers.CharField(source='parent.title', read_only=True)
@@ -68,16 +50,3 @@ class CategorySerializer(serializers.ModelSerializer):
         if obj.photo and request:
             return request.build_absolute_uri(obj.photo.url)
         return None
-
-    def to_representation(self, instance):
-        # Get normal representation
-        representation = super().to_representation(instance)
-
-        # Exclude if no photo_url
-        if not representation.get('photo_url'):
-            return None
-
-        return representation
-    
-
-        

@@ -122,7 +122,7 @@ document.addEventListener('DOMContentLoaded', function () {
     let currentIndex = 0;
     let banners = [];
 
-    fetch('http://127.0.0.1:8000/orders/banners/')
+    fetch('http://127.0.0.1:8001/orders/banners/')
         .then(response => response.json())
         .then(data => {
             banners = data;

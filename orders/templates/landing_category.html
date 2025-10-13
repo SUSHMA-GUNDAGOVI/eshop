@@ -55,7 +55,6 @@
     </style>
 </head>
 <body>
-
 <div class="container my-5">
     <h2 class="text-center mb-4 fw-bold">📦 Main Categories</h2>
     <div id="category-banner" class="row g-4"></div>
@@ -66,32 +65,31 @@
         <div id="subcategory-banner" class="row g-4"></div>
     </div>
 </div>
-
 <script>
 document.addEventListener("DOMContentLoaded", function() {
     const mainContainer = document.getElementById("category-banner");
     const subContainer = document.getElementById("subcategory-banner");
     const subSection = document.getElementById("subcategory-section");
 
-    // Load main categories
+    // Load MAIN categories
     fetch("/orders/category/")
         .then(res => res.json())
         .then(data => {
+            console.log("Fetched main categories:", data);
             if (!data || data.length === 0) {
                 mainContainer.innerHTML = `<p class="text-center text-muted">No categories found.</p>`;
                 return;
             }
 
+            mainContainer.innerHTML = ""; // clear existing
             data.forEach(category => {
-                if (!category.photo_url) return; // skip if no photo
-
+                const photoSrc = category.photo_url ? category.photo_url : 'https://via.placeholder.com/600x370?text=No+Image';
                 const col = document.createElement("div");
                 col.className = "col-12 col-md-6 col-lg-4";
 
                 col.innerHTML = `
                     <div class="single-banner" data-id="${category.id}">
-                        <img src="${category.photo_url}" alt="${category.title}" 
-                             onerror="this.src='https://via.placeholder.com/600x370?text=Image+Error'">
+                        <img src="${photoSrc}" alt="${category.title}">
                         <div class="content">
                             <h3>${category.title}</h3>
                             <a href="javascript:void(0);" class="show-subcategory">Discover Now</a>
@@ -101,7 +99,7 @@ document.addEventListener("DOMContentLoaded", function() {
                 mainContainer.appendChild(col);
             });
 
-            // Add click listeners
+            // Attach click events
             document.querySelectorAll(".show-subcategory").forEach(link => {
                 link.addEventListener("click", function(e) {
                     const parentDiv = e.target.closest(".single-banner");
@@ -115,39 +113,38 @@ document.addEventListener("DOMContentLoaded", function() {
             mainContainer.innerHTML = `<p class="text-center text-danger">Error loading categories.</p>`;
         });
 
+    // Fetch SUBCATEGORIES for a specific category
     function fetchSubcategories(categoryId) {
         console.log("Fetching subcategories for:", categoryId);
         fetch(`/orders/subcategory/${categoryId}/`)
             .then(res => res.json())
             .then(subcats => {
-                subContainer.innerHTML = ""; // clear previous
+                subContainer.innerHTML = "";
 
                 if (!subcats || subcats.length === 0) {
                     subContainer.innerHTML = `<p class="text-center text-muted">No subcategories found.</p>`;
-                    subSection.style.display = "block"; // show section even if empty
+                    subSection.style.display = "block";
                     return;
                 }
 
                 subcats.forEach(sub => {
-                    if (!sub.photo_url) return; // skip if no photo
-
+                    const photoSrc = sub.photo_url ? sub.photo_url : 'https://via.placeholder.com/600x370?text=No+Image';
                     const col = document.createElement("div");
                     col.className = "col-12 col-md-6 col-lg-4";
 
                     col.innerHTML = `
                         <div class="single-banner">
-                            <img src="${sub.photo_url}" alt="${sub.title}" 
-                                 onerror="this.src='https://via.placeholder.com/600x370?text=Image+Error'">
+                            <img src="${photoSrc}" alt="${sub.title}">
                             <div class="content">
                                 <h3>${sub.title}</h3>
-                                <a href="/products/category/${sub.id}/">Discover Now</a>
+                                <a href="/orders/landing_category_product/${sub.id}/">Discover Now</a>
                             </div>
                         </div>
                     `;
                     subContainer.appendChild(col);
                 });
 
-                subSection.style.display = "block"; // show subcategory section
+                subSection.style.display = "block";
             })
             .catch(err => {
                 console.error("Error fetching subcategories:", err);

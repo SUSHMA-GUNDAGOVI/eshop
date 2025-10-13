@@ -9,9 +9,22 @@ from rest_framework import status
 from .serializers import CategorySerializer
 from eshop_app.models import Category
 from rest_framework import serializers
+from django.db.models import Q
 
 
 def index(request):
+    filter_type = request.GET.get('filter', 'all')
+    products = Product.objects.filter(status='active')
+    if filter_type == 'new-arrivals':
+        products = products.filter(created_at__gte=timezone.now() - timedelta(days=7))
+    elif filter_type == 'hot-sales':
+        products = products.filter(price__lt=50)
+    products = products.order_by('-created_at')
+    print("Active products:", products.count())
+    for product in products:
+        print(f"Product: {product.title}, Status: {product.status}, Price: {product.price}, Image: {product.photo.url if product.photo else 'No image'}")
+    context = {'products': products, 'filter_type': filter_type}
+    print("Context being sent:", context)
     return render(request, 'index.html')
 
 def banner_api(request):
@@ -26,41 +39,51 @@ def banner_api(request):
         })
     return JsonResponse(banner_list, safe=False)
 
+ 
+class CategoryListAPI(APIView):
+    def get(self, request):
+        # Fetch only active main (parent) categories
+        categories = Category.objects.filter(status='active', is_parent=True).order_by('title')
+
+        serializer = CategorySerializer(categories, many=True, context={'request': request})
+        return Response(serializer.data, status=status.HTTP_200_OK)
+    
+
+class SubCategoryListAPI(APIView):
+    def get(self, request, category_id):
+        subcategories = Category.objects.filter(
+            status='active',
+            is_parent=False,
+            parent_id=category_id
+        ).order_by('title')
+
+        serializer = CategorySerializer(subcategories, many=True, context={'request': request})
+        return Response(serializer.data, status=status.HTTP_200_OK)
+    
+
+
 class ProductListAPI(APIView):
     def get(self, request):
         # Fetch all active products
         products = Product.objects.filter(status='active').order_by('-created_at')
         serializer = ProductSerializer(products, many=True, context={'request': request})
         return Response(serializer.data, status=status.HTTP_200_OK)
-    
-class CategoryListAPI(APIView):
-    def get(self, request):
-        # Fetch only active parent categories that have a photo
-        categories = Category.objects.filter(
-            status='active',
-            is_parent=True
-        ).exclude(photo='')  # exclude empty photo fields
-        # Optionally also exclude null
-        categories = categories.exclude(photo__isnull=True)
 
-        serializer = CategorySerializer(categories, many=True, context={'request': request})
-        return Response(serializer.data, status=status.HTTP_200_OK)
-    
-    
-class SubCategoryListAPI(APIView):
+class ProductListByCategoryAPI(APIView):
     def get(self, request, category_id):
-        """
-        Fetch all active subcategories of a given parent category.
-        Only return subcategories that have an image.
-        """
-        subcategories = Category.objects.filter(
-            status='active',
-            is_parent=False,
-            parent_id=category_id
-        ).exclude(photo='').exclude(photo__isnull=True).order_by('title')
+        try:
+            # Fetch products where either category OR child_category matches the given category_id
+            products = Product.objects.filter(
+                Q(category_id=category_id) | Q(child_category_id=category_id),
+                status='active'
+            ).order_by('-created_at')
 
-        serializer = CategorySerializer(subcategories, many=True, context={'request': request})
-        # Remove None items from serializer (to_representation may return None)
-        data = [item for item in serializer.data if item is not None]
+            serializer = ProductSerializer(products, many=True, context={'request': request})
+            return Response(serializer.data, status=status.HTTP_200_OK)
 
-        return Response(data, status=status.HTTP_200_OK)
+        except Exception as e:
+            return Response({"error": str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+
+# ADD THIS FUNCTION - This is what's missing!
+def landing_category_product(request, category_id):
+    return render(request, 'landing_category_product.html', {'category_id': category_id})   
