@@ -111,15 +111,25 @@ def index(request):
 
 
 def product_detail_view(request, pk):
-    """Fetches a single product and renders the detail page."""
-    # This retrieves the product or returns a 404 error if not found
     product = get_object_or_404(Product, pk=pk)
+    
+    # Process sizes - split comma-separated string
+    sizes = []
+    if product.size:
+        # Split by comma and remove any whitespace
+        sizes = [size.strip() for size in product.size.split(',')]
+    
+    # Process colors
+    colors = []
+    if hasattr(product, 'color_data') and product.color_data:
+        colors = product.color_data
     
     context = {
         'product': product,
-        # You might also fetch related products here
+        'sizes': sizes,  # Pass the processed list
+        'colors': colors,
     }
-    return render(request, 'shop_details.html', context)
+    return render(request, 'product_details.html', context)
 
 def add_to_cart_view(request, product_id):
     """

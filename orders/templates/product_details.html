@@ -74,21 +74,31 @@
                             <div class="product__details__option">
                                 <div class="product__details__option__size">
                                     <span>Size:</span>
-                                    {% for size in product.sizes.all %}
-                                        <label for="size-{{ size.pk }}">
-                                            {{ size.name }}
-                                            <input type="radio" id="size-{{ size.pk }}" name="size" value="{{ size.pk }}" required>
-                                        </label>
-                                    {% endfor %}
+                                    {% if sizes %}
+                                        {% for size_item in sizes %}
+                                            <label for="size-{{ forloop.counter }}">
+                                                {{ size_item }}
+                                                <input type="radio" id="size-{{ forloop.counter }}" name="size" value="{{ size_item }}" {% if forloop.first %}required{% endif %}>
+                                            </label>
+                                        {% endfor %}
+                                    {% else %}
+                                        <span class="text-muted">No sizes available</span>
+                                    {% endif %}
                                 </div>
                                 
                                 <div class="product__details__option__color">
                                     <span>Color:</span>
-                                    {% for color in product.colors.all %}
-                                        <label class="c-{{ forloop.counter }}" for="sp-{{ forloop.counter }}">
-                                            <input type="radio" id="sp-{{ forloop.counter }}" name="color" value="{{ color.pk }}" required>
-                                        </label>
-                                    {% endfor %}
+                                    {% if colors %}
+                                        {% for color in colors %}
+                                            <label 
+                                                style="background: {{ color.code }}; width: 30px; height: 30px; border-radius: 50%; display: inline-block; border: 2px solid #ddd;"
+                                                for="pc-{{ product.id }}-{{ forloop.counter }}">
+                                                <input type="radio" id="pc-{{ product.id }}-{{ forloop.counter }}" name="color" value="{{ color.name }}" {% if forloop.first %}required{% endif %} hidden>
+                                            </label>
+                                        {% endfor %}
+                                    {% else %}
+                                        <span class="text-muted">No colors available</span>
+                                    {% endif %}
                                 </div>
                             </div>
 

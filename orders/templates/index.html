@@ -178,19 +178,19 @@
                             </div>
                             <h5>${{ product.price|floatformat:2 }}</h5>
                             <div class="product__color__select">
-    {% if product.color_data %}
-        {% for color in product.color_data %}
-            
-            <label 
-                style="background-color: {{ color.code }};"
-                for="pc-{{ product.id }}-{{ forloop.counter }}">
-                
-                <input type="radio" id="pc-{{ product.id }}-{{ forloop.counter }}" name="color-{{ product.id }}" value="{{ color.name }}" hidden>
-            </label>
-        {% endfor %}
-    {% else %}
-        {% endif %}
-</div>
+                                {% if product.color_data %}
+                                    {% for color in product.color_data %}
+                                        
+                                        <label 
+                                            style="background: {{ color.code }};"
+                                            for="pc-{{ product.id }}-{{ forloop.counter }}">
+                                            
+                                            <input type="radio" id="pc-{{ product.id }}-{{ forloop.counter }}" name="color-{{ product.id }}" value="{{ color.name }}" hidden>
+                                        </label>
+                                    {% endfor %}
+                                {% else %}
+                                    {% endif %}
+                            </div>
                         </div>
                     </div>
                 </div>
