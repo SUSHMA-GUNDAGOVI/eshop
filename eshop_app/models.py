@@ -3,6 +3,7 @@ from django.db import models
 from django.conf import settings  # import this
 from django.utils import timezone
 from django.contrib.auth.models import AbstractUser, BaseUserManager
+from django.core.serializers.json import DjangoJSONEncoder
 
 class CustomUserManager(BaseUserManager):
     use_in_migrations = True
@@ -113,8 +114,8 @@ class Product(models.Model):
 
     price = models.DecimalField(max_digits=10, decimal_places=2)
     discount = models.PositiveIntegerField(default=0)  # % value
-    size = models.CharField(max_length=50, blank=True, null=True)  # "S,M,L"
-
+    size = models.CharField(max_length=100, blank=True, null=True)
+    color_data = models.JSONField(blank=True, null=True, encoder=DjangoJSONEncoder)    
     brand = models.ForeignKey(Brand, on_delete=models.SET_NULL, null=True, blank=True)
 
     condition = models.CharField(max_length=20, choices=CONDITION_CHOICES, default="default")

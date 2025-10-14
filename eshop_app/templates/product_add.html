@@ -3,6 +3,110 @@
 {% block title %}Add New Product{% endblock %}
 
 {% block content %}
+<style>
+.color-selection-grid {
+    border: 1px solid #e3e6f0;
+    border-radius: 8px;
+    padding: 15px;
+    background: #f8f9fc;
+}
+
+.color-option {
+    cursor: pointer;
+    transition: all 0.3s ease;
+}
+
+.color-option:hover {
+    transform: translateY(-2px);
+}
+
+.color-label {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    cursor: pointer;
+    padding: 10px 5px;
+    border-radius: 8px;
+    transition: all 0.3s ease;
+    border: 2px solid transparent;
+}
+
+.color-label:hover {
+    background: rgba(0,0,0,0.05);
+}
+
+.color-checkbox:checked + .color-label {
+    border-color: #4e73df;
+    background: rgba(78, 115, 223, 0.1);
+}
+
+.color-swatch {
+    width: 50px;
+    height: 50px;
+    border-radius: 50%;
+    margin-bottom: 8px;
+    border: 2px solid transparent;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: all 0.3s ease;
+}
+
+.color-checkbox:checked + .color-label .color-swatch {
+    border-color: #333;
+    transform: scale(1.1);
+}
+
+.add-color-swatch {
+    background: #f8f9fc;
+    border: 2px dashed #dee2e6;
+    color: #6c757d;
+    font-size: 1.2rem;
+}
+
+.add-color-option:hover .add-color-swatch {
+    background: #e9ecef;
+    border-color: #4e73df;
+    color: #4e73df;
+}
+
+.color-name {
+    font-size: 0.8rem;
+    text-align: center;
+    font-weight: 500;
+    color: #5a5c69;
+}
+
+.selected-color-badge {
+    border-radius: 20px;
+    padding: 8px 12px;
+    font-size: 0.8rem;
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+    min-width: 80px;
+    justify-content: space-between;
+}
+
+.remove-color-btn {
+    background: none;
+    border: none;
+    color: inherit;
+    cursor: pointer;
+    padding: 0;
+    margin-left: 5px;
+    opacity: 0.7;
+}
+
+.remove-color-btn:hover {
+    opacity: 1;
+}
+
+.form-control-color {
+    height: 50px;
+    width: 100%;
+}
+</style>
 <div class="container-fluid">
 
     <!-- Page Heading -->
@@ -85,15 +189,161 @@
 
                 <!-- Size -->
                 <div class="form-group">
-                    <label for="size">Size</label>
-                    <select name="size" class="form-control">
-                        <option value="">--Select any size--</option>
-                        <option value="S">Small (S)</option>
-                        <option value="M">Medium (M)</option>
-                        <option value="L">Large (L)</option>
-                        <option value="XL">Extra Large (XL)</option>
-                    </select>
+    <label for="size">Size <span class="text-danger">*</span></label>
+    <div class="row">
+        <div class="col-md-3">
+            <div class="form-check">
+                <input class="form-check-input" type="checkbox" name="size" value="S" id="size_s">
+                <label class="form-check-label" for="size_s">
+                    Small (S)
+                </label>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="form-check">
+                <input class="form-check-input" type="checkbox" name="size" value="M" id="size_m">
+                <label class="form-check-label" for="size_m">
+                    Medium (M)
+                </label>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="form-check">
+                <input class="form-check-input" type="checkbox" name="size" value="L" id="size_l">
+                <label class="form-check-label" for="size_l">
+                    Large (L)
+                </label>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="form-check">
+                <input class="form-check-input" type="checkbox" name="size" value="XL" id="size_xl">
+                <label class="form-check-label" for="size_xl">
+                    Extra Large (XL)
+                </label>
+            </div>
+        </div>
+    </div>
+    <!-- You can add more sizes in additional rows if needed -->
+    <div class="row mt-2">
+        <div class="col-md-3">
+            <div class="form-check">
+                <input class="form-check-input" type="checkbox" name="size" value="XXL" id="size_xxl">
+                <label class="form-check-label" for="size_xxl">
+                    XXL
+                </label>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="form-check">
+                <input class="form-check-input" type="checkbox" name="size" value="XXXL" id="size_xxxl">
+                <label class="form-check-label" for="size_xxxl">
+                    XXXL
+                </label>
+            </div>
+        </div>
+    </div>
+</div>
+<!-- Color - Multiple Selection -->
+<div class="form-group">
+    <label for="color">Color <span class="text-danger">*</span></label>
+    
+    <!-- Color Selection Grid -->
+    <div class="color-selection-grid mb-3">
+        <div class="row">
+            <!-- Black -->
+            <div class="col-md-2 col-4 mb-2">
+                <div class="color-option" data-color="Black" data-hex="#000000">
+                    <input type="checkbox" class="color-checkbox" name="color" value="Black" id="color_black" hidden>
+                    <label for="color_black" class="color-label">
+                        <span class="color-swatch" style="background-color: #000000;"></span>
+                        <span class="color-name">Black</span>
+                    </label>
                 </div>
+            </div>
+            <!-- White -->
+            <div class="col-md-2 col-4 mb-2">
+                <div class="color-option" data-color="White" data-hex="#ffffff">
+                    <input type="checkbox" class="color-checkbox" name="color" value="White" id="color_white" hidden>
+                    <label for="color_white" class="color-label">
+                        <span class="color-swatch" style="background-color: #ffffff; border: 1px solid #ddd;"></span>
+                        <span class="color-name">White</span>
+                    </label>
+                </div>
+            </div>
+            <!-- Navy Blue -->
+            <div class="col-md-2 col-4 mb-2">
+                <div class="color-option" data-color="Navy Blue" data-hex="#000080">
+                    <input type="checkbox" class="color-checkbox" name="color" value="Navy Blue" id="color_navy" hidden>
+                    <label for="color_navy" class="color-label">
+                        <span class="color-swatch" style="background-color: #000080;"></span>
+                        <span class="color-name">Navy Blue</span>
+                    </label>
+                </div>
+            </div>
+            <!-- Cream -->
+            <div class="col-md-2 col-4 mb-2">
+                <div class="color-option" data-color="Cream" data-hex="#fffdd0">
+                    <input type="checkbox" class="color-checkbox" name="color" value="Cream" id="color_cream" hidden>
+                    <label for="color_cream" class="color-label">
+                        <span class="color-swatch" style="background-color: #fffdd0; border: 1px solid #ddd;"></span>
+                        <span class="color-name">Cream</span>
+                    </label>
+                </div>
+            </div>
+            <!-- Add Custom Color Button -->
+            <div class="col-md-2 col-4 mb-2">
+                 <div class="color-option add-color-option" onclick="openColorModal()">
+                    <div class="color-label text-center">
+                        <span class="color-swatch add-color-swatch">
+                            <i class="fas fa-plus"></i>
+                        </span>
+                        <span class="color-name">Add Color</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+     <!-- Selected Colors Display -->
+    <div class="selected-colors-container mb-3">
+        <label>Selected Colors:</label>
+        <div id="selectedColors" class="d-flex flex-wrap gap-2 mt-2">
+            <!-- Selected colors will appear here dynamically -->
+        </div>
+    </div>
+</div>
+
+<!-- Custom Color Modal -->
+<div class="modal fade" id="colorModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-sm">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Add Custom Color</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <div class="mb-3">
+                    <label for="customColorName" class="form-label">Color Name</label>
+                    <input type="text" class="form-control" id="customColorName" placeholder="e.g., Burgundy" maxlength="50">
+                </div>
+                <div class="mb-3">
+                    <label for="customColorPicker" class="form-label">Select Color</label>
+                    <input type="color" class="form-control form-control-color" id="customColorPicker" value="#ff0000">
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                <button type="button" class="btn btn-primary" onclick="addCustomColor()">
+                    <i class="fas fa-plus"></i> Add
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div id="hiddenColorInputs" style="display: none;">
+    </div>
 
                 <!-- Brand -->
                 <div class="form-group">
@@ -140,32 +390,199 @@
 
 <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
 <script>
-$(document).ready(function() {
-    $("#cat_id").change(function() {
-        var parent_id = $(this).val();
-        if(parent_id) {
-            $.ajax({
-                url: "{% url 'get_child_categories' %}",
-                data: { parent_id: parent_id },
-                dataType: "json",
-                success: function(response) {
-                    var childCatSelect = $("#child_cat_id");
-                    childCatSelect.empty(); // Clear old options
-                    if(response.child_categories.length > 0){
-                        $("#child_cat_div").removeClass("d-none");
-                        childCatSelect.append('<option value="">--Select any sub category--</option>');
-                        $.each(response.child_categories, function(i, cat) {
-                            childCatSelect.append('<option value="'+cat.id+'">'+cat.title+'</option>');
-                        });
-                    } else {
-                        $("#child_cat_div").addClass("d-none");
-                    }
-                }
-            });
-        } else {
-            $("#child_cat_div").addClass("d-none");
-        }
+
+
+function showTempMessage(message, type) {
+    const alertClass = type === 'success' ? 'alert-success' : 'alert-warning';
+    const alertDiv = $(`<div class="alert ${alertClass} alert-dismissible fade show mt-2">
+        ${message}
+        <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+    </div>`);
+    
+    $('.selected-colors-container').append(alertDiv);
+    
+    setTimeout(() => {
+        alertDiv.remove();
+    }, 3000);
+}
+
+// Form submission handler
+$('form').on('submit', function() {
+    // Ensure at least one color is selected
+    const selectedColors = $('.color-checkbox:checked').length;
+    if (selectedColors === 0) {
+        alert('Please select at least one color');
+        return false;
+    }
+});
+</script>
+<script>
+// Store for color mapping (name -> hex)
+const colorMap = {
+    'Black': '#000000',
+    'White': '#ffffff',
+    'Navy Blue': '#000080',
+    'Cream': '#fffdd0'
+};
+
+// 💡 New function to dynamically create the hidden inputs for Django
+function prepareColorInputs() {
+    const hiddenContainer = $('#hiddenColorInputs');
+    hiddenContainer.empty(); // Clear previous inputs
+ // Get all checked colors
+    $('.color-checkbox:checked').each(function() {
+        const colorName = $(this).val();
+        // Retrieve the hex code from the global colorMap
+        const colorHex = colorMap[colorName] || '#cccccc'; 
+        
+        // **Create a pair of hidden inputs for each selected color**
+        const nameInput = `<input type="hidden" name="color_name" value="${colorName}">`;
+        const codeInput = `<input type="hidden" name="color_code" value="${colorHex}">`;
+        
+        hiddenContainer.append(nameInput);
+        hiddenContainer.append(codeInput);
     });
+}
+
+// Initialize on page load
+$(document).ready(function() {
+    
+    updateSelectedColorsDisplay();
+    
+    // Handle color selection
+    $('.color-option:not(.add-color-option)').on('click', function() {
+        const checkbox = $(this).find('.color-checkbox');
+        checkbox.prop('checked', !checkbox.prop('checked'));
+        updateSelectedColorsDisplay();
+    });
+});
+
+// Function to open modal
+function openColorModal() {
+    // Reset form
+    $('#customColorName').val('');
+    $('#customColorPicker').val('#ff0000');
+    
+    // Show modal using Bootstrap
+    var colorModal = new bootstrap.Modal(document.getElementById('colorModal'));
+    colorModal.show();
+}
+
+function addCustomColor() {
+    const colorName = $('#customColorName').val().trim();
+    const colorHex = $('#customColorPicker').val();
+
+    if (!colorName) {
+        alert('Please enter a color name');
+        return;
+    }
+
+    // Check if color name already exists
+    if (colorMap[colorName]) {
+        alert('Color name already exists! Please use a different name.');
+        return;
+    }
+
+    // Add to color map
+    colorMap[colorName] = colorHex;
+    
+    // Create new color option
+    createColorOption(colorName, colorHex);
+    
+    // Close modal and reset
+    var colorModal = bootstrap.Modal.getInstance(document.getElementById('colorModal'));
+    colorModal.hide();
+    
+    showTempMessage(`Color "${colorName}" added successfully!`, 'success');
+}
+
+function createColorOption(colorName, colorHex) {
+    const colorId = 'color_' + colorName.replace(/\s+/g, '_').toLowerCase();
+    
+    const colorOption = `
+        <div class="col-md-2 col-4 mb-2">
+            <div class="color-option" data-color="${colorName}" data-hex="${colorHex}">
+                <input type="checkbox" class="color-checkbox" name="color" value="${colorName}" id="${colorId}" hidden>
+                <label for="${colorId}" class="color-label">
+                    <span class="color-swatch" style="background-color: ${colorHex}; ${colorHex === '#ffffff' || colorHex === '#fffdd0' ? 'border: 1px solid #ddd;' : ''}"></span>
+                    <span class="color-name">${colorName}</span>
+                </label>
+            </div>
+        </div>
+    `;
+    
+    // Add before the "Add Color" button
+    $('.add-color-option').parent().before(colorOption);
+    
+    // Add click handler for the new color option
+    $(`.color-option[data-color="${colorName}"]`).on('click', function() {
+        const checkbox = $(this).find('.color-checkbox');
+        checkbox.prop('checked', !checkbox.prop('checked'));
+        updateSelectedColorsDisplay();
+    });
+}
+
+function removeColor(colorName) {
+    // Uncheck the checkbox
+    $(`.color-checkbox[value="${colorName}"]`).prop('checked', false);
+    updateSelectedColorsDisplay();
+    showTempMessage(`Color "${colorName}" removed!`, 'warning');
+}
+
+function updateSelectedColorsDisplay() {
+    const displayContainer = $('#selectedColors');
+    displayContainer.empty();
+    
+    // Get all checked colors
+    $('.color-checkbox:checked').each(function() {
+        const colorName = $(this).val();
+        const colorHex = colorMap[colorName] || '#cccccc';
+        const textColor = getTextColor(colorHex);
+        
+        const colorBadge = `
+            <div class="selected-color-badge" style="background-color: ${colorHex}; color: ${textColor};">
+                ${colorName}
+                <button type="button" class="remove-color-btn" onclick="removeColor('${colorName}')">
+                    <i class="fas fa-times"></i>
+                </button>
+            </div>
+        `;
+        displayContainer.append(colorBadge);
+    });
+}
+
+function getTextColor(backgroundColor) {
+    const hex = backgroundColor.replace('#', '');
+    const r = parseInt(hex.substr(0, 2), 16);
+    const g = parseInt(hex.substr(2, 2), 16);
+    const b = parseInt(hex.substr(4, 2), 16);
+    const luminance = (0.299 * r + 0.587 * g + 0.114 * b) / 255;
+    return luminance > 0.5 ? '#000000' : '#ffffff';
+}
+
+function showTempMessage(message, type) {
+    const alertClass = type === 'success' ? 'alert-success' : 'alert-warning';
+    const alertDiv = $(`<div class="alert ${alertClass} alert-dismissible fade show mt-2">
+        ${message}
+        <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+    </div>`);
+    
+    $('.selected-colors-container').append(alertDiv);
+    
+    setTimeout(() => {
+        alertDiv.remove();
+    }, 3000);
+}
+
+// Form submission handler
+$('form').on('submit', function() {
+    prepareColorInputs(); 
+    // Ensure at least one color is selected
+    const selectedColors = $('.color-checkbox:checked').length;
+    if (selectedColors === 0) {
+        alert('Please select at least one color');
+        return false;
+    }
 });
 </script>
 

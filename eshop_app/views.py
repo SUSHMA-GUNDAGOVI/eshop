@@ -523,7 +523,19 @@ def product_add(request):
         child_cat_id = request.POST.get("child_cat_id")
         price = request.POST.get("price")
         discount = request.POST.get("discount") or 0
-        size = request.POST.get("size")
+
+        sizes = request.POST.getlist("size")  # This returns a list of selected sizes
+        size_string = ",".join(sizes) if sizes else ""  # Convert list to comma-separated string
+        color_data = []
+        color_names = request.POST.getlist("color_name")
+        color_codes = request.POST.getlist("color_code")  
+        for name, code in zip(color_names, color_codes):
+            if name and code:  # Only add if both name and code exist
+                color_data.append({
+                    'name': name,
+                    'code': code
+                })
+
         brand_id = request.POST.get("brand_id")
         condition = request.POST.get("condition")
         stock = request.POST.get("stock")
@@ -559,7 +571,8 @@ def product_add(request):
             child_category=child_category,
             price=price,
             discount=discount,
-            size=size,
+            size=size_string,
+            color_data=color_data, 
             brand=brand,
             condition=condition,
             stock=stock,
