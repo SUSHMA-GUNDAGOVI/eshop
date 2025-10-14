@@ -134,15 +134,15 @@
                             <span class="label">Sale</span>
                         {% endif %}
                         <ul class="product__hover">
-                            <li><a href="#"><img src="{% static 'assets/img/icon/heart.png' %}" alt=""></a></li>
-                            <li><a href="#"><img src="{% static 'assets/img/icon/compare.png' %}" alt="">
+                            <li><a href="#"><img src="{% static 'frontend/img/icon/heart.png' %}" alt=""></a></li>
+                            <li><a href="#"><img src="{% static 'frontend/img/icon/compare.png' %}" alt="">
                                 <span>Compare</span></a></li>
-                            <li><a href="#"><img src="{% static 'assets/img/icon/search.png' %}" alt=""></a></li>
+                            <li><a href="#"><img src="{% static 'frontend/img/icon/search.png' %}" alt=""></a></li>
                         </ul>
                     </div>
                     <div class="product__item__text">
                         <h6>{{ product.title }}</h6>
-                        <a href="#" class="add-cart">+ Add To Cart</a>
+                        <a href="{% url 'product_detail' product.pk %}" class="add-cart">+ Add To Cart</a>
                         <div class="rating">
                             <i class="fa fa-star-o"></i>
                             <i class="fa fa-star-o"></i>

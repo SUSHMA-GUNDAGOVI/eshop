@@ -1,94 +1,129 @@
-from django.shortcuts import render
-from django.http import JsonResponse
-from eshop_app.models import Banner
-from .serializers import ProductSerializer
-from rest_framework.views import APIView
-from eshop_app.models import Product 
-from rest_framework.response import Response
-from rest_framework import status
-from .serializers import CategorySerializer
-from eshop_app.models import Category
-from rest_framework import serializers
-from django.db.models import Q
+from django.shortcuts import render, redirect, get_object_or_404
+from eshop_app.models import Product, Banner
+from django.utils import timezone
+from datetime import timedelta
+from decimal import Decimal
 
 
-#API
-def banner_api(request):
-    banners = Banner.objects.filter(status='active')
-    banner_list = []
-    for banner in banners:
-        banner_list.append({
-            'id': banner.id,
-            'title': banner.title,
-            'description': banner.description,
-            'image_url': request.build_absolute_uri(banner.photo.url)
-        })
-    return JsonResponse(banner_list, safe=False)
-
- 
-class CategoryListAPI(APIView):
-    def get(self, request):
-        # Fetch only active main (parent) categories
-        categories = Category.objects.filter(status='active', is_parent=True).order_by('title')
-
-        serializer = CategorySerializer(categories, many=True, context={'request': request})
-        return Response(serializer.data, status=status.HTTP_200_OK)
-    
-
-class SubCategoryListAPI(APIView):
-    def get(self, request, category_id):
-        subcategories = Category.objects.filter(
-            status='active',
-            is_parent=False,
-            parent_id=category_id
-        ).order_by('title')
-
-        serializer = CategorySerializer(subcategories, many=True, context={'request': request})
-        return Response(serializer.data, status=status.HTTP_200_OK)
-    
-
-
-class ProductListAPI(APIView):
-    def get(self, request):
-        # Fetch all active products
-        products = Product.objects.filter(status='active').order_by('-created_at')
-        serializer = ProductSerializer(products, many=True, context={'request': request})
-        return Response(serializer.data, status=status.HTTP_200_OK)
-
-class ProductListByCategoryAPI(APIView):
-    def get(self, request, category_id):
-        try:
-            # Fetch products where either category OR child_category matches the given category_id
-            products = Product.objects.filter(
-                Q(category_id=category_id) | Q(child_category_id=category_id),
-                status='active'
-            ).order_by('-created_at')
-
-            serializer = ProductSerializer(products, many=True, context={'request': request})
-            return Response(serializer.data, status=status.HTTP_200_OK)
-
-        except Exception as e:
-            return Response({"error": str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
-        
-
-#Landing Page
 def index(request):
     filter_type = request.GET.get('filter', 'all')
     products = Product.objects.filter(status='active')
+    
     if filter_type == 'new-arrivals':
-        products = products.filter(created_at__gte=timezone.now() - timedelta(days=7))
+        products = products.filter(created_at__gte=timezone.now() - timedelta(days=7)).order_by('-created_at')
     elif filter_type == 'hot-sales':
-        products = products.filter(price__lt=50)
-    products = products.order_by('-created_at')
-    print("Active products:", products.count())
-    for product in products:
-        print(f"Product: {product.title}, Status: {product.status}, Price: {product.price}, Image: {product.photo.url if product.photo else 'No image'}")
-    context = {'products': products, 'filter_type': filter_type}
-    print("Context being sent:", context)
-    return render(request, 'index.html')
+        products = products.filter(price__lt=50).order_by('-price')
+    else:
+        products = products.order_by('-created_at')
+    
+    banners = Banner.objects.all()
+    
+    context = {
+        'products': products, 
+        'filter_type': filter_type,
+        'banners': banners,
+    }
+    
+    return render(request, 'index.html', context)
 
-def landing_page(request):
-    # Fetch all active banners
-    banners = Banner.objects.filter(status='active').order_by('id')
-    print(banners)  # for debugging
-    return render(request, 'index.html', {'banners': banners})
+
+def product_detail_view(request, pk):
+    product = get_object_or_404(Product, pk=pk)
+    context = {'product': product}
+    return render(request, 'product_details.html', context)
+
+
+def add_to_cart_view(request, product_id):
+    if request.method == 'POST':
+        product = get_object_or_404(Product, pk=product_id)
+        try:
+            quantity = int(request.POST.get('quantity', 1))
+        except ValueError:
+            quantity = 1
+            
+        selected_size = request.POST.get('size', 'N/A')
+        selected_color = request.POST.get('color', 'N/A')
+        item_key = f"{product_id}-{selected_size}-{selected_color}"
+        cart = request.session.get('cart', {})
+        
+        if item_key in cart:
+            cart[item_key]['quantity'] += quantity
+        else:
+            cart[item_key] = {
+                'product_id': product_id,
+                'quantity': quantity,
+                'price': str(product.price),
+                'title': product.title,
+                'size': selected_size,
+                'color': selected_color,
+            }
+
+        request.session['cart'] = cart
+        request.session.modified = True
+        redirect_url = redirect('product_detail', pk=product_id).url
+        return redirect(f"{redirect_url}?cart_added={product.title}") 
+
+    return redirect('product_detail', pk=product_id)
+
+
+def shopping_cart_view(request):
+    session_cart = request.session.get('cart', {})
+    cart_items = []
+    cart_subtotal = Decimal('0.00')
+    
+    for item_key, item_data in session_cart.items():
+        product_id = item_data.get('product_id')
+        quantity = item_data.get('quantity', 0)
+        if quantity <= 0:
+            continue
+            
+        try:
+            product = Product.objects.get(pk=product_id)
+        except Product.DoesNotExist:
+            continue
+            
+        item_price = Decimal(item_data.get('price', product.price))
+        line_total = item_price * quantity
+        cart_subtotal += line_total
+        
+        cart_items.append({
+            'product': product,
+            'quantity': quantity,
+            'size': item_data.get('size', 'N/A'),
+            'color': item_data.get('color', 'N/A'),
+            'price': item_price,
+            'line_total': line_total,
+            'item_key': item_key,
+        })
+
+    shipping_cost = Decimal('10.00')
+    tax_rate = Decimal('0.05')
+    tax_amount = (cart_subtotal * tax_rate).quantize(Decimal('0.01'))
+    order_total = cart_subtotal + tax_amount + shipping_cost
+
+    context = {
+        'cart_items': cart_items,
+        'cart_subtotal': cart_subtotal,
+        'shipping_cost': shipping_cost,
+        'tax_amount': tax_amount,
+        'order_total': order_total,
+    }
+    
+    return render(request, 'shopping_cart.html', context)
+
+
+def remove_from_cart_view(request):
+    if request.method == 'POST':
+        item_key = request.POST.get('item_key')
+        cart = request.session.get('cart', {})
+
+        if item_key and item_key in cart:
+            product_title = cart[item_key].get('title', 'An item') 
+            del cart[item_key]
+            request.session['cart'] = cart
+            request.session.modified = True
+            redirect_url = redirect('shopping_cart').url
+            return redirect(f"{redirect_url}?cart_removed={product_title}") 
+
+    return redirect('shopping_cart')
+

@@ -1,0 +1,177 @@
+{% extends "landing_base.html" %}
+
+
+{% block title %}Shopping Cart - Your E-Shop{% endblock %}
+
+{% block content %}
+    <section class="breadcrumb-option">
+        <div class="container">
+            <div class="row">
+                <div class="col-lg-12">
+                    <div class="breadcrumb__text">
+                        <h4>Shopping Cart</h4>
+                        <div class="breadcrumb__links">
+                            <a href="/">Home</a> 
+                            <a href="">Shop</a> 
+                            <span>Shopping Cart</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+    <section class="shopping-cart spad">
+        <div class="container">
+            <div class="row">
+                <div class="col-lg-8">
+                    <div class="shopping__cart__table">
+                        <table>
+                            <thead>
+                                <tr>
+                                    <th>Product</th>
+                                    <th>Price</th>
+                                    <th>Quantity</th>
+                                    <th>Total</th>
+                                    <th></th> </tr>
+                            </thead>
+                            <tbody>
+                                {% if cart_items %}
+                                    {% for item in cart_items %}
+                                        <tr>
+                                            <td class="product__cart__item">
+                                                <div class="product__cart__item__pic">
+                                                <img src="{{ item.product.photo.url }}" alt="{{ item.product.title }}" style="max-width: 100px;">
+                                            </div>
+                                                <div class="product__cart__item__text">
+                                                    <h6>{{ item.product.title }}</h6>
+                                                    <p>
+                                                        {% if item.size != 'N/A' %}Size: {{ item.size }}{% endif %}
+                                                        {% if item.size != 'N/A' and item.color != 'N/A' %} | {% endif %}
+                                                        {% if item.color != 'N/A' %}Color: {{ item.color }}{% endif %}
+                                                    </p>
+                                                </div>
+                                            </td>
+
+                                            <td class="cart__price">${{ item.price|floatformat:2 }}</td>
+                                            
+                                            <td class="quantity__item">
+                                                <div class="quantity">
+                                                    <div class="pro-qty-2">
+                                                        <input type="text" value="{{ item.quantity }}">
+                                                    </div>
+                                                </div>
+                                            </td>
+                                            
+                                            <td class="cart__price">${{ item.line_total|floatformat:2 }}</td>
+                                            
+                                            <td class="cart__close">
+                                                <form id="remove-form-{{ item.item_key }}" 
+                                                      action="{% url 'remove_from_cart' %}" 
+                                                      method="POST" 
+                                                      style="display: none;">
+                                                    {% csrf_token %}
+                                                    <input type="hidden" name="item_key" value="{{ item.item_key }}">
+                                                </form>
+                                                
+                                                <a href="#" 
+                                                   onclick="confirmRemoval('{{ item.product.title|escapejs }}', 'remove-form-{{ item.item_key }}'); return false;">
+                                                   <i class="fa fa-close"></i>
+                                                </a>
+                                            </td>
+                                        </tr>
+                                    {% endfor %}
+                                {% else %}
+                                    <tr>
+                                        <td colspan="5" class="text-center">Your cart is currently empty.</td>
+                                    </tr>
+                                {% endif %}
+                            </tbody>
+                        </table>
+                    </div>
+                    
+                    <div class="row">
+                        <div class="col-lg-6 col-md-6 col-sm-6">
+                            <div class="continue__btn">
+                                <a href="/">Continue Shopping</a>
+                            </div>
+                        </div>
+                        <div class="col-lg-6 col-md-6 col-sm-6">
+                            <div class="continue__btn update__btn">
+                                <a href="#"><i class="fa fa-spinner"></i> Update cart</a>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="col-lg-4">
+                    <div class="cart__discount">
+                        <h6>Discount codes</h6>
+                        <form action="#">
+                            {% csrf_token %}
+                            <input type="text" placeholder="Coupon code">
+                            <button type="submit">Apply</button>
+                        </form>
+                    </div>
+                    <div class="cart__total">
+                        <h6>Cart total</h6>
+                        <ul>
+                            <li>Subtotal <span>${{ cart_subtotal|floatformat:2 }}</span></li>
+                            <li>Shipping <span>${{ shipping_cost|floatformat:2 }}</span></li>
+                            <li>Tax <span>${{ tax_amount|floatformat:2 }}</span></li>
+                            <li class="cart_total_final">Total <span>${{ order_total|floatformat:2 }}</span></li>
+                        </ul>
+                        <a href="" class="primary-btn">Proceed to checkout</a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+<script type="text/javascript" src="https://cdn.jsdelivr.net/npm/toastify-js"></script>
+
+<script>
+    function confirmRemoval(productTitle, formId) {
+        Swal.fire({
+            title: 'Remove Item?',
+            text: "Do you want to remove " + productTitle + " from your cart?",
+            icon: 'warning',
+            showCancelButton: true,
+            confirmButtonColor: '#d33', 
+            cancelButtonColor: '#3085d6', 
+            confirmButtonText: 'Yes, Remove It',
+            cancelButtonText: 'Cancel'
+        }).then((result) => {
+            if (result.isConfirmed) {
+                document.getElementById(formId).submit();
+            }
+        });
+    }
+
+    // Toastify notification logic
+    document.addEventListener('DOMContentLoaded', function() {
+        const urlParams = new URLSearchParams(window.location.search);
+        const removedItemTitle = urlParams.get('cart_removed');
+
+        if (removedItemTitle) {
+            Toastify({
+                text: removedItemTitle + " was removed from your cart.",
+                duration: 3000,
+                close: true,
+                gravity: "top", 
+                position: "right", 
+                style: {
+                    background: "linear-gradient(to right, #ff416c, #ff4b2b)",
+                },
+            }).showToast();
+
+            // Clean the URL parameter
+            history.replaceState(null, null, window.location.pathname);
+        }
+        
+        // You might need to initialize the Pro-Qty-2 logic here if it's JS-based
+        // Example: $('.pro-qty-2').prepend('<span class="fa fa-angle-left dec qtybtn"></span>');
+        // Example: $('.pro-qty-2').append('<span class="fa fa-angle-right inc qtybtn"></span>');
+    });
+</script>
+{% endblock %}
