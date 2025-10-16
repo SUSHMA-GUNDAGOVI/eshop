@@ -16,7 +16,8 @@ from eshop_app.models import Product
 from django.utils import timezone
 from datetime import timedelta
 from decimal import Decimal
-
+from urllib.parse import quote_plus
+from django.urls import reverse
 
 #API
 def banner_api(request):
@@ -130,49 +131,38 @@ def product_detail_view(request, pk):
         'colors': colors,
     }
     return render(request, 'product_details.html', context)
-
 def add_to_cart_view(request, product_id):
     """
     Handles adding a product and its options (quantity, size, color) to the cart 
     stored in the user's session.
     """
-    
-    # Check if the request is a POST request (from the 'Add to Cart' form)
     if request.method == 'POST':
         
         # 1. Get the product object or return a 404 error
         product = get_object_or_404(Product, pk=product_id)
 
         # 2. Extract data from the POST request
-        # Safely get quantity (default to 1) and selected options
         try:
             quantity = int(request.POST.get('quantity', 1))
         except ValueError:
-            # Handle case where quantity isn't a valid number
             quantity = 1
             
-        selected_size = request.POST.get('size', 'N/A') # Use a default like 'N/A'
-        selected_color = request.POST.get('color', 'N/A') # Use a default like 'N/A'
+        selected_size = request.POST.get('size', 'N/A')
+        selected_color = request.POST.get('color', 'N/A')
 
         # 3. Create a unique identifier for this specific cart item 
-        # This key combines the product ID and the selected attributes
         item_key = f"{product_id}-{selected_size}-{selected_color}"
 
         # 4. Initialize the cart in the session if it doesn't exist
-        # 'cart' will be a dictionary of item_key: item_details
         cart = request.session.get('cart', {})
         
         # 5. Add or update the item in the cart
         if item_key in cart:
-            # Item already exists, just increase the quantity
             cart[item_key]['quantity'] += quantity
         else:
-            # Item is new, add it to the cart dictionary
             cart[item_key] = {
                 'product_id': product_id,
                 'quantity': quantity,
-                # Store price as a string to avoid potential JSON serialization issues 
-                # (Decimal types are not JSON serializable by default)
                 'price': str(product.price), 
                 'title': product.title,
                 'size': selected_size,
@@ -181,20 +171,22 @@ def add_to_cart_view(request, product_id):
 
         # 6. Save the modified cart back to the session
         request.session['cart'] = cart
-        # Mark the session as modified so Django knows to save it to the database/backend
         request.session.modified = True
         
-        # 7. Redirect the user back to the product detail page 
-        # Use a GET parameter to signal success for the Toastify notification
-        product_name = product.title 
-        redirect_url = redirect('product_detail', pk=product_id).url
+        # 7. Redirect the user back to the product detail page (FIXED)
         
-        # The f-string syntax safely appends the parameter to the URL
-        return redirect(f"{redirect_url}?cart_added={product_name}") 
+        # A. Safely encode the product name for the URL
+        product_name_encoded = quote_plus(product.title) # 👈 Correct encoding
+        
+        # B. Get the base URL
+        redirect_url = reverse('product_detail', kwargs={'pk': product_id}) 
+        
+        # C. Redirect with the correctly encoded parameter
+        return redirect(f"{redirect_url}?cart_added={product_name_encoded}") 
 
-    # If the request method is not POST (e.g., someone browsed directly to this URL), 
-    # just redirect them back to the product detail page.
+    # If the request method is not POST, redirect back.
     return redirect('product_detail', pk=product_id)
+
 
 def shopping_cart_view(request):
     """

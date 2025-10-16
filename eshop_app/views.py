@@ -590,68 +590,6 @@ def product_add(request):
     })
 
 
-def product_edit(request, pk):
-    product = get_object_or_404(Product, pk=pk)
-    categories = Category.objects.filter(parent__isnull=True, status="active")
-    brands = Brand.objects.filter(status="active")
-
-    if request.method == "POST":
-        product.title = request.POST.get("title")
-        product.summary = request.POST.get("summary")
-        product.description = request.POST.get("description")
-        product.is_featured = bool(request.POST.get("is_featured"))
-
-        cat_id = request.POST.get("cat_id")
-        child_cat_id = request.POST.get("child_cat_id")
-        brand_id = request.POST.get("brand_id")
-
-        product.category = Category.objects.get(id=cat_id) if cat_id else None
-        product.child_category = Category.objects.get(id=child_cat_id) if child_cat_id else None
-        product.brand = Brand.objects.get(id=brand_id) if brand_id else None
-
-        product.price = request.POST.get("price")
-        product.discount = request.POST.get("discount") or 0
-        
-        # Handle multiple sizes
-        selected_sizes = request.POST.getlist('size')
-        product.size = ','.join(selected_sizes) if selected_sizes else ''
-        
-        # Handle multiple colors
-        color_names = request.POST.getlist('color_name')
-        color_codes = request.POST.getlist('color_code')
-        # You might want to store colors differently based on your model
-        # For now, storing as comma-separated names
-        product.color = ','.join(color_names) if color_names else ''
-        
-        product.condition = request.POST.get("condition")
-        product.stock = request.POST.get("stock")
-        product.status = request.POST.get("status")
-
-        photo = request.FILES.get("photo")
-        if photo:
-            if not photo.content_type.startswith(("image", "video")):
-                return render(request, "product_edit.html", {
-                    "product": product,
-                    "categories": categories,
-                    "brands": brands,
-                    "error_message": "Only images or videos are allowed."
-                })
-            product.photo = photo
-
-        product.save()
-        return redirect(f"{reverse('product_list')}?success=2")
-
-    return render(request, "product_edit.html", {
-        "product": product,
-        "categories": categories,
-        "brands": brands,
-    })
-
-
-def product_toggle_status(request, pk):
-    # Security Check: Only Admin/Staff can toggle status
-    if not request.user.is_staff and not request.user.is_superuser:
-        raise PermissionDenied("You do not have permission to change product status.")
 # ✅ Edit Product - Fixed Color Handling
 def product_edit(request, pk):
     product = get_object_or_404(Product, pk=pk)
@@ -742,6 +680,12 @@ def product_edit(request, pk):
         "categories": categories,
         "brands": brands,
     })
+
+def product_toggle_status(request, pk):
+    # Security Check: Only Admin/Staff can toggle status
+    if not request.user.is_staff and not request.user.is_superuser:
+        raise PermissionDenied("You do not have permission to change product status.")
+
     product = get_object_or_404(Product, pk=pk)
 
     # Toggle the status
