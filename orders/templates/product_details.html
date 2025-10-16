@@ -4,6 +4,9 @@
 {% block title %}{{ product.name }} Details{% endblock %}
 
 {% block content %}
+<style>
+ 
+</style>
 <section class="shop-details">
     <div class="product__details__pic">
         <div class="container">
@@ -76,14 +79,13 @@
                                     <span>Size:</span>
                                     {% if sizes %}
                                         {% for size_item in sizes %}
-                                            <label for="size-{{ forloop.counter }}">
+                                            <input type="radio" id="size-{{ forloop.counter }}" name="size" value="{{ size_item }}" class="size-radio" {% if forloop.first %}required{% endif %} hidden>
+                                            <label for="size-{{ forloop.counter }}" class="size-label">
                                                 {{ size_item }}
-                                                <input type="radio" id="size-{{ forloop.counter }}" name="size" value="{{ size_item }}" {% if forloop.first %}required{% endif %}>
                                             </label>
                                         {% endfor %}
                                     {% else %}
-                                        <span class="text-muted">No sizes available</span>
-                                    {% endif %}
+                                        {% endif %}
                                 </div>
                                 
                                 <div class="product__details__option__color">
@@ -91,7 +93,7 @@
                                     {% if colors %}
                                         {% for color in colors %}
                                             <label 
-                                                style="background: {{ color.code }}; width: 30px; height: 30px; border-radius: 50%; display: inline-block; border: 2px solid #ddd;"
+                                                style="background: {{ color.code }}; "
                                                 for="pc-{{ product.id }}-{{ forloop.counter }}">
                                                 <input type="radio" id="pc-{{ product.id }}-{{ forloop.counter }}" name="color" value="{{ color.name }}" {% if forloop.first %}required{% endif %} hidden>
                                             </label>
@@ -155,7 +157,7 @@
     </div>
 </section>
 <section class="related spad">
-    <div class="container">
+    <div class="container"> 
         <div class="row">
             <div class="col-lg-12">
                 <h3 class="related-title">Related Product</h3>

@@ -18,6 +18,7 @@ from .models import SiteSettings
 from django.core.files.storage import default_storage
 from django.contrib.auth import update_session_auth_hash
 from django.contrib.auth import logout
+from django.core.exceptions import PermissionDenied
 
 
 
@@ -589,15 +590,10 @@ def product_add(request):
     })
 
 
-
-# ✅ Edit Product
 def product_edit(request, pk):
     product = get_object_or_404(Product, pk=pk)
     categories = Category.objects.filter(parent__isnull=True, status="active")
     brands = Brand.objects.filter(status="active")
- # Define the lists for the template
-    AVAILABLE_SIZES = ['S', 'M', 'L', 'XL']
-    AVAILABLE_CONDITIONS = ['default', 'new', 'hot'] # Define conditions list too
 
     if request.method == "POST":
         product.title = request.POST.get("title")
@@ -615,14 +611,24 @@ def product_edit(request, pk):
 
         product.price = request.POST.get("price")
         product.discount = request.POST.get("discount") or 0
-        product.size = request.POST.get("size")
+        
+        # Handle multiple sizes
+        selected_sizes = request.POST.getlist('size')
+        product.size = ','.join(selected_sizes) if selected_sizes else ''
+        
+        # Handle multiple colors
+        color_names = request.POST.getlist('color_name')
+        color_codes = request.POST.getlist('color_code')
+        # You might want to store colors differently based on your model
+        # For now, storing as comma-separated names
+        product.color = ','.join(color_names) if color_names else ''
+        
         product.condition = request.POST.get("condition")
         product.stock = request.POST.get("stock")
         product.status = request.POST.get("status")
 
         photo = request.FILES.get("photo")
         if photo:
-            # Validate file type
             if not photo.content_type.startswith(("image", "video")):
                 return render(request, "product_edit.html", {
                     "product": product,
@@ -639,15 +645,103 @@ def product_edit(request, pk):
         "product": product,
         "categories": categories,
         "brands": brands,
-         "sizes": AVAILABLE_SIZES,
-        "conditions": AVAILABLE_CONDITIONS,
     })
+
 
 def product_toggle_status(request, pk):
     # Security Check: Only Admin/Staff can toggle status
     if not request.user.is_staff and not request.user.is_superuser:
         raise PermissionDenied("You do not have permission to change product status.")
+# ✅ Edit Product - Fixed Color Handling
+def product_edit(request, pk):
+    product = get_object_or_404(Product, pk=pk)
+    categories = Category.objects.filter(parent__isnull=True, status="active")
+    brands = Brand.objects.filter(status="active")
 
+    if request.method == "POST":
+        try:
+            # Debug: Print all POST data
+            print("=== FORM SUBMISSION DATA ===")
+            print("All POST data:")
+            for key, value in request.POST.items():
+                print(f"  {key}: {value}")
+            print("All POST lists:")
+            for key in request.POST:
+                values = request.POST.getlist(key)
+                if len(values) > 1 or (len(values) == 1 and values[0]):
+                    print(f"  {key}: {values}")
+            print("=============================")
+            
+            # Update basic fields
+            product.title = request.POST.get("title", "").strip()
+            product.summary = request.POST.get("summary", "").strip()
+            product.description = request.POST.get("description", "").strip()
+            product.is_featured = 'is_featured' in request.POST
+            
+            # Handle categories
+            cat_id = request.POST.get("cat_id")
+            child_cat_id = request.POST.get("child_cat_id")
+            brand_id = request.POST.get("brand_id")
+            
+            product.category = Category.objects.get(id=cat_id) if cat_id else None
+            product.child_category = Category.objects.get(id=child_cat_id) if child_cat_id else None
+            product.brand = Brand.objects.get(id=brand_id) if brand_id else None
+
+            # Handle price and discount
+            product.price = float(request.POST.get("price", 0))
+            product.discount = float(request.POST.get("discount", 0))
+            
+            # Handle sizes - Multiple checkboxes with same name
+            size_values = request.POST.getlist('size')
+            print(f"Sizes received: {size_values}")
+            product.size = ','.join(size_values) if size_values else ''
+            print(f"Size saved: '{product.size}'")
+            
+            # Handle colors - Multiple checkboxes with name "colors"
+            color_values = request.POST.getlist('colors')
+            print(f"Colors received: {color_values}")
+            product.color = ','.join(color_values) if color_values else ''
+            print(f"Color saved: '{product.color}'")
+            
+            # Handle other fields
+            product.condition = request.POST.get("condition", "default")
+            product.stock = int(request.POST.get("stock", 0))
+            product.status = request.POST.get("status", "active")
+
+            # Handle file upload
+            photo = request.FILES.get("photo")
+            if photo:
+                if not photo.content_type.startswith(("image", "video")):
+                    return render(request, "product_edit.html", {
+                        "product": product,
+                        "categories": categories,
+                        "brands": brands,
+                        "error_message": "Only images or videos are allowed."
+                    })
+                product.photo = photo
+
+            # Save the product
+            product.save()
+            print("✅ Product updated successfully!")
+            
+            return redirect(f"{reverse('product_list')}?success=2")
+            
+        except Exception as e:
+            print(f"❌ Error updating product: {str(e)}")
+            import traceback
+            traceback.print_exc()
+            return render(request, "product_edit.html", {
+                "product": product,
+                "categories": categories,
+                "brands": brands,
+                "error_message": f"Error updating product: {str(e)}"
+            })
+
+    return render(request, "product_edit.html", {
+        "product": product,
+        "categories": categories,
+        "brands": brands,
+    })
     product = get_object_or_404(Product, pk=pk)
 
     # Toggle the status
