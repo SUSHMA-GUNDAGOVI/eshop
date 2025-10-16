@@ -5,13 +5,13 @@ from django.contrib.auth import views as auth_views
 
 urlpatterns = [
     # path("" ,views.home, name='index'),  # Home page
-    path("login1/", views.login_view, name="home"),
+    path("", views.login_view, name="home"),
     path("login/", views.login_view, name="login"),
     path('login/', auth_views.LoginView.as_view(template_name='login.html'), name='login'),
     path('logout/', views.custom_logout, name='logout'),
     path("register/", views.register, name="register"),
     path("admin/dashboard/", views.admin_dashboard, name="admin_dashboard"),
-    path("user/dashboard/", views.user_dashboard, name="user_dashboard"),
+    path("user/dashboard/", views.user_dashboard, name="index"),
     path('vendor/dashboard/', views.vendor_dashboard, name='vendor_dashboard'),
     path('banners/add/', views.add_banner, name='add_banner'),
     path('banners/list/', views.banner_list, name='banner_list'),

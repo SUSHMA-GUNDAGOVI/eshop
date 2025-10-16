@@ -27,7 +27,7 @@ urlpatterns = [
     path('', include('eshop_app.urls')),            # Admin panel
     path('orders/', include('orders.urls')),             # Landing page URLs
     path('admin_dashboard/', eshop_views.admin_dashboard, name='admin_dashboard'),
-    path('user_dashboard/', eshop_views.user_dashboard, name='user_dashboard'),
+    path('index/', eshop_views.user_dashboard, name='index'),
 ]
 
 if settings.DEBUG:
