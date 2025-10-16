@@ -5,6 +5,7 @@
 
 {% block content %}
 <!-- Page Preloder -->
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css">
 
 <!-- Offcanvas Menu Begin -->
 <div class="offcanvas-menu-overlay"></div>
@@ -47,9 +48,27 @@
                 <div class="row">
                     <div class="col-xl-5 col-lg-7 col-md-8">
                         <div class="hero__text">
-                            <h6>{{ banner.title }}</h6>
-                            <h2>{{ banner.description }}</h2>
-                            <a href="#" class="primary-btn">Shop now <span class="arrow_right"></span></a>
+                           <h6 style="font-size: 30px; font-weight: 700;">
+    {{ banner.title }}
+</h6>
+
+                            <h2 style="font-size: 16px; line-height: 1.4; color:rgb(85, 81, 81)">{{ banner.description }}</h2>
+                            {% if banner.product %}
+    {% if request.user.is_authenticated %}
+        <a href="{% url 'product_detail' banner.product.id %}" class="primary-btn">
+            Shop now <span class="arrow_right"></span>
+        </a>
+    {% else %}
+        <a href="{% url 'login' %}?next={% url 'product_detail' banner.product.id %}" class="primary-btn">
+            Shop now <span class="arrow_right"></span>
+        </a>
+    {% endif %}
+{% else %}
+    <a href="{% url 'shop_all' %}" class="primary-btn">
+        Shop now <span class="arrow_right"></span>
+    </a>
+{% endif %}
+
                             <div class="hero__social">
                                 <a href="#"><i class="fa fa-facebook"></i></a>
                                 <a href="#"><i class="fa fa-twitter"></i></a>
@@ -64,6 +83,7 @@
         {% endfor %}
     </div>
 </section>
+
 
 <!-- Hero Section End -->
 

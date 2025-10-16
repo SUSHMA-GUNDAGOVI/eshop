@@ -11,7 +11,7 @@
                 {% if user.role == 'admin' %}
                     <a href="{% url 'admin_dashboard' %}"><i class="fas fa-user"></i>Dashboard</a>
                 {% else %}
-                    <a href="{% url 'user_dashboard' %}"><i class="fas fa-user"></i>Dashboard</a>
+                    <a href="{% url 'index' %}"><i class="fas fa-user"></i>Dashboard</a>
                 {% endif %}
                 <a href="{% url 'logout' %}"><i class="fas fa-power-off"></i> Logout</a>
             {% else %}

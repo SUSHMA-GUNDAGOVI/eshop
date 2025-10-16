@@ -154,9 +154,28 @@ def delete_user(request, user_id):
 def admin_dashboard(request):
     return render(request, 'admin_dashboard.html')
 
-@login_required
 def user_dashboard(request):
-    return render(request, 'user_dashboard.html')
+    # Fetch products
+    filter_type = request.GET.get('filter', 'all')
+    products = Product.objects.filter(status='active')
+    
+    if filter_type == 'new-arrivals':
+        products = products.filter(created_at__gte=timezone.now() - timedelta(days=7)).order_by('-created_at')
+    elif filter_type == 'hot-sales':
+        products = products.filter(price__lt=50).order_by('-price')
+    else:
+        products = products.order_by('-created_at')
+
+    # Fetch banners
+    banners = Banner.objects.all()
+    
+    context = {
+        'products': products,
+        'banners': banners,
+        'filter_type': filter_type,
+    }
+    
+    return render(request, 'index.html', context)
 
 @login_required
 def vendor_dashboard(request):
@@ -180,7 +199,7 @@ def login_view(request):
             elif user.role == 'vendor':
                 return redirect('vendor_dashboard')
             else:
-                return redirect('user_dashboard')
+                return redirect('index')
         else:
             error = "Invalid email or password"
             return render(request, 'login.html', {'error': error})

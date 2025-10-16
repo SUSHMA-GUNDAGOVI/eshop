@@ -16,3 +16,13 @@ def lower(value):
     Converts a string to lowercase. Used for generating unique IDs.
     """
     return value.lower()
+
+
+@register.filter
+def split(value, delimiter):
+    """
+    Split a string by delimiter and return list
+    """
+    if value and delimiter:
+        return [item.strip() for item in value.split(delimiter)]
+    return []

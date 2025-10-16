@@ -3,6 +3,9 @@ from eshop_app.models import Product, Banner
 from django.utils import timezone
 from datetime import timedelta
 from decimal import Decimal
+from eshop_app.models import Category
+from django.contrib.auth.decorators import login_required
+from eshop_app.models import Category
 
 
 def index(request):
@@ -16,15 +19,17 @@ def index(request):
     else:
         products = products.order_by('-created_at')
     
-    banners = Banner.objects.all()
+    banners = Banner.objects.all()  # Add this line
     
     context = {
-        'products': products, 
+        'products': products,
         'filter_type': filter_type,
-        'banners': banners,
+        'banners': banners,  # Add this line
     }
     
     return render(request, 'index.html', context)
+
+
 
 
 def product_detail_view(request, pk):
@@ -126,4 +131,43 @@ def remove_from_cart_view(request):
             return redirect(f"{redirect_url}?cart_removed={product_title}") 
 
     return redirect('shopping_cart')
+
+def shop_all_products(request):
+    # Fetch all products
+    products = Product.objects.filter(status='active').order_by('-created_at')
+
+    # Fetch parent categories with their children
+    parent_cats = Category.objects.filter(is_parent=True, status='active').prefetch_related('children')
+
+    context = {
+        'products': products,
+        'parent_cats': parent_cats,
+    }
+
+    return render(request, 'shop_all.html', context)
+
+
+def shop_by_category(request, category_id):
+    category = get_object_or_404(Category, pk=category_id, status='active')
+
+    if category.is_parent:
+        # Include all child categories' products
+        child_ids = category.children.values_list('id', flat=True)
+        products = Product.objects.filter(category_id__in=child_ids, status='active')
+    else:
+        products = Product.objects.filter(category_id=category.id, status='active')
+
+    parent_cats = Category.objects.filter(is_parent=True, status='active').prefetch_related('children')
+
+    context = {
+        'products': products,
+        'parent_cats': parent_cats,
+        'selected_category': category,
+    }
+
+    return render(request, 'shop_all.html', context)
+
+
+
+
 

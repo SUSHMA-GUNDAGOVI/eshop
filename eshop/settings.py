@@ -79,7 +79,8 @@ TEMPLATES = [
 
 WSGI_APPLICATION = 'eshop.wsgi.application'
 
-
+LOGIN_REDIRECT_URL = '/'  # Redirects to index after login
+LOGOUT_REDIRECT_URL = '/'  # Optional
 # Database
 # https://docs.djangoproject.com/en/5.2/ref/settings/#databases
 from decouple import config
