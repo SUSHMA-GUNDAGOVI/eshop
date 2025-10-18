@@ -5,11 +5,19 @@
 {% block content %}
 
 <style>
-    .product__item__pic {
-        height: 180px;
-        position: relative;
-        background-position: center center;
-    }
+   .product__item__pic {
+    width: 100%;          /* full container width */
+    height: 250px;        /* fixed height for all images */
+    overflow: hidden;     /* hide any overflow */
+    position: relative;
+}
+
+.product__item__pic img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;    /* scale & crop to fill container */
+    display: block;
+}
 </style>
 <section class="shop spad">
     <div class="container">
@@ -17,14 +25,14 @@
             <div class="col-lg-3">
                 <div class="shop__sidebar">
                     <div class="shop__sidebar__search">
-                        <form action="#">
-                            <input type="text" placeholder="Search...">
-                            <button type="submit"><span class="icon_search"></span></button>
-                        </form>
-                    </div>
+    <form method="GET" action="{% url 'shop_all' %}">
+        <input type="text" name="q" placeholder="Search..." value="{{ search_query }}">
+        <button type="submit"><span class="icon_search"></span></button>
+    </form>
+</div>
                     <div class="shop__sidebar__accordion">
                         <div class="accordion" id="accordionExample">
-                            <div class="card">
+                           <div class="card">
     <div class="card-heading">
         <a data-toggle="collapse" data-target="#collapseCategories">Categories</a>
     </div>
@@ -33,23 +41,12 @@
             <div class="shop__sidebar__categories">
                 <ul class="nice-scroll">
                     {% for parent in parent_cats %}
-                    <li>
-    <!-- Parent category toggle -->
-    <a data-toggle="collapse" href="#parent{{ parent.id }}">
-        {{ parent.title }} ({{ parent.children.count }})
-    </a>
-    <!-- Child categories -->
-    <ul id="parent{{ parent.id }}" class="collapse">
-        {% for child in parent.children.all %}
-        <li>
-            <a href="{% url 'shop_by_category' child.id %}">{{ child.title }}</a>
-        </li>
-        {% empty %}
-        <li>No subcategories</li>
-        {% endfor %}
-    </ul>
-</li>
-
+                        <li>
+                            <a href="{% url 'shop_by_category' parent.id %}"
+                               class="{% if selected_category and selected_category.id == parent.id %}active-cat{% endif %}">
+                                {{ parent.title }}
+                            </a>
+                        </li>
                     {% endfor %}
                 </ul>
             </div>
@@ -58,22 +55,28 @@
 </div>
 
                             <div class="card">
-                                <div class="card-heading">
-                                    <a data-toggle="collapse" data-target="#collapseTwo">Branding</a>
-                                </div>
-                                <div id="collapseTwo" class="collapse show" data-parent="#accordionExample">
-                                    <div class="card-body">
-                                        <div class="shop__sidebar__brand">
-                                            <ul>
-                                                <li><a href="#">Louis Vuitton</a></li>
-                                                <li><a href="#">Chanel</a></li>
-                                                <li><a href="#">Hermes</a></li>
-                                                <li><a href="#">Gucci</a></li>
-                                            </ul>
-                                        </div>
-                                    </div>
-                                </div>
-                            </div>
+    <div class="card-heading">
+        <a data-toggle="collapse" data-target="#collapseBrand">Branding</a>
+    </div>
+    <div id="collapseBrand" class="collapse show" data-parent="#accordionExample">
+        <div class="card-body">
+            <div class="shop__sidebar__brand">
+                <ul>
+                    {% for brand in brands %}
+                        <li>
+                            <a href="{% url 'shop_by_brand' brand.id %}"
+                               class="{% if selected_brand and selected_brand.id == brand.id %}active-cat{% endif %}">
+                                {{ brand.title }}
+                            </a>
+                        </li>
+                    {% empty %}
+                        <li>No brands found</li>
+                    {% endfor %}
+                </ul>
+            </div>
+        </div>
+    </div>
+</div>
                             <div class="card">
                                 <div class="card-heading">
                                     <a data-toggle="collapse" data-target="#collapseThree">Filter Price</a>
@@ -81,15 +84,16 @@
                                 <div id="collapseThree" class="collapse show" data-parent="#accordionExample">
                                     <div class="card-body">
                                         <div class="shop__sidebar__price">
-                                            <ul>
-                                                <li><a href="#">$0.00 - $50.00</a></li>
-                                                <li><a href="#">$50.00 - $100.00</a></li>
-                                                <li><a href="#">$100.00 - $150.00</a></li>
-                                                <li><a href="#">$150.00 - $200.00</a></li>
-                                                <li><a href="#">$200.00 - $250.00</a></li>
-                                                <li><a href="#">250.00+</a></li>
-                                            </ul>
-                                        </div>
+    <ul>
+       <li><a href="?min_price=0&max_price=50"> ₹0 - ₹50 </a></li>
+<li><a href="?min_price=50&max_price=100"> ₹50 - ₹100 </a></li>
+<li><a href="?min_price=100&max_price=150"> ₹100 - ₹150 </a></li>
+<li><a href="?min_price=150&max_price=200"> ₹150 - ₹200 </a></li>
+<li><a href="?min_price=200&max_price=250"> ₹200 - ₹250 </a></li>
+<li><a href="?min_price=250"> ₹250 + </a></li>
+
+    </ul>
+</div>
                                     </div>
                                 </div>
                             </div>
@@ -99,32 +103,17 @@
                                 </div>
                                 <div id="collapseFour" class="collapse show" data-parent="#accordionExample">
                                     <div class="card-body">
-                                        <div class="shop__sidebar__size">
-                                            <label for="xs">xs
-                                                <input type="radio" id="xs">
-                                            </label>
-                                            <label for="sm">s
-                                                <input type="radio" id="sm">
-                                            </label>
-                                            <label for="md">m
-                                                <input type="radio" id="md">
-                                            </label>
-                                            <label for="xl">xl
-                                                <input type="radio" id="xl">
-                                            </label>
-                                            <label for="2xl">2xl
-                                                <input type="radio" id="2xl">
-                                            </label>
-                                            <label for="xxl">xxl
-                                                <input type="radio" id="xxl">
-                                            </label>
-                                            <label for="3xl">3xl
-                                                <input type="radio" id="3xl">
-                                            </label>
-                                            <label for="4xl">4xl
-                                                <input type="radio" id="4xl">
-                                            </label>
-                                        </div>
+                                       <div class="shop__sidebar__size">
+    <form method="get">
+        {% for s in sizes_list %}
+            <label>
+                <input type="radio" name="size" value="{{ s }}" onchange="this.form.submit()"
+                    {% if selected_size == s %}checked{% endif %}>
+                {{ s|upper }}
+            </label>
+        {% endfor %}
+    </form>
+</div>
                                     </div>
                                 </div>
                             </div>
@@ -135,39 +124,20 @@
                                 <div id="collapseFive" class="collapse show" data-parent="#accordionExample">
                                     <div class="card-body">
                                         <div class="shop__sidebar__color">
-                                            <label class="c-1" for="sp-1">
-                                                <input type="radio" id="sp-1">
-                                            </label>
-                                            <label class="c-2" for="sp-2">
-                                                <input type="radio" id="sp-2">
-                                            </label>
-                                            <label class="c-3" for="sp-3">
-                                                <input type="radio" id="sp-3">
-                                            </label>
-                                            <label class="c-4" for="sp-4">
-                                                <input type="radio" id="sp-4">
-                                            </label>
-                                            <label class="c-5" for="sp-5">
-                                                <input type="radio" id="sp-5">
-                                            </label>
-                                            <label class="c-6" for="sp-6">
-                                                <input type="radio" id="sp-6">
-                                            </label>
-                                            <label class="c-7" for="sp-7">
-                                                <input type="radio" id="sp-7">
-                                            </label>
-                                            <label class="c-8" for="sp-8">
-                                                <input type="radio" id="sp-8">
-                                            </label>
-                                            <label class="c-9" for="sp-9">
-                                                <input type="radio" id="sp-9">
-                                            </label>
-                                        </div>
+    <form method="get">
+        {% for c in colors_list %}
+            <label class="{{ c }}">
+                <input type="radio" name="color" value="{{ c }}" onchange="this.form.submit()"
+                    {% if selected_color == c %}checked{% endif %}>
+            </label>
+        {% endfor %}
+    </form>
+</div>
                                     </div>
                                 </div>
                             </div>
                             <div class="card">
-                                <div class="card-heading">
+                               <div class="card-heading">
                                     <a data-toggle="collapse" data-target="#collapseSix">Tags</a>
                                 </div>
                                 <div id="collapseSix" class="collapse show" data-parent="#accordionExample">
@@ -189,25 +159,23 @@
                 </div>
             </div>
             <div class="col-lg-9">
-                <div class="shop__product__option">
-                    <div class="row">
-                        <div class="col-lg-6 col-md-6 col-sm-6">
-                            <div class="shop__product__option__left">
-                                <p>Showing 1–{{ products|length }} of {{ products|length }} results</p>
-                            </div>
-                        </div>
-                        <div class="col-lg-6 col-md-6 col-sm-6">
-                            <div class="shop__product__option__right">
-                                <p>Sort by Price:</p>
-                                <select>
-                                    <option value="">Low To High</option>
-                                    <option value="">$0 - $55</option>
-                                    <option value="">$55 - $100</option>
-                                </select>
-                            </div>
-                        </div>
-                    </div>
-                </div>
+                <div class="shop__product__option__right d-flex justify-content-end">
+    <form method="get" id="sortForm" class="d-flex align-items-center gap-2">
+        <label for="sort" class="mb-0 me-2 fw-semibold">Sort by:</label>
+        <select name="sort" id="sort" class="form-select form-select-sm w-auto"
+                onchange="document.getElementById('sortForm').submit();">
+            <option value="low_to_high" {% if selected_sort == 'low_to_high' %}selected{% endif %}>Low to High</option>
+            <option value="high_to_low" {% if selected_sort == 'high_to_low' %}selected{% endif %}>High to Low</option>
+        </select>
+
+        {% for key, value in request.GET.items %}
+            {% if key != 'sort' %}
+                <input type="hidden" name="{{ key }}" value="{{ value }}">
+            {% endif %}
+        {% endfor %}
+    </form>
+</div>
+
 
                 <!-- Products Grid -->
                 <div class="row">

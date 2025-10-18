@@ -42,6 +42,6 @@ urlpatterns = [
     path('profile/', views.profile_view, name='profile'),
     path('change-password/', views.change_password, name='change_password'),
     path('vendors/list/', views.vendor_list, name='vendor_list'),       
-    path('vendors/add/', views.add_vendor, name='vendor_add'),     
-    # 2. Status Toggle Path (Crucial for the clickable badge)
+    path('vendors/add/', views.add_vendor, name='vendor_add'), 
+    path('contact/add/', views.add_contact, name='contact_add'),    
 ]

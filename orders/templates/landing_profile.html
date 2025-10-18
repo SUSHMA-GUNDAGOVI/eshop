@@ -1,0 +1,96 @@
+{% extends 'landing_base.html' %}
+{% load static %}
+
+{% block title %}My Profile{% endblock %}
+
+{% block content %}
+<style>
+/* Profile Card Container */
+.profile-container {
+    max-width: 900px;
+    margin: 40px auto;
+    padding: 30px;
+    background: #fff;
+    border-radius: 12px;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+    font-family: 'Poppins', sans-serif;
+}
+
+/* Profile Image */
+.profile-image {
+    width: 180px;
+    height: 180px;
+    object-fit: cover;
+    border-radius: 50%;
+    
+}
+
+/* User Details Table */
+.profile-table th {
+    width: 150px;
+    font-weight: 600;
+    background-color: #f8f9fa;
+}
+
+.profile-table td {
+    font-weight: 500;
+}
+
+/* Edit Profile Button */
+.edit-btn {
+    background-color: #007bff;
+    color: #fff;
+    border-radius: 8px;
+    padding: 10px 20px;
+    text-decoration: none;
+    transition: 0.3s;
+}
+
+.edit-btn:hover {
+    background-color: #0056b3;
+    color: #fff;
+    text-decoration: none;
+}
+
+/* Responsive Layout */
+@media (max-width: 768px) {
+    .profile-container {
+        padding: 20px;
+    }
+    .profile-image {
+        margin-bottom: 20px;
+    }
+}
+</style>
+
+<div class="profile-container">
+    <div class="row align-items-center">
+        <div class="col-md-4 text-center">
+           {% if user.profile_image %}
+    <img src="{{ user.profile_image.url }}" class="profile-image mb-3" alt="Profile Image">
+{% else %}
+    <img src="{% static 'frontend/img/profile.png' %}" class="profile-image mb-3" alt="Profile Image">
+{% endif %}
+
+        </div>
+        <div class="col-md-8">
+            <h3 class="mb-4">{{ user.first_name }} {{ user.last_name }}</h3>
+            <table class="table profile-table">
+                <tr>
+                    <th>Email</th>
+                    <td>{{ user.email }}</td>
+                </tr>
+                <tr>
+                    <th>Phone</th>
+                    <td>{{ user.phone }}</td>
+                </tr>
+                <tr>
+                    <th>Address</th>
+                    <td>{{ user.address }}</td>
+                </tr>
+            </table>
+            <a href="{% url 'orders_edit_profile' %}" class="edit-btn mt-3 d-inline-block">Edit Profile</a>
+        </div>
+    </div>
+</div>
+{% endblock %}

@@ -608,7 +608,6 @@ def product_add(request):
         "brands": brands,
     })
 
-
 # ✅ Edit Product - Fixed Color Handling
 def product_edit(request, pk):
     product = get_object_or_404(Product, pk=pk)
@@ -701,28 +700,15 @@ def product_edit(request, pk):
     })
 
 def product_toggle_status(request, pk):
-    # Security Check: Only Admin/Staff can toggle status
-    if not request.user.is_staff and not request.user.is_superuser:
+    if not request.user.is_authenticated or not (request.user.is_staff or request.user.is_superuser):
         raise PermissionDenied("You do not have permission to change product status.")
 
     product = get_object_or_404(Product, pk=pk)
-
-    # Toggle the status
-    if product.status == 'active':
-        product.status = 'inactive'
-        success_code = "4" # Deactivation message
-    else:
-        product.status = 'active'
-        success_code = "5" # Activation message
-
+    product.status = 'inactive' if product.status == 'active' else 'active'
     product.save()
 
-    # Redirect back to the product list, preserving URL parameters
-    redirect_url = f"{reverse('product_list')}?success={success_code}"
-    query_params = request.GET.urlencode()
-    if query_params:
-        redirect_url += f"&{query_params}"
-        
+    # Redirect back to the previous page
+    redirect_url = request.META.get('HTTP_REFERER', reverse('product_list'))
     return redirect(redirect_url)
 
 
@@ -1268,3 +1254,68 @@ def vendor_list(request):
 def custom_logout(request):
     logout(request)  # End session
     return redirect('login')  # Redirect to login page
+
+
+@login_required
+def add_contact(request):
+    # Try to get the first Contact object (we assume only one set of contact info exists)
+    contact = Contact.objects.first()
+
+    if request.method == "POST":
+        # Fetch POST data
+        description = request.POST.get("description", "").strip()
+        branch1_name = request.POST.get("branch1_name", "").strip()
+        branch1_address = request.POST.get("branch1_address", "").strip()
+        branch1_phone = request.POST.get("branch1_phone", "").strip()
+        branch1_email = request.POST.get("branch1_email", "").strip()
+        branch2_name = request.POST.get("branch2_name", "").strip()
+        branch2_address = request.POST.get("branch2_address", "").strip()
+        branch2_phone = request.POST.get("branch2_phone", "").strip()
+        branch2_email = request.POST.get("branch2_email", "").strip()
+
+        # Validation
+        if not branch1_name or not branch2_name:
+            return render(request, "add_contact.html", {
+                "error_message": "Branch names are required.",
+                "contact": request.POST
+            })
+
+        try:
+            with transaction.atomic():
+                if contact:
+                    # Update existing contact
+                    contact.description = description
+                    contact.branch1_name = branch1_name
+                    contact.branch1_address = branch1_address
+                    contact.branch1_phone = branch1_phone
+                    contact.branch1_email = branch1_email
+                    contact.branch2_name = branch2_name
+                    contact.branch2_address = branch2_address
+                    contact.branch2_phone = branch2_phone
+                    contact.branch2_email = branch2_email
+                    contact.save()
+                else:
+                    # Create new contact
+                    Contact.objects.create(
+                        description=description,
+                        branch1_name=branch1_name,
+                        branch1_address=branch1_address,
+                        branch1_phone=branch1_phone,
+                        branch1_email=branch1_email,
+                        branch2_name=branch2_name,
+                        branch2_address=branch2_address,
+                        branch2_phone=branch2_phone,
+                        branch2_email=branch2_email,
+                    )
+            return render(request, "add_contact.html", {
+                "success_message": "Contact saved successfully.",
+                "contact": Contact.objects.first()
+            })
+        except Exception as e:
+            return render(request, "add_contact.html", {
+                "error_message": f"Error: {str(e)}",
+                "contact": request.POST
+            })
+
+    # GET request → pre-fill form if contact exists
+    return render(request, "add_contact.html", {"contact": contact})

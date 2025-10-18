@@ -1,0 +1,107 @@
+{% extends 'admin_base.html' %}
+
+{% block title %}Add / Edit Contact{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+
+    <!-- Page Heading -->
+    <div class="d-flex align-items-center justify-content-between mb-3">
+        <h1 class="h3 text-gray-800">Contact Management</h1>
+    </div>
+
+    <!-- Add/Edit Contact Form -->
+    <div class="card shadow mb-4">
+        <div class="card-header py-3">
+            <h6 class="m-0 font-weight-bold text-primary">Add / Edit Contact</h6>
+        </div>
+        <div class="card-body">
+            {% if error_message %}
+            <div class="alert alert-danger">{{ error_message }}</div>
+            {% endif %}
+
+            <form method="post">
+                {% csrf_token %}
+
+                <!-- General Description -->
+                <div class="form-group mb-3">
+                    <label for="description">Description</label>
+                    <textarea id="description" name="description" class="form-control">{{ contact.description|default_if_none:'' }}</textarea>
+                </div>
+
+                <!-- Branch 1 -->
+                <h5 class="mt-4">Branch 1 Details</h5>
+                <div class="form-group mb-3">
+                    <label for="branch1_name">Branch 1 Name</label>
+                    <input id="branch1_name" type="text" name="branch1_name" value="{{ contact.branch1_name|default_if_none:'' }}" class="form-control">
+                </div>
+                <div class="form-group mb-3">
+                    <label for="branch1_address">Branch 1 Address</label>
+                    <input id="branch1_address" type="text" name="branch1_address" value="{{ contact.branch1_address|default_if_none:'' }}" class="form-control">
+                </div>
+                <div class="form-group mb-3">
+                    <label for="branch1_phone">Branch 1 Phone</label>
+                    <input id="branch1_phone" type="text" name="branch1_phone" value="{{ contact.branch1_phone|default_if_none:'' }}" class="form-control">
+                </div>
+                <div class="form-group mb-3">
+                    <label for="branch1_email">Branch 1 Email</label>
+                    <input id="branch1_email" type="email" name="branch1_email" value="{{ contact.branch1_email|default_if_none:'' }}" class="form-control">
+                </div>
+
+                <!-- Branch 2 -->
+                <h5 class="mt-4">Branch 2 Details</h5>
+                <div class="form-group mb-3">
+                    <label for="branch2_name">Branch 2 Name</label>
+                    <input id="branch2_name" type="text" name="branch2_name" value="{{ contact.branch2_name|default_if_none:'' }}" class="form-control">
+                </div>
+                <div class="form-group mb-3">
+                    <label for="branch2_address">Branch 2 Address</label>
+                    <input id="branch2_address" type="text" name="branch2_address" value="{{ contact.branch2_address|default_if_none:'' }}" class="form-control">
+                </div>
+                <div class="form-group mb-3">
+                    <label for="branch2_phone">Branch 2 Phone</label>
+                    <input id="branch2_phone" type="text" name="branch2_phone" value="{{ contact.branch2_phone|default_if_none:'' }}" class="form-control">
+                </div>
+                <div class="form-group mb-3">
+                    <label for="branch2_email">Branch 2 Email</label>
+                    <input id="branch2_email" type="email" name="branch2_email" value="{{ contact.branch2_email|default_if_none:'' }}" class="form-control">
+                </div>
+
+                <button type="submit" class="btn btn-success mt-3">💾 Save Contact</button>
+                <a href="" class="btn btn-secondary mt-3">Cancel</a>
+            </form>
+        </div>
+    </div>
+</div>
+
+<!-- Toastify CSS & JS -->
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/toastify-js/src/toastify.min.css">
+<script src="https://cdn.jsdelivr.net/npm/toastify-js"></script>
+
+{% if success_message %}
+<script>
+(function () {
+    var text = "{{ success_message|escapejs }}";
+    if (window.Toastify) {
+        Toastify({
+            text: text,
+            duration: 3000,
+            close: true,
+            gravity: "top",
+            position: "right",
+            backgroundColor: "#4CAF50",
+            stopOnFocus: true
+        }).showToast();
+    }
+
+    // Remove ?success=1 from URL so refresh won't trigger toast again
+    if (window.history.replaceState) {
+        const url = new URL(window.location);
+        url.searchParams.delete("success");
+        window.history.replaceState({}, document.title, url.pathname);
+    }
+})();
+</script>
+{% endif %}
+
+{% endblock %}

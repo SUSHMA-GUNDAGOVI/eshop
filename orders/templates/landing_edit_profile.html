@@ -1,0 +1,106 @@
+{% extends 'landing_base.html' %}
+{% load static %}
+
+{% block title %}Edit Profile{% endblock %}
+
+{% block content %}
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/toastify-js/src/toastify.min.css">
+
+<style>
+.form-container {
+    max-width: 700px;
+    margin: 50px auto;
+    padding: 30px;
+    background: #fff;
+    border-radius: 12px;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+}
+.form-container input, .form-container textarea {
+    margin-bottom: 15px;
+}
+</style>
+
+<div class="form-container">
+    <h3>Edit Profile</h3>
+    <form id="editProfileForm" enctype="multipart/form-data">
+        {% csrf_token %}
+        <div class="mb-3">
+            <label>First Name</label>
+            <input type="text" name="first_name" class="form-control" value="{{ user.first_name }}" required>
+        </div>
+        <div class="mb-3">
+            <label>Last Name</label>
+            <input type="text" name="last_name" class="form-control" value="{{ user.last_name }}" required>
+        </div>
+        <div class="mb-3">
+            <label>Email</label>
+            <input type="email" name="email" class="form-control" value="{{ user.email }}" required>
+        </div>
+        <div class="mb-3">
+            <label>Phone</label>
+            <input type="text" name="phone" class="form-control" value="{{ user.phone }}">
+        </div>
+        <div class="mb-3">
+            <label>Address</label>
+            <textarea name="address" class="form-control">{{ user.address }}</textarea>
+        </div>
+        <div class="mb-3">
+            <label>Profile Image</label>
+            <input type="file" name="profile_image" class="form-control">
+        </div>
+        <button type="submit" class="btn btn-primary">Save Changes</button>
+    </form>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/toastify-js"></script>
+<script>
+function getCookie(name) {
+    let cookieValue = null;
+    if (document.cookie && document.cookie !== '') {
+        const cookies = document.cookie.split(';');
+        for (let cookie of cookies) {
+            cookie = cookie.trim();
+            if (cookie.startsWith(name + '=')) {
+                cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+                break;
+            }
+        }
+    }
+    return cookieValue;
+}
+
+document.addEventListener('DOMContentLoaded', function() {
+    const form = document.getElementById('editProfileForm');
+    const csrftoken = getCookie('csrftoken');
+
+    form.addEventListener('submit', function(e) {
+        e.preventDefault();
+
+        const formData = new FormData(form);
+
+        fetch("{% url 'orders_edit_profile' %}", {
+            method: "POST",
+            headers: {
+                'X-CSRFToken': csrftoken,
+                'X-Requested-With': 'XMLHttpRequest'
+            },
+            body: formData
+        })
+        .then(response => response.json())
+        .then(data => {
+            if(data.status === "success"){
+                Toastify({
+                    text: data.message,
+                    duration: 3000,
+                    gravity: "top",
+                    position: "right",
+                    backgroundColor: "#28a745",
+                }).showToast();
+            }
+        })
+        .catch(error => console.error('Error:', error));
+    });
+});
+</script>
+
+{% endblock %}

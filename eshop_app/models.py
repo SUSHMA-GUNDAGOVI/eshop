@@ -173,3 +173,29 @@ class Profile(models.Model):
 
     def __str__(self):
         return self.user.email  # or self.user.username
+    
+
+class Contact(models.Model):
+    # General Description
+    description = models.TextField(
+        help_text="Short description or introduction for the contact section"
+    )
+
+    # Branch 1 Details
+    branch1_name = models.CharField(max_length=100, verbose_name="Branch 1 Name")
+    branch1_address = models.CharField(max_length=255, verbose_name="Branch 1 Address")
+    branch1_phone = models.CharField(max_length=20, verbose_name="Branch 1 Phone")
+    branch1_email = models.EmailField(verbose_name="Branch 1 Email")
+
+    # Branch 2 Details
+    branch2_name = models.CharField(max_length=100, verbose_name="Branch 2 Name")
+    branch2_address = models.CharField(max_length=255, verbose_name="Branch 2 Address")
+    branch2_phone = models.CharField(max_length=20, verbose_name="Branch 2 Phone")
+    branch2_email = models.EmailField(verbose_name="Branch 2 Email")
+
+    # Meta Info
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+
+    def __str__(self):
+        return f"Contact Information ({self.branch1_name} & {self.branch2_name})"

@@ -1,0 +1,158 @@
+{% extends 'landing_base.html' %}
+
+{% block title %}Contact Us{% endblock %}
+
+{% block content %}
+
+<style>
+.center-card {
+    position: fixed;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    background: #fff;
+    padding: 30px 40px;
+    border-radius: 12px;
+    box-shadow: 0 8px 25px rgba(0,0,0,0.3);
+    z-index: 9999;
+    text-align: center;
+    animation: fadeIn 0.4s ease;
+    display: none;
+}
+
+.center-card h4 {
+    margin-bottom: 15px;
+}
+
+.center-card p {
+    font-size: 16px;
+    margin-bottom: 20px;
+}
+
+.center-card button {
+    padding: 10px 20px;
+    border: none;
+    background: #4CAF50;
+    color: #fff;
+    border-radius: 6px;
+    cursor: pointer;
+}
+
+.center-card button:hover {
+    background: #45a049;
+}
+
+@keyframes fadeIn {
+    from {opacity: 0; transform: translate(-50%, -60%);}
+    to {opacity: 1; transform: translate(-50%, -50%);}
+}
+
+.modal-backdrop {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background-color: rgba(0, 0, 0, 0.5);
+    z-index: 9998;
+    display: none;
+}
+</style>
+
+{% if success_message %}
+<div id="modalBackdrop" class="modal-backdrop"></div>
+<div id="successCard" class="center-card">
+    {% if "Error" in success_message %}
+        <h4 style="color: #c0392b;">❌ Error!</h4>
+        <p>{{ success_message }}</p>
+    {% else %}
+        <h4 style="color: #4CAF50;">✅ Success!</h4>
+        <p>{{ success_message }}</p>
+    {% endif %}
+    <button id="closeCard" type="button">OK</button>
+</div>
+
+<script>
+document.addEventListener("DOMContentLoaded", function() {
+    var card = document.getElementById("successCard");
+    var btn = document.getElementById("closeCard");
+    var backdrop = document.getElementById("modalBackdrop");
+
+    if (card && btn && backdrop) {
+        // Show modal
+        card.style.display = "block";
+        backdrop.style.display = "block";
+
+        var closeCard = function() {
+            card.style.display = "none";
+            backdrop.style.display = "none";
+        };
+
+        btn.addEventListener("click", closeCard);
+        backdrop.addEventListener("click", closeCard);
+    }
+});
+</script>
+{% endif %}
+
+<section class="contact spad">
+    <div class="container">
+        <div class="row">
+            <div class="col-lg-6 col-md-6">
+                <div class="contact__text">
+                    <div class="section-title">
+                        <span>Information</span>
+                        <h2>Contact Us</h2>
+                        {% if contact %}
+                            <p>{{ contact.description }}</p>
+                        {% else %}
+                            <p>No contact information available at the moment.</p>
+                        {% endif %}
+                    </div>
+                    <ul>
+                        {% if contact %}
+                            <li>
+                                <h4>{{ contact.branch1_name }}</h4>
+                                <p>
+                                    {{ contact.branch1_address }} <br />
+                                    {{ contact.branch1_phone }} <br />
+                                    <a href="mailto:{{ contact.branch1_email }}">{{ contact.branch1_email }}</a>
+                                </p>
+                            </li>
+                            <li>
+                                <h4>{{ contact.branch2_name }}</h4>
+                                <p>
+                                    {{ contact.branch2_address }} <br />
+                                    {{ contact.branch2_phone }} <br />
+                                    <a href="mailto:{{ contact.branch2_email }}">{{ contact.branch2_email }}</a>
+                                </p>
+                            </li>
+                        {% endif %}
+                    </ul>
+                </div>
+            </div>
+
+            <div class="col-lg-6 col-md-6">
+                <div class="contact__form">
+                    <form action="#" method="post">
+                        {% csrf_token %}
+                        <div class="row">
+                            <div class="col-lg-6">
+                                <input type="text" name="name" placeholder="Name" required>
+                            </div>
+                            <div class="col-lg-6">
+                                <input type="email" name="email" placeholder="Email" required>
+                            </div>
+                            <div class="col-lg-12">
+                                <textarea name="message" placeholder="Message" required></textarea>
+                                <button type="submit" class="site-btn">Send Message</button>
+                            </div>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+{% endblock %}

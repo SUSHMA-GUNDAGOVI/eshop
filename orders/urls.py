@@ -9,4 +9,10 @@ urlpatterns = [
     path('cart/remove/', views.remove_from_cart_view, name='remove_from_cart'),
     path('shop/', views.shop_all_products, name='shop_all'),
     path('shop/category/<int:category_id>/', views.shop_by_category, name='shop_by_category'),
+    path('shop/brand/<str:brand_id>/', views.shop_by_brand, name='shop_by_brand'),
+    path('profile/', views.profile_view, name='profile'),
+    path('profile/edit/', views.edit_profile_view, name='orders_edit_profile'),
+    path('contact/', views.landing_contact, name='landing_contact'),
+  
+
 ]

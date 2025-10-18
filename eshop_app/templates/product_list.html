@@ -59,64 +59,64 @@
                     <tbody>
                         {% for product in products %}
                       <tr>
-    <td>{{ product.title }}</td>
-    <td>
-        {% if product.child_category %}
-            {{ product.child_category.title }} ({{ product.category.title }})
-        {% elif product.category %}
-            {{ product.category.title }}
-        {% else %}
-            -
-        {% endif %}
-    </td>
-    <td>
-        {% if product.brand %}
-            {{ product.brand.title }}
-        {% else %}
-            -
-        {% endif %}
-    </td>
-    <td>{{ product.price|floatformat:2 }}</td>
-    <td>
-    {% if user.is_superuser or user.is_staff %}
-        <a href="{% url 'product_toggle_status' product.id %}?{{ request.GET.urlencode }}" 
-           class="badge text-white text-decoration-none {% if product.status == 'active' %}bg-success{% else %}bg-danger{% endif %}"
-           title="Click to change status to ...">
-            {{ product.status|title }}
-        </a>
-    {% else %}
-        <span class="badge text-white {% if product.status == 'active' %}bg-success{% else %}bg-danger{% endif %}">
-            {{ product.status|title }}
-        </span>
-    {% endif %}
-</td>
-   <td>
-    {% if product.photo %}
-        {% with url=product.photo.url|lower %}
-            {% if url|slice:"-4:" == ".mp4" or url|slice:"-4:" == ".mov" or url|slice:"-5:" == ".webm" %}
-                <!-- Video -->
-                <video width="120" height="80" controls style="cursor:pointer;">
-                    <source src="{{ product.photo.url }}" type="video/mp4">
-                    Your browser does not support the video tag.
-                </video>
-            {% else %}
-                <!-- Image -->
-                <img src="{{ product.photo.url }}" width="100" class="img-thumbnail"
-                     style="cursor:pointer;" data-bs-toggle="modal" data-bs-target="#imageModal"
-                     data-bs-src="{{ product.photo.url }}">
-            {% endif %}
-        {% endwith %}
-    {% else %}
-        -
-    {% endif %}
-</td>
+                            <td>{{ product.title }}</td>
+                            <td>
+                                {% if product.child_category %}
+                                    {{ product.child_category.title }} ({{ product.category.title }})
+                                {% elif product.category %}
+                                    {{ product.category.title }}
+                                {% else %}
+                                    -
+                                {% endif %}
+                            </td>
+                            <td>
+                                {% if product.brand %}
+                                    {{ product.brand.title }}
+                                {% else %}
+                                    -
+                                {% endif %}
+                            </td>
+                            <td>{{ product.price|floatformat:2 }}</td>
+                            <td>
+                            {% if user.is_staff or user.is_superuser %}
+    <a href="{% url 'product_toggle_status' product.id %}" 
+       class="badge text-white text-decoration-none {% if product.status == 'active' %}bg-success{% else %}bg-danger{% endif %}"
+       title="Click to change status">
+        {{ product.status|title }}
+    </a>
+{% else %}
+    <span class="badge text-white {% if product.status == 'active' %}bg-success{% else %}bg-danger{% endif %}">
+        {{ product.status|title }}
+    </span>
+{% endif %}
+                        </td>
+                        <td>
+                            {% if product.photo %}
+                                {% with url=product.photo.url|lower %}
+                                    {% if url|slice:"-4:" == ".mp4" or url|slice:"-4:" == ".mov" or url|slice:"-5:" == ".webm" %}
+                                        <!-- Video -->
+                                        <video width="120" height="80" controls style="cursor:pointer;">
+                                            <source src="{{ product.photo.url }}" type="video/mp4">
+                                            Your browser does not support the video tag.
+                                        </video>
+                                    {% else %}
+                                        <!-- Image -->
+                                        <img src="{{ product.photo.url }}" width="100" class="img-thumbnail"
+                                            style="cursor:pointer;" data-bs-toggle="modal" data-bs-target="#imageModal"
+                                            data-bs-src="{{ product.photo.url }}">
+                                    {% endif %}
+                                {% endwith %}
+                            {% else %}
+                                -
+                            {% endif %}
+                        </td>
 
-    <td style="white-space: nowrap;">
-        <a href="{% url 'product_edit' product.id %}" class="btn btn-sm btn-primary"><i class="fas fa-edit"></i></a>
-        <a href="{% url 'product_delete' product.id %}" class="btn btn-sm btn-danger"
-           onclick="return confirm('Are you sure?');"><i class="fas fa-trash-alt"></i></a>
-    </td>
-</tr>
+                            <td style="white-space: nowrap;">
+                                <a href="{% url 'product_edit' product.id %}" class="btn btn-sm btn-primary"><i class="fas fa-edit"></i></a>
+                                <a href="{% url 'product_delete' product.id %}" class="btn btn-sm btn-danger"
+                                onclick="return confirm('Are you sure?');"><i class="fas fa-trash-alt"></i></a>
+                            </td>
+                        </tr>
                         {% empty %}
                         <tr>
                             <td colspan="8" class="text-center">No products found.</td>
