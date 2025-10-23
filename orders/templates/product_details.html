@@ -4,208 +4,361 @@
 {% block title %}{{ product.name }} Details{% endblock %}
 
 {% block content %}
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/toastify-js/src/toastify.min.css">
+<script src="https://cdn.jsdelivr.net/npm/toastify-js"></script>
+
 <style>
- 
+/* ====== Styles ====== */
+.product-details-section {
+    padding: 60px 0;
+}
+
+.product-gallery {
+    display: flex;
+    gap: 15px;
+    border-radius: 10px;
+    padding: 25px;
+    align-items: center;
+    justify-content: center;
+    height: 100%;
+}
+
+.thumbnail-list {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+}
+
+.thumbnail-list img {
+    width: 70px;
+    height: 90px;
+    object-fit: cover;
+    border-radius: 6px;
+    cursor: pointer;
+    border: 2px solid transparent;
+    background: #fff;
+    box-shadow: 0 1px 4px rgba(0, 0, 0, 0.1);
+}
+
+.thumbnail-list img.active {
+    border-color: #000;
+}
+
+.main-image-wrapper {
+    position: relative;
+    display: inline-block;
+}
+
+.main-image {
+    width: 420px;
+    height: 500px;
+    object-fit: cover;
+    border-radius: 8px;
+    background: #fff;
+    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.05);
+}
+
+.carousel-btn {
+    position: absolute;
+    top: 50%;
+    transform: translateY(-50%);
+    font-size: 18px;
+    background: #f0f0f0;
+    border: 1px solid #ccc;
+    border-radius: 50%;
+    width: 40px;
+    height: 40px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: #333;
+    cursor: pointer;
+    z-index: 10;
+    transition: all 0.2s ease;
+}
+
+.carousel-btn:hover {
+    background: #e0e0e0;
+    color: #000;
+    box-shadow: 0 2px 6px rgba(0, 0, 0, 0.2);
+}
+
+.carousel-btn.prev {
+    left: 12px;
+}
+
+.carousel-btn.next {
+    right: 12px;
+}
+
+.product-info {
+    padding-left: 40px;
+}
+
+.product-info h2 {
+    font-size: 26px;
+    font-weight: 600;
+    margin-bottom: 10px;
+}
+
+.product-info .price {
+    font-size: 22px;
+    color: #222;
+    font-weight: 600;
+    margin: 15px 0;
+}
+
+.product-info .price span {
+    text-decoration: line-through;
+    color: #999;
+    font-size: 18px;
+    margin-left: 10px;
+}
+
+.rating i {
+    color: #ffcc00;
+}
+
+.size-buttons label {
+    border: 1px solid #ccc;
+    padding: 6px 12px;
+    border-radius: 4px;
+    cursor: pointer;
+    margin-right: 5px;
+    transition: all 0.2s ease;
+    background: #fff;
+    color: #000;
+}
+
+.size-buttons label.selected {
+    background: #000;
+    color: #fff;
+    font-weight: 600;
+}
+
+.color-buttons label {
+    width: 25px;
+    height: 25px;
+    display: inline-block;
+    border-radius: 50%;
+    border: 1px solid #ccc;
+    cursor: pointer;
+    margin-right: 5px;
+    transition: all 0.2s ease;
+}
+
+.color-buttons label.selected {
+    border: 3px solid #000;
+}
+
+.size-buttons input[type="radio"],
+.color-buttons input[type="radio"] {
+    display: none;
+}
+
+.primary-btn,
+.buy-now-btn {
+    background: #000;
+    color: #fff;
+    border: none;
+    padding: 12px 30px;
+    border-radius: 4px;
+    margin-right: 10px;
+    transition: 0.3s;
+}
+
+.primary-btn:hover,
+.buy-now-btn:hover {
+    background: #333;
+}
+
+.btn-small {
+    padding: 8px 20px;
+    font-size: 14px;
+    border-radius: 4px;
+}
+
+.quantity-input {
+    width: 70px;
+    padding: 5px 10px;
+    font-size: 14px;
+}
+
+.d-flex.gap-2>* {
+    margin-right: 8px;
+}
 </style>
-<section class="shop-details">
-    <div class="product__details__pic">
-        <div class="container">
-            <div class="row">
-                <div class="col-lg-12">
-                    <div class="product__details__breadcrumb">
-                        <a href="/">Home</a>
-                        <a href="product_detail/">Shop</a>
-                        <span>{{ product.name }}</span>
-                    </div>
-                </div>
-            </div>
-            <div class="row">
-                <div class="col-lg-3 col-md-3">
-                    <ul class="nav nav-tabs" role="tablist">
-                        <li class="nav-item">
-                            <a class="nav-link active" data-toggle="tab" href="#tabs-1" role="tab">
-                                <div class="product__thumb__pic set-bg" 
-                                     data-setbg="{% if product.photo %}{{ product.photo.url }}{% else %}{% static 'assets/img/product/placeholder.jpg' %}{% endif %}">
-                                </div>
-                            </a>
-                        </li>
-                        <li class="nav-item">
-                            <a class="nav-link" data-toggle="tab" href="#tabs-2" role="tab">
-                                <div class="product__thumb__pic set-bg" data-setbg="{% static 'img/shop-details/thumb-2.png' %}">
-                                </div>
-                            </a>
-                        </li>
-                        </ul>
-                </div>
-                <div class="col-lg-6 col-md-9">
-                    <div class="tab-content">
-                        <div class="tab-pane active" id="tabs-1" role="tabpanel">
-                            <div class="product__details__pic__item">
-                                <img src="{% if product.photo %}{{ product.photo.url }}{% else %}{% static 'assets/img/product/placeholder.jpg' %}{% endif %}" alt="{{ product.name }}">
-                            </div>
-                        </div>
-                        </div>
-                </div>
-            </div>
-        </div>
-    </div>
-    <div class="product__details__content">
-        <div class="container">
-            <div class="row d-flex justify-content-center">
-                <div class="col-lg-8">
-                    <div class="product__details__text">
-                        <h4>{{ product.title }}</h4>
-                        <div class="rating">
-                            <i class="fa fa-star"></i>
-                            <i class="fa fa-star"></i>
-                            <i class="fa fa-star"></i>
-                            <i class="fa fa-star"></i>
-                            <i class="fa fa-star"></i>
-                            <span> - 5 Reviews</span>
-                        </div>
-                        
-                        <h3>${{ product.price|floatformat:2 }} 
-                            {% if product.old_price %}<span>${{ product.old_price|floatformat:2 }}</span>{% endif %}
-                        </h3>
-                        
-                        <p>{{ product.description }}</p>
-                        
-                        <form action="{% url 'add_to_cart' product.pk %}" method="POST">
-                            {% csrf_token %}
-                            <input type="hidden" name="product_id" value="{{ product.pk }}">
 
-                            <div class="product__details__option">
-                                <div class="product__details__option__size">
-                                    <span>Size:</span>
-                                    {% if sizes %}
-                                        {% for size_item in sizes %}
-                                            <input type="radio" id="size-{{ forloop.counter }}" name="size" value="{{ size_item }}" class="size-radio" {% if forloop.first %}required{% endif %} hidden>
-                                            <label for="size-{{ forloop.counter }}" class="size-label">
-                                                {{ size_item }}
-                                            </label>
-                                        {% endfor %}
-                                    {% else %}
-                                        {% endif %}
-                                </div>
-                                
-                                <div class="product__details__option__color">
-                                    <span>Color:</span>
-                                    {% if colors %}
-                                        {% for color in colors %}   
-                                            <label 
-                                                style="background: {{ color.code }}; "
-                                                for="pc-{{ product.id }}-{{ forloop.counter }}">
-                                                <input type="radio" id="pc-{{ product.id }}-{{ forloop.counter }}" name="color" value="{{ color.name }}" {% if forloop.first %}required{% endif %} hidden>
-                                            </label>
-                                        {% endfor %}
-                                    {% else %}
-                                        <span class="text-muted">No colors available</span>
-                                    {% endif %}
-                                </div>
-                            </div>
-
-                            <div class="product__details__cart__option">
-                                <div class="quantity">
-                                    <div class="pro-qty">
-                                        <input type="number" name="quantity" value="1" min="1" max="100">
-                                    </div>
-                                </div>
-                                
-                                <button type="submit" class="primary-btn">add to cart</button>
-                            </div>
-                        </form>
-                        <div class="product__details__btns__option">
-                            <a href="#"><i class="fa fa-heart"></i> add to wishlist</a>
-                            <a href="#"><i class="fa fa-exchange"></i> Add To Compare</a>
-                        </div>
-                        <div class="product__details__last__option">
-                            <h5><span>Guaranteed Safe Checkout</span></h5>
-                            <img src="{% static 'img/shop-details/details-payment.png' %}" alt="">
-                            <ul>
-                                <li><span>SKU:</span> {{ product.sku }}</li>
-                                <li><span>Categories:</span> 
-                                    {% for category in product.categories.all %}
-                                        {{ category.name }}{% if not forloop.last %}, {% endif %}
-                                    {% endfor %}
-                                </li>
-                                <li><span>Tag:</span> {{ product.tags }}</li>
-                            </ul>
-                        </div>
+{% with selected_size=request.GET.size selected_color=request.GET.color %}
+<section class="product-details-section">
+    <div class="container">
+        <div class="row align-items-center">
+            <!-- LEFT -->
+            <div class="col-lg-6 d-flex">
+                <div class="product-gallery w-100">
+                    <div class="thumbnail-list">
+                        {% if product.photo %}
+                        <img src="{{ product.photo.url }}" alt="{{ product.name }}" class="thumb active">
+                        {% endif %}
+                        <img src="{% static 'img/shop-details/thumb-2.png' %}" alt="thumb2" class="thumb">
+                        <img src="{% static 'img/shop-details/thumb-3.png' %}" alt="thumb3" class="thumb">
+                    </div>
+                    <div class="main-image-wrapper">
+                        <button class="carousel-btn prev">&lt;</button>
+                        <img id="main-product-img"
+                            src="{% if product.photo %}{{ product.photo.url }}{% else %}{% static 'assets/img/product/placeholder.jpg' %}{% endif %}"
+                            class="main-image" alt="{{ product.name }}">
+                        <button class="carousel-btn next">&gt;</button>
                     </div>
                 </div>
             </div>
-            
-            <div class="row">
-                <div class="col-lg-12">
-                    <div class="product__details__tab">
-                        <ul class="nav nav-tabs" role="tablist">
-                            <li class="nav-item">
-                                <a class="nav-link active" data-toggle="tab" href="#tabs-5" role="tab">Description</a>
-                            </li>
-                            </ul>
-                        <div class="tab-content">
-                            <div class="tab-pane active" id="tabs-5" role="tabpanel">
-                                <div class="product__details__tab__content">
-                                    <p class="note">{{ product.long_description|linebreaksbr }}</p>
-                                    </div>
-                            </div>
-                            </div>
+
+            <!-- RIGHT -->
+            <div class="col-lg-6">
+                <div class="product-info">
+                    <h2>{{ product.title }}</h2>
+                    <div class="rating mb-2">
+                        <i class="fa fa-star"></i><i class="fa fa-star"></i>
+                        <i class="fa fa-star"></i><i class="fa fa-star"></i>
+                        <i class="fa fa-star"></i>
+                        <span> (5 Reviews)</span>
                     </div>
+
+                    <div class="price">
+                        ₹{{ product.price|floatformat:2 }}
+                        {% if product.old_price %}<span>₹{{ product.old_price|floatformat:2 }}</span>{% endif %}
+                    </div>
+
+                    <p class="mb-4">{{ product.description }}</p>
+
+                    <form id="add-to-cart-form" action="{% url 'add_to_cart' product.pk %}" method="POST">
+                        {% csrf_token %}
+                        <input type="hidden" name="product_id" value="{{ product.pk }}">
+
+                        <div class="mb-3 size-buttons">
+                            <span class="fw-bold">Sizes:</span><br>
+                            {% for size_item in sizes %}
+                            <input type="radio" id="size-{{ forloop.counter }}" name="size" value="{{ size_item }}"
+                                {% if size_item == selected_size %}checked{% endif %}>
+                            <label for="size-{{ forloop.counter }}"
+                                class="{% if size_item == selected_size %}selected{% endif %}">{{ size_item }}</label>
+                            {% endfor %}
+                        </div>
+
+                        <div class="mb-4 color-buttons">
+                            <span class="fw-bold">Colors:</span><br>
+                            {% for color in colors %}
+                            <input type="radio" id="color-{{ forloop.counter }}" name="color" value="{{ color.name }}"
+                                {% if color.name == selected_color %}checked{% endif %}>
+                            <label for="color-{{ forloop.counter }}"
+                                class="{% if color.name == selected_color %}selected{% endif %}"
+                                style="background: {{ color.code }}"></label>
+                            {% endfor %}
+                        </div>
+
+                        <div class="d-flex align-items-center mb-3 gap-2">
+                            <input type="number" name="quantity" value="1" min="1" max="100"
+                                class="form-control quantity-input">
+                            <button type="submit" class="primary-btn btn-small">Add to Bag</button>
+                            <button type="submit" formaction="" class="primary-btn btn-small">Buy Now</button>
+                        </div>
+                    </form>
                 </div>
             </div>
         </div>
     </div>
 </section>
-<section class="related spad">
-    <div class="container"> 
-        <div class="row">
-            <div class="col-lg-12">
-                <h3 class="related-title">Related Product</h3>
-            </div>
-        </div>
-        <div class="row">
-            {% for related_product in related_products %}
-                <div class="col-lg-3 col-md-6 col-sm-6 col-sm-6">
-                    <div class="product__item">
-                        <div class="product__item__pic set-bg" 
-                             data-setbg="{% if related_product.photo %}{{ related_product.photo.url }}{% else %}{% static 'assets/img/product/placeholder.jpg' %}{% endif %}">
-                            </div>
-                        <div class="product__item__text">
-                            <h6>{{ related_product.name }}</h6>
-                            <a href="{% url 'add_to_cart' related_product.pk %}" class="add-cart">+ Add To Cart</a>
-                            <h5>${{ related_product.price|floatformat:2 }}</h5>
-                            </div>
-                    </div>
-                </div>
-            {% endfor %}
-            </div>
-    </div>
-</section>
-<link rel="stylesheet" type="text/css" href="https://cdn.jsdelivr.net/npm/toastify-js/src/toastify.min.css">
-<script type="text/javascript" src="https://cdn.jsdelivr.net/npm/toastify-js"></script>
+{% endwith %}
+
 <script>
-   // Get URL parameters
-    const urlParams = new URLSearchParams(window.location.search);
-    const productName = urlParams.get('cart_added');
+// ===== Thumbnail + Carousel =====
+const thumbs = document.querySelectorAll('.thumb');
+const mainImg = document.getElementById('main-product-img');
+let currentIndex = 0;
+const imageList = Array.from(thumbs).map(img => img.src);
 
-    // console.log("Script Running. URL Param Value:", productName); // <--- ADD THIS LINE
+thumbs.forEach((thumb, index) => {
+    thumb.addEventListener('click', () => {
+        currentIndex = index;
+        updateImage();
+    });
+});
 
-    if (productName) {
+document.querySelector('.carousel-btn.prev').addEventListener('click', () => {
+    currentIndex = (currentIndex - 1 + imageList.length) % imageList.length;
+    updateImage();
+});
+document.querySelector('.carousel-btn.next').addEventListener('click', () => {
+    currentIndex = (currentIndex + 1) % imageList.length;
+    updateImage();
+});
+function updateImage() {
+    mainImg.src = imageList[currentIndex];
+    thumbs.forEach(t => t.classList.remove('active'));
+    thumbs[currentIndex].classList.add('active');
+}
+
+// ===== Dynamic size & color selection =====
+const sizeLabels = document.querySelectorAll('.size-buttons label');
+sizeLabels.forEach(label => {
+    label.addEventListener('click', () => {
+        sizeLabels.forEach(l => l.classList.remove('selected'));
+        label.classList.add('selected');
+    });
+});
+
+const colorLabels = document.querySelectorAll('.color-buttons label');
+colorLabels.forEach(label => {
+    label.addEventListener('click', () => {
+        colorLabels.forEach(l => l.classList.remove('selected'));
+        label.classList.add('selected');
+    });
+});
+
+// ===== Prevent submit if size/color not selected =====
+document.getElementById('add-to-cart-form').addEventListener('submit', function (e) {
+    const selectedSize = document.querySelector('input[name="size"]:checked');
+    const selectedColor = document.querySelector('input[name="color"]:checked');
+    if (!selectedSize || !selectedColor) {
+        e.preventDefault();
         Toastify({
-            text: productName + " was successfully added to your cart!",
+            text: "Please select a size and color before adding to cart!",
             duration: 3000,
             close: true,
-            gravity: "top", // `top` or `bottom`
-            position: "right", // `left`, `center` or `right`
-            stopOnFocus: true, // Prevents dismissing of toast on hover
-            style: {
-                background: "linear-gradient(to right, #00b09b, #c5d4ab)",
-            },
-            onClick: function(){} // Callback after click
+            gravity: "top",
+            position: "right",
+            backgroundColor: "#ff9800",
         }).showToast();
-
-        // Optional: Clean the URL parameter to prevent the toast from reappearing on refresh
-        history.replaceState(null, null, window.location.pathname);
     }
+});
+
+// ===== Toastify messages from GET params =====
+{% if request.GET.cart_added %}
+Toastify({
+    text: "Product added to cart!",
+    duration: 3000,
+    close: true,
+    gravity: "top",
+    position: "right",
+    backgroundColor: "#4caf50",
+}).showToast();
+{% endif %}
+
+{% if request.GET.cart_exists %}
+Toastify({
+    text: "This product with selected size & color is already in cart!",
+    duration: 3000,
+    close: true,
+    gravity: "top",
+    position: "right",
+    backgroundColor: "#f44336",
+}).showToast();
+{% endif %}
+
+// Remove GET params so toast doesn't show on refresh
+if (window.history.replaceState) {
+    const cleanUrl = window.location.protocol + "//" + window.location.host + window.location.pathname;
+    window.history.replaceState({}, document.title, cleanUrl);
+}
 </script>
 {% endblock %}

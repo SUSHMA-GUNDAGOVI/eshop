@@ -122,6 +122,41 @@
     </div>
 </li>
 
+<!-- Blog Menu -->
+<li class="nav-item">
+    <a class="nav-link collapsed" href="#" data-toggle="collapse" data-target="#collapseBlog" aria-expanded="true"
+        aria-controls="collapseBlog">
+        <i class="fas fa-fw fa-blog"></i>
+        <span>Blog</span>
+    </a>
+    <div id="collapseBlog" class="collapse" aria-labelledby="headingBlog" data-parent="#accordionSidebar">
+        <div class="bg-white py-2 collapse-inner rounded">
+            <h6 class="collapse-header">Blog Options:</h6>
+            <a class="collapse-item" href="{% url 'blog_list' %}">Blogs</a>
+            <a class="collapse-item" href="{% url 'blog_add' %}">Add Blog</a>
+        </div>
+    </div>
+</li>
+
+<!-- About Menu -->
+<li class="nav-item">
+    <a class="nav-link collapsed" href="#" data-toggle="collapse" data-target="#collapseAbout" aria-expanded="true"
+        aria-controls="collapseAbout">
+        <i class="fas fa-fw fa-info-circle"></i>
+        <span>About</span>
+    </a>
+    <div id="collapseAbout" class="collapse" aria-labelledby="headingAbout" data-parent="#accordionSidebar">
+        <div class="bg-white py-2 collapse-inner rounded">
+            <h6 class="collapse-header">About Options:</h6>
+            <a class="collapse-item" href="{% url 'add_about_us' %}">About Us</a>
+            <a class="collapse-item" href="{% url 'team_list' %}">Our Team</a>
+            <a class="collapse-item" href="{% url 'client_list' %}">Our Clients</a>
+        </div>
+    </div>
+</li>
+
+
+
 <!-- Users Menu -->
 <li class="nav-item">
     <a class="nav-link collapsed" href="#" data-toggle="collapse" data-target="#collapseUsers" aria-expanded="true"
@@ -137,6 +172,7 @@
         </div>
     </div>
 </li>
+
 <!-- Contact Menu -->
 <li class="nav-item">
     <a class="nav-link" href="{% url 'contact_add' %}">

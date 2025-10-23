@@ -28,6 +28,7 @@ urlpatterns = [
     path('', landing_views.index, name='index'),          # Landing page
     path('', include('eshop_app.urls')),                  # eshop_app URLs (note: this might conflict with root ''; adjust if needed)
     path('orders/', include('orders.urls')),              # Orders URLs
+    path('toggle-wishlist/<int:product_id>/', landing_views.toggle_wishlist, name='toggle_wishlist'),
     path('admin_dashboard/', eshop_views.admin_dashboard, name='admin_dashboard'),
     path('index/', eshop_views.user_dashboard, name='user_dashboard'),  # Renamed to avoid duplicate 'index' name conflict
     # Password Reset URLs (with fixes: added email_template_name, consistent success_urls, and reverse_lazy for safety)

@@ -77,34 +77,50 @@
                 </div>
                 <div class="col-lg-6 col-md-6">
                     <nav class="header__menu mobile-menu">
-                        <ul>
-                            <li class="active"><a href="/">Home</a></li>
-                            <li><a href="{% url 'shop_all' %}">Shop</a></li>
-                            <li><a href="#">Pages</a>
-                                <ul class="dropdown">
-                                    <li><a href="./about.html">About Us</a></li>
-                                    <li><a href="{% url 'shop_all' %}">Shop Details</a></li>
-                                    <li><a href="./blog-details.html">Blog Details</a></li>
-                                </ul>
-                            </li>
-                            <li><a href="./blog.html">Blog</a></li>
-                            <li><a href="{% url 'landing_contact' %}">Contacts</a></li>
-                        </ul>
-                    </nav>
+    <ul>
+        <li class="{% if request.resolver_match.url_name == 'home' or request.path == '/' %}active{% endif %}">
+            <a href="/">Home</a>
+        </li>
+        <li class="{% if 'shop' in request.path %}active{% endif %}">
+            <a href="{% url 'shop_all' %}">Shop</a>
+        </li>
+        <li class="{% if 'about' in request.path or 'pages' in request.path %}active{% endif %}">
+            <a href="#">Pages</a>
+            <ul class="dropdown">
+                <li><a href="{% url 'landing_about_us' %}">About Us</a></li>
+                <li><a href="{% url 'shop_all' %}">Shop Details</a></li>
+                <li><a href="{% url 'landing_blog' %}">Blog Details</a></li>
+            </ul>
+        </li>
+        <li class="{% if request.resolver_match.url_name == 'landing_blog' %}active{% endif %}">
+            <a href="{% url 'landing_blog' %}">Blog</a>
+        </li>
+        <li class="{% if request.resolver_match.url_name == 'landing_contact' %}active{% endif %}">
+            <a href="{% url 'landing_contact' %}">Contacts</a>
+        </li>
+    </ul>
+</nav>
                 </div>
                 <div class="col-lg-3 col-md-3 d-flex align-items-center justify-content-end">
                     <div class="header__nav__option d-flex align-items-center me-3">
                         <a href="#" class="search-switch me-3">
                             <img src="/static/frontend/img/icon/search.png" alt="">
                         </a>
-                        <a href="#" class="me-3">
-                            <img src="/static/frontend/img/icon/heart.png" alt="">
-                        </a>
-                        <a href="{% url 'shopping_cart' %}" class="me-3">
-                            <img src="/static/frontend/img/icon/cart.png" alt="">
-                            <span>{{ cart_total_quantity|default:"0" }}</span>
-                        </a>
-                        <div class="price">$0.00</div>
+                       <a href="{% url 'wishlist' %}" class="me-3">
+    <img src="/static/frontend/img/icon/heart.png" alt="">
+    {% if user.is_authenticated %}
+        {% with wishlist_count=user.wishlist.count %}
+            {% if wishlist_count > 0 %}
+                <span class="badge bg-danger rounded-circle" style="position: absolute; top: -5px; right: -5px; font-size: 10px;">{{ wishlist_count }}</span>
+            {% endif %}
+        {% endwith %}
+    {% endif %}
+</a>
+                       <a href="{% url 'shopping_cart' %}" class="me-3">
+    <img src="/static/frontend/img/icon/cart.png" alt="">
+    <span>{{ cart_total_quantity }}</span>  <!-- Automatically updated -->
+</a>
+                       
                     </div>
                     <div class="dropdown" style="margin-left:40px;">
                         <a href="#" class="profile-link d-flex align-items-center" id="profileDropdown" role="button"
@@ -161,12 +177,12 @@
                 </div>
                 <div class="col-lg-2 col-md-3 col-sm-6">
                     <div class="footer__widget">
-                        <h6>Shopping</h6>
+                        <h6>Customer Service</h6>
                         <ul>
-                            <li><a href="#">Contact Us</a></li>
-                            <li><a href="#">Payment Methods</a></li>
-                            <li><a href="#">Delivary</a></li>
-                            <li><a href="#">Return & Exchanges</a></li>
+                            <li><a href="{% url 'landing_contact' %}">Contact Us</a></li>
+                            <li><a href="#">FAQs</a></li>
+                            <li><a href="#">Order Tracking</a></li>
+                            <li><a href="#">Return / Refund Policy</a></li>
                         </ul>
                     </div>
                 </div>

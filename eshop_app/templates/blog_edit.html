@@ -1,0 +1,60 @@
+{% extends 'admin_base.html' %}
+{% block title %}Edit Blog: {{ blog.title }}{% endblock %}
+{% block content %}
+
+<div class="container-fluid">
+    <div class="d-flex align-items-center justify-content-between mb-3">
+        <h1 class="h3 text-gray-800">Blog Management</h1>
+    </div>
+
+    <div class="card shadow mb-4">
+        <div class="card-header py-3">
+            <h6 class="m-0 font-weight-bold text-primary">Edit Blog: {{ blog.title }}</h6>
+        </div>
+        <div class="card-body">
+            {% if error_message %}
+            <div class="alert alert-danger">{{ error_message }}</div>
+            {% endif %}
+
+            <form method="post" enctype="multipart/form-data" action="{% url 'blog_edit' blog.id %}">
+                {% csrf_token %}
+
+                <div class="form-group mb-3">
+                    <label for="id_title">Title <span class="text-danger">*</span></label>
+                    <input type="text" class="form-control" id="id_title" name="title" value="{{ blog.title }}" required>
+                </div>
+
+                <div class="form-group mb-3">
+                    <label for="id_slug">Slug <span class="text-danger">*</span></label>
+                    <input type="text" class="form-control" id="id_slug" name="slug" value="{{ blog.slug }}" required>
+                </div>
+
+                <div class="form-group mb-3">
+                    <label for="id_content">Content <span class="text-danger">*</span></label>
+                    <textarea class="form-control" id="id_content" name="content" rows="6" required>{{ blog.content }}</textarea>
+                </div>
+
+                <div class="form-group mb-3">
+                    <label for="id_status">Status</label>
+                    <select class="form-control" name="status">
+    <option value="0" {% if blog.status == 0 %}selected{% endif %}>Draft</option>
+    <option value="1" {% if blog.status == 1 %}selected{% endif %}>Published</option>
+</select>
+                </div>
+
+                <div class="form-group mb-3">
+                    <label for="id_featured_image">Featured Image</label>
+                    <input type="file" class="form-control" id="id_featured_image" name="featured_image">
+                    {% if blog.featured_image %}
+                    <img src="{{ blog.featured_image.url }}" class="img-thumbnail mt-2" width="150">
+                    {% endif %}
+                </div>
+
+                <button type="submit" class="btn btn-primary mt-3">✅ Update Blog</button>
+                <a href="{% url 'blog_list' %}" class="btn btn-secondary mt-3">Cancel</a>
+            </form>
+        </div>
+    </div>
+</div>
+
+{% endblock %}

@@ -4,6 +4,7 @@ from django.conf import settings  # import this
 from django.utils import timezone
 from django.contrib.auth.models import AbstractUser, BaseUserManager
 from django.core.serializers.json import DjangoJSONEncoder
+from django.utils.text import slugify
 
 class CustomUserManager(BaseUserManager):
     use_in_migrations = True
@@ -199,3 +200,70 @@ class Contact(models.Model):
 
     def __str__(self):
         return f"Contact Information ({self.branch1_name} & {self.branch2_name})"
+    
+
+class Blog(models.Model):
+    STATUS_CHOICES = (
+        (0, 'Draft'),
+        (1, 'Published'),
+    )
+
+    title = models.CharField(max_length=255)
+    slug = models.SlugField(max_length=255, unique=True, blank=True)
+    excerpt = models.TextField(max_length=500)
+    content = models.TextField()
+    featured_image = models.ImageField(upload_to='blogs/', blank=True, null=True)
+    author_name = models.CharField(max_length=100, default='Admin')
+    publish_date = models.DateTimeField(default=timezone.now)
+    status = models.IntegerField(choices=STATUS_CHOICES, default=0)
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+
+    def save(self, *args, **kwargs):
+        # Auto-generate slug if not provided
+        if not self.slug:
+            self.slug = slugify(self.title)
+            # Ensure uniqueness
+            while Blog.objects.filter(slug=self.slug).exists():
+                self.slug = f"{slugify(self.title)}-{int(timezone.now().timestamp())}"
+        super().save(*args, **kwargs)
+
+    def __str__(self):
+        return self.title
+    
+
+class AboutUs(models.Model):
+    who_we_are = models.TextField(blank=True, null=True)
+    who_we_do = models.TextField(blank=True, null=True)
+    why_choose_us = models.TextField(blank=True, null=True)
+    updated_at = models.DateTimeField(auto_now=True)
+
+    def __str__(self):
+        return "About Us Sections"
+    
+class Team(models.Model):
+    name = models.CharField(max_length=100)
+    designation = models.CharField(max_length=100)
+    image = models.ImageField(upload_to="team_images/")  # Make sure MEDIA_ROOT is configured
+    bio = models.TextField(blank=True, null=True)  # optional short description
+
+    def __str__(self):
+        return self.name
+    
+class Client(models.Model):
+    name = models.CharField(max_length=255)  # Optional: client name
+    logo = models.ImageField(upload_to='client_logos/')  # Upload folder
+
+    def __str__(self):
+        return self.name if self.name else f"Client {self.id}"
+    
+class Client(models.Model):
+    STATUS_CHOICES = (
+        ('active', 'Active'),
+        ('inactive', 'Inactive')
+    )
+    name = models.CharField(max_length=255)
+    logo = models.ImageField(upload_to='client_logos/')
+    status = models.CharField(max_length=10, choices=STATUS_CHOICES, default='active')
+    created_at = models.DateTimeField(auto_now_add=True)
+

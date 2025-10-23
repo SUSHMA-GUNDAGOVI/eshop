@@ -1,0 +1,121 @@
+{% extends "landing_base.html" %}
+{% block title %}{{ blog.title }}{% endblock %}
+
+{% block content %}
+<div class="container my-5">
+    <!-- Blog Card -->
+    <div class="blog-detail-card mx-auto shadow-sm rounded" style="max-width: 900px; background: #fff; padding: 40px;">
+
+        <!-- Blog Header -->
+        <div class="blog-detail-header text-center mb-4">
+            <h1 class="fw-bold mb-2">{{ blog.title }}</h1>
+            <p class="text-muted mb-0">
+                By <strong>{{ blog.author_name }}</strong> | {{ blog.publish_date|date:"d M Y" }}
+            </p>
+        </div>
+
+        <!-- Featured Image -->
+        {% if blog.featured_image %}
+        <div class="text-center mb-4">
+            <img src="{{ blog.featured_image.url }}" alt="{{ blog.title }}" class="img-fluid rounded shadow-sm blog-img-responsive">
+        </div>
+        {% endif %}
+
+        <!-- Blog Content -->
+        <div class="blog-detail-content">
+            {{ blog.content|safe }}
+        </div>
+
+    </div>
+</div>
+
+<style>
+/* Blog Card */
+.blog-detail-card {
+    background-color: #fff;
+    border-radius: 12px;
+    box-shadow: 0 6px 18px rgba(0,0,0,0.1);
+    padding: 40px;
+}
+
+/* Header */
+.blog-detail-header h1 {
+    font-size: 2.5rem;
+    color: #222;
+    line-height: 1.2;
+}
+
+.blog-detail-header p {
+    font-size: 0.95rem;
+    color: #777;
+}
+
+/* Featured Image */
+.blog-img-responsive {
+    max-width: 40%;
+    height: auto;
+    border-radius: 8px;
+    transition: transform 0.3s;
+}
+
+.blog-img-responsive:hover {
+    transform: scale(1.02);
+}
+
+/* Blog Content */
+.blog-detail-content {
+    line-height: 1.8;
+    font-size: 1rem;
+    color: #333;
+    margin-top: 20px;
+}
+
+/* Headings */
+.blog-detail-content h2, 
+.blog-detail-content h3, 
+.blog-detail-content h4 {
+    margin-top: 1.5rem;
+    margin-bottom: 1rem;
+    font-weight: 600;
+    color: #222;
+}
+
+/* Paragraphs */
+.blog-detail-content p {
+    margin-bottom: 1rem;
+}
+
+/* Links */
+.blog-detail-content a {
+    color: #ff6b6b;
+    text-decoration: none;
+}
+
+.blog-detail-content a:hover {
+    text-decoration: underline;
+}
+
+/* Images inside content */
+.blog-detail-content img {
+    max-width: 100%;
+    height: auto;
+    margin: 20px 0;
+    border-radius: 6px;
+}
+
+/* Responsive adjustments */
+@media (max-width: 768px) {
+    .blog-detail-card {
+        padding: 25px;
+    }
+
+    .blog-detail-header h1 {
+        font-size: 2rem;
+    }
+
+    .blog-img-responsive {
+        max-width: 100%;
+    }
+}
+</style>
+{% endblock %}

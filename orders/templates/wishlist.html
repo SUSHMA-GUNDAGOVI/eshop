@@ -1,0 +1,261 @@
+{% extends "landing_base.html" %}
+{% load static %}
+
+{% block title %}My Wishlist{% endblock %}
+
+{% block content %}
+<style>
+.wishlist-container {
+    padding: 60px 0;
+    min-height: 70vh;
+}
+
+.wishlist-header {
+    margin-bottom: 40px;
+    padding-bottom: 20px;
+    border-bottom: 2px solid #e1e1e1;
+}
+
+.wishlist-header h2 {
+    font-size: 32px;
+    font-weight: 600;
+    color: #333;
+}
+
+.wishlist-card {
+    border: 1px solid #e1e1e1;
+    border-radius: 8px;
+    overflow: hidden;
+    height: 100%;
+    background: #fff;
+}
+
+.wishlist-img-wrapper {
+    width: 100%;
+    height: 280px;
+    overflow: hidden;
+    background: #f8f9fa;
+    position: relative;
+}
+
+.wishlist-img-wrapper img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+}
+
+.remove-wishlist-btn {
+    position: absolute;
+    top: 10px;
+    right: 10px;
+    width: 35px;
+    height: 35px;
+    background: #fff;
+    border: none;
+    border-radius: 50%;
+    color: #ff0000;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.15);
+    z-index: 10;
+}
+
+.remove-wishlist-btn:hover {
+    background: #ff0000;
+    color: #fff;
+}
+
+.wishlist-card-body {
+    padding: 20px;
+    display: flex;
+    flex-direction: column;
+}
+
+.wishlist-card-title {
+    font-size: 18px;
+    font-weight: 600;
+    color: #333;
+    margin-bottom: 10px;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    -webkit-box-orient: vertical;
+    min-height: 50px;
+}
+
+.wishlist-card-description {
+    font-size: 14px;
+    color: #666;
+    margin-bottom: 15px;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    -webkit-box-orient: vertical;
+    min-height: 40px;
+}
+
+.wishlist-price {
+    font-size: 24px;
+    font-weight: bold;
+    color: #ca1515;
+    margin-bottom: 10px;
+}
+
+.wishlist-date {
+    font-size: 12px;
+    color: #999;
+    margin-bottom: 15px;
+}
+
+.view-product-btn {
+    background-color: #ca1515;
+    color: #fff;
+    border: none;
+    padding: 12px 20px;
+    border-radius: 5px;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    text-decoration: none;
+    display: inline-block;
+    text-align: center;
+}
+
+.view-product-btn:hover {
+    background-color: #a00;
+    color: #fff;
+}
+
+.empty-wishlist {
+    padding: 100px 20px;
+    text-align: center;
+}
+
+.empty-wishlist i {
+    font-size: 100px;
+    color: #ddd;
+    margin-bottom: 30px;
+}
+
+.empty-wishlist h3 {
+    font-size: 28px;
+    color: #666;
+    margin-bottom: 15px;
+}
+
+.empty-wishlist p {
+    font-size: 16px;
+    color: #999;
+    margin-bottom: 30px;
+    max-width: 500px;
+    margin-left: auto;
+    margin-right: auto;
+}
+
+.continue-shopping-btn {
+    background-color: #ca1515;
+    color: #fff;
+    border: none;
+    padding: 15px 40px;
+    border-radius: 5px;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    text-decoration: none;
+    display: inline-block;
+}
+
+.continue-shopping-btn:hover {
+    background-color: #a00;
+    color: #fff;
+}
+</style>
+
+<div class="container wishlist-container">
+    <div class="wishlist-header">
+        <h2 class="text-center">My Wishlist <span class="text-muted">({{ wishlist_items.count }} items)</span></h2>
+    </div>
+
+    {% if wishlist_items %}
+        <div class="row g-4">
+            {% for item in wishlist_items %}
+            <div class="col-lg-4 col-md-6 col-sm-12">
+                <div class="wishlist-card">
+                    <div class="wishlist-img-wrapper">
+                        <button type="button" class="remove-wishlist-btn" data-product-id="{{ item.product.pk }}">
+                            <i class="fa fa-times fa-lg"></i>
+                        </button>
+                        
+                        {% if item.product.photo %}
+                        <img src="{{ item.product.photo.url }}" alt="{{ item.product.title }}">
+                        {% else %}
+                        <img src="{% static 'frontend/img/product-placeholder.jpg' %}" alt="{{ item.product.title }}">
+                        {% endif %}
+                    </div>
+
+                    <div class="wishlist-card-body">
+                        <h5 class="wishlist-card-title">{{ item.product.title }}</h5>
+                        <p class="wishlist-card-description">{{ item.product.summary|default:"No description available"|truncatewords:15 }}</p>
+                        <div class="wishlist-price">${{ item.product.price|floatformat:2 }}</div>
+                        <div class="wishlist-date">Added on {{ item.added_at|date:"M d, Y" }}</div>
+                        <a href="{% url 'product_detail' item.product.pk %}" class="view-product-btn">View Product</a>
+                    </div>
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+    {% else %}
+        <div class="empty-wishlist">
+            <i class="fa fa-heart-o"></i>
+            <h3>Your wishlist is empty</h3>
+            <p>Add items you love to your wishlist. Review them anytime and easily move them to your cart.</p>
+            <a href="{% url 'shop_all_products' %}" class="continue-shopping-btn">Continue Shopping</a>
+        </div>
+    {% endif %}
+</div>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // Check if jQuery is loaded
+    if (typeof jQuery === 'undefined') {
+        console.error('jQuery not loaded!');
+        return;
+    }
+    
+    // Remove from wishlist and reload page
+    $(document).on('click', '.remove-wishlist-btn', function(e) {
+        e.preventDefault();
+        
+        var btn = $(this);
+        var productId = btn.attr('data-product-id');
+        var csrftoken = '{{ csrf_token }}';
+        
+        if (confirm('Remove this item from your wishlist?')) {
+            $.ajax({
+                url: '/toggle-wishlist/' + productId + '/',
+                type: 'POST',
+                data: {
+                    'csrfmiddlewaretoken': csrftoken
+                },
+                success: function(response) {
+                    if (response.status === 'ok') {
+                        // Simply reload the page
+                        location.reload();
+                    } else {
+                        alert('Error: ' + (response.message || 'Unknown error'));
+                    }
+                },
+                error: function(xhr) {
+                    console.error('Error:', xhr.responseText);
+                    alert('Something went wrong. Please try again.');
+                }
+            });
+        }
+    });
+});
+</script>
+{% endblock %}

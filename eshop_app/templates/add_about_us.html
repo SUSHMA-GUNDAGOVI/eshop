@@ -1,0 +1,81 @@
+{% extends 'admin_base.html' %}
+
+{% block title %}Add / Edit About Us{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+
+    <!-- Page Heading -->
+    <div class="d-flex align-items-center justify-content-between mb-3">
+        <h1 class="h3 text-gray-800">About Us Management</h1>
+    </div>
+
+    <!-- Add/Edit About Us Form -->
+    <div class="card shadow mb-4">
+        <div class="card-header py-3">
+            <h6 class="m-0 font-weight-bold text-primary">Add / Edit About Us</h6>
+        </div>
+        <div class="card-body">
+            {% if error_message %}
+            <div class="alert alert-danger">{{ error_message }}</div>
+            {% endif %}
+
+            <form method="post">
+                {% csrf_token %}
+
+                <!-- Who We Are -->
+                <div class="form-group mb-3">
+                    <label for="who_we_are">Who We Are?</label>
+                    <textarea id="who_we_are" name="who_we_are" class="form-control" rows="4">{{ about.who_we_are|default_if_none:'' }}</textarea>
+                </div>
+
+                <!-- Who We Do -->
+                <div class="form-group mb-3">
+                    <label for="who_we_do">Who We Do?</label>
+                    <textarea id="who_we_do" name="who_we_do" class="form-control" rows="4">{{ about.who_we_do|default_if_none:'' }}</textarea>
+                </div>
+
+                <!-- Why Choose Us -->
+                <div class="form-group mb-3">
+                    <label for="why_choose_us">Why Choose Us?</label>
+                    <textarea id="why_choose_us" name="why_choose_us" class="form-control" rows="4">{{ about.why_choose_us|default_if_none:'' }}</textarea>
+                </div>
+
+                <button type="submit" class="btn btn-success mt-3">💾 Save About Us</button>
+                <a href="" class="btn btn-secondary mt-3">Cancel</a>
+            </form>
+        </div>
+    </div>
+</div>
+
+<!-- Toastify CSS & JS -->
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/toastify-js/src/toastify.min.css">
+<script src="https://cdn.jsdelivr.net/npm/toastify-js"></script>
+
+{% if success_message %}
+<script>
+(function () {
+    var text = "{{ success_message|escapejs }}";
+    if (window.Toastify) {
+        Toastify({
+            text: text,
+            duration: 3000,
+            close: true,
+            gravity: "top",
+            position: "right",
+            backgroundColor: "#4CAF50",
+            stopOnFocus: true
+        }).showToast();
+    }
+
+    // Remove ?success=1 from URL so refresh won't trigger toast again
+    if (window.history.replaceState) {
+        const url = new URL(window.location);
+        url.searchParams.delete("success");
+        window.history.replaceState({}, document.title, url.pathname);
+    }
+})();
+</script>
+{% endif %}
+
+{% endblock %}

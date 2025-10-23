@@ -1,0 +1,46 @@
+{% extends 'admin_base.html' %}
+{% block title %}Edit Team Member: {{ member.name }}{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+    <div class="d-flex align-items-center justify-content-between mb-3">
+        <h1 class="h3 text-gray-800">Team Management</h1>
+    </div>
+
+    <div class="card shadow mb-4">
+        <div class="card-header py-3">
+            <h6 class="m-0 font-weight-bold text-primary">Edit Team Member: {{ member.name }}</h6>
+        </div>
+        <div class="card-body">
+            {% if error_message %}
+            <div class="alert alert-danger">{{ error_message }}</div>
+            {% endif %}
+
+            <form method="post" enctype="multipart/form-data" action="{% url 'team_edit' member.id %}">
+                {% csrf_token %}
+
+                <div class="form-group mb-3">
+                    <label for="id_name">Name <span class="text-danger">*</span></label>
+                    <input type="text" class="form-control" id="id_name" name="name" value="{{ member.name }}" required>
+                </div>
+
+                <div class="form-group mb-3">
+                    <label for="id_designation">Designation <span class="text-danger">*</span></label>
+                    <input type="text" class="form-control" id="id_designation" name="designation" value="{{ member.designation }}" required>
+                </div>
+
+                <div class="form-group mb-3">
+                    <label for="id_image">Profile Image</label>
+                    <input type="file" class="form-control" id="id_image" name="image">
+                    {% if member.image %}
+                    <img src="{{ member.image.url }}" class="img-thumbnail mt-2" width="150">
+                    {% endif %}
+                </div>
+
+                <button type="submit" class="btn btn-primary mt-3">✅ Update Member</button>
+                <a href="{% url 'team_list' %}" class="btn btn-secondary mt-3">Cancel</a>
+            </form>
+        </div>
+    </div>
+</div>
+{% endblock %}

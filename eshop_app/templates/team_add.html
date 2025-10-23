@@ -1,0 +1,134 @@
+{% extends "admin_base.html" %}
+{% load static %}
+{% block title %}Add Team Member{% endblock %}
+
+{% block content %}
+<div class="container-fluid my-4">
+    <!-- Header -->
+    <div class="d-flex align-items-center justify-content-between mb-3">
+        <h1 class="h3 text-gray-800">Add Team Member</h1>
+        <a href="{% url 'team_list' %}" class="btn btn-secondary">Go to Team List</a>
+    </div>
+
+    <div class="row">
+        <!-- Add Form -->
+        <div class="col-lg-4">
+            <div class="card shadow mb-4">
+                <div class="card-header py-3">
+                    <h6 class="m-0 font-weight-bold text-primary">Team Member Details</h6>
+                </div>
+                <div class="card-body">
+                    {% if error_message %}
+                        <div class="alert alert-danger">{{ error_message }}</div>
+                    {% endif %}
+                    {% if success_message %}
+                        <div class="alert alert-success">{{ success_message }}</div>
+                    {% endif %}
+
+                    <form method="post" enctype="multipart/form-data">
+                        {% csrf_token %}
+                        <div class="form-group mb-3">
+                            <label for="id_name">Name <span class="text-danger">*</span></label>
+                            <input type="text" class="form-control" id="id_name" name="name" value="{{ member.name|default:'' }}" required>
+                        </div>
+
+                        <div class="form-group mb-3">
+                            <label for="id_designation">Designation <span class="text-danger">*</span></label>
+                            <input type="text" class="form-control" id="id_designation" name="designation" value="{{ member.designation|default:'' }}" required>
+                        </div>
+
+                        <div class="form-group mb-3">
+                            <label for="id_image">Profile Image</label>
+                            <input type="file" class="form-control" id="id_image" name="image">
+                        </div>
+
+                        <button type="submit" class="btn btn-success mt-2">💾 Save Member</button>
+                    </form>
+                </div>
+            </div>
+        </div>
+
+        <!-- Team List -->
+        <div class="col-lg-8">
+            <div class="card shadow mb-4">
+                <div class="card-header py-3">
+                    <h6 class="m-0 font-weight-bold text-primary">Existing Team Members</h6>
+                </div>
+                <div class="card-body">
+                    {% if team_members %}
+                        <div class="table-responsive">
+                            <table class="table table-bordered table-hover align-middle">
+                                <thead>
+                                    <tr>
+                                        <th>#</th>
+                                        <th>Profile</th>
+                                        <th>Name</th>
+                                        <th>Designation</th>
+                                        <th>Actions</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    {% for member in team_members %}
+                                    <tr>
+                                        <td>{{ forloop.counter }}</td>
+                                        <td>
+                                            {% if member.image %}
+                                                <img src="{{ member.image.url }}" alt="{{ member.name }}" style="height:50px; width:50px; object-fit:cover; border-radius:50%;">
+                                            {% else %}
+                                                <img src="{% static 'frontend/img/team_placeholder.png' %}" alt="No Image" style="height:50px; width:50px; object-fit:cover; border-radius:50%;">
+                                            {% endif %}
+                                        </td>
+                                        <td>{{ member.name }}</td>
+                                        <td>{{ member.designation }}</td>
+                                        <td>
+                                            <a href="{% url 'team_edit' member.id %}" class="btn btn-sm btn-primary">Edit</a>
+                                            <a href="{% url 'team_delete' member.id %}" class="btn btn-sm btn-danger" onclick="return confirm('Are you sure?');">Delete</a>
+                                        </td>
+                                    </tr>
+                                    {% endfor %}
+                                </tbody>
+                            </table>
+                        </div>
+
+                        <!-- Pagination -->
+                        {% if team_members.has_other_pages %}
+                        <nav>
+                            <ul class="pagination justify-content-center">
+                                {% if team_members.has_previous %}
+                                    <li class="page-item">
+                                        <a class="page-link" href="?page={{ team_members.previous_page_number }}">&laquo;</a>
+                                    </li>
+                                {% else %}
+                                    <li class="page-item disabled"><span class="page-link">&laquo;</span></li>
+                                {% endif %}
+
+                                {% for i in team_members.paginator.page_range %}
+                                    {% if team_members.number == i %}
+                                        <li class="page-item active"><span class="page-link">{{ i }}</span></li>
+                                    {% else %}
+                                        <li class="page-item">
+                                            <a class="page-link" href="?page={{ i }}">{{ i }}</a>
+                                        </li>
+                                    {% endif %}
+                                {% endfor %}
+
+                                {% if team_members.has_next %}
+                                    <li class="page-item">
+                                        <a class="page-link" href="?page={{ team_members.next_page_number }}">&raquo;</a>
+                                    </li>
+                                {% else %}
+                                    <li class="page-item disabled"><span class="page-link">&raquo;</span></li>
+                                {% endif %}
+                            </ul>
+                        </nav>
+                        {% endif %}
+
+                    {% else %}
+                        <p class="text-muted">No team members added yet.</p>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

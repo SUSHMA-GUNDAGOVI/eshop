@@ -1319,3 +1319,355 @@ def add_contact(request):
 
     # GET request → pre-fill form if contact exists
     return render(request, "add_contact.html", {"contact": contact})
+
+
+
+def blog_list(request):
+    blogs_list = Blog.objects.all().order_by('-created_at')
+
+    # Search
+    search_query = request.GET.get('q', '').strip()
+    if search_query:
+        blogs_list = blogs_list.filter(
+            Q(title__icontains=search_query) |
+            Q(content__icontains=search_query)
+        )
+
+    # Per page
+    per_page = request.GET.get('per_page', 10)
+    try:
+        per_page = int(per_page)
+        if per_page not in [10, 25, 50, 100]:
+            per_page = 10
+    except (ValueError, TypeError):
+        per_page = 10
+
+    paginator = Paginator(blogs_list, per_page)
+    page_number = request.GET.get('page')
+    try:
+        blogs = paginator.page(page_number)
+    except PageNotAnInteger:
+        blogs = paginator.page(1)
+    except EmptyPage:
+        blogs = paginator.page(paginator.num_pages)
+
+    # Success messages
+    success_messages = {
+        '1': 'Blog added successfully!',
+        '2': 'Blog updated successfully!',
+        '3': 'Blog deleted successfully!'
+    }
+    success_code = request.GET.get("success")
+    success_message = success_messages.get(success_code, "")
+
+    return render(request, "blog_list.html", {
+        "blogs": blogs,
+        "per_page": per_page,
+        "search_query": search_query,
+        "success_message": success_message
+    })
+
+
+
+def blog_add(request):
+    if request.method == "POST":
+        title = (request.POST.get('title') or '').strip()
+        content = (request.POST.get('content') or '').strip()
+        excerpt = (request.POST.get('excerpt') or '').strip()
+        status = int(request.POST.get('status', 0))
+        featured_image = request.FILES.get('featured_image')
+
+        if not title or not content:
+            return render(request, "blog_add.html", {"error_message": "Title and content are required!"})
+
+        blog = Blog(
+            title=title,
+            content=content,
+            excerpt=excerpt,
+            status=status,
+            author_name=request.user.username
+        )
+
+        if featured_image:
+            blog.featured_image = featured_image
+
+        blog.save()
+
+        return redirect(f"{reverse('blog_list')}?success=1")
+
+    return render(request, "blog_add.html")
+
+
+
+def blog_edit(request, pk):
+    blog = get_object_or_404(Blog, pk=pk)
+
+    if request.method == "POST":
+        blog.title = (request.POST.get('title') or '').strip()
+        blog.slug = (request.POST.get('slug') or '').strip()
+        blog.content = (request.POST.get('content') or '').strip()
+        blog.excerpt = (request.POST.get('excerpt') or '').strip()
+
+        # Convert status to integer
+        blog.status = int(request.POST.get('status', 0))  # 0 = Draft, 1 = Published
+
+        featured_image = request.FILES.get('featured_image')
+        if featured_image:
+            blog.featured_image = featured_image
+
+        blog.save()
+        return redirect(f"{reverse('blog_list')}?success=2")
+
+    return render(request, "blog_edit.html", {"blog": blog})
+
+
+def blog_delete(request, pk):
+    blog = get_object_or_404(Blog, pk=pk)
+    blog.delete()
+    return redirect(f"{reverse('blog_list')}?success=3")
+
+def add_about_us(request):
+    about = AboutUs.objects.first()
+
+    if request.method == "POST":
+        who_we_are = request.POST.get("who_we_are", "").strip()
+        who_we_do = request.POST.get("who_we_do", "").strip()
+        why_choose_us = request.POST.get("why_choose_us", "").strip()
+
+        # Simple validation
+        if not who_we_are or not who_we_do or not why_choose_us:
+            return render(request, "add_about_us.html", {
+                "error_message": "All fields are required.",
+                "about": request.POST
+            })
+
+        try:
+            with transaction.atomic():
+                if about:
+                    about.who_we_are = who_we_are
+                    about.who_we_do = who_we_do
+                    about.why_choose_us = why_choose_us
+                    about.save()
+                else:
+                    AboutUs.objects.create(
+                        who_we_are=who_we_are,
+                        who_we_do=who_we_do,
+                        why_choose_us=why_choose_us
+                    )
+            return render(request, "add_about_us.html", {
+                "success_message": "About Us saved successfully.",
+                "about": AboutUs.objects.first()
+            })
+        except Exception as e:
+            return render(request, "add_about_us.html", {
+                "error_message": f"Error: {str(e)}",
+                "about": request.POST
+            })
+
+    return render(request, "add_about_us.html", {"about": about})
+
+def team_list(request):
+    team_list = Team.objects.all().order_by('id')  # Order by ID
+
+    # Search
+    search_query = request.GET.get('q', '').strip()
+    if search_query:
+        team_list = team_list.filter(
+            Q(name__icontains=search_query) |
+            Q(designation__icontains=search_query)
+        )
+
+    # Pagination
+    from django.core.paginator import Paginator, EmptyPage, PageNotAnInteger
+    per_page = request.GET.get('per_page', 10)
+    try:
+        per_page = int(per_page)
+        if per_page not in [10, 25, 50, 100]:
+            per_page = 10
+    except (ValueError, TypeError):
+        per_page = 10
+
+    paginator = Paginator(team_list, per_page)
+    page_number = request.GET.get('page')
+    try:
+        team_members = paginator.page(page_number)
+    except PageNotAnInteger:
+        team_members = paginator.page(1)
+    except EmptyPage:
+        team_members = paginator.page(paginator.num_pages)
+
+    # Success messages
+    success_messages = {
+        '1': 'Team member added successfully!',
+        '2': 'Team member updated successfully!',
+        '3': 'Team member deleted successfully!'
+    }
+    success_code = request.GET.get("success")
+    success_message = success_messages.get(success_code, "")
+
+    return render(request, "team_list.html", {
+        "team_members": team_members,
+        "per_page": per_page,
+        "search_query": search_query,
+        "success_message": success_message
+    })
+
+
+def team_add(request):
+    if request.method == "POST":
+        name = (request.POST.get('name') or '').strip()
+        designation = (request.POST.get('designation') or '').strip()
+        bio = (request.POST.get('bio') or '').strip()
+        image = request.FILES.get('image')
+
+        if not name or not designation:
+            # Show error and team list on the same page
+            team_list = Team.objects.all().order_by('id')
+            paginator = Paginator(team_list, 10)
+            page_number = request.GET.get('page')
+            team_members = paginator.get_page(page_number)
+            return render(request, "team_add.html", {
+                "error_message": "Name and designation are required!",
+                "team_members": team_members
+            })
+
+        # Save member
+        member = Team(name=name, designation=designation, bio=bio)
+        if image:
+            member.image = image
+        member.save()
+
+        # ✅ Redirect to team_list with success message
+        return redirect(f"{reverse('team_list')}?success=1")
+
+    # GET request: show empty form + team list
+    team_list = Team.objects.all().order_by('id')
+    paginator = Paginator(team_list, 10)
+    page_number = request.GET.get('page')
+    team_members = paginator.get_page(page_number)
+
+    return render(request, "team_add.html", {
+        "team_members": team_members,
+    })
+
+
+# Edit team member
+def team_edit(request, pk):
+    member = get_object_or_404(Team, pk=pk)
+
+    if request.method == "POST":
+        member.name = (request.POST.get('name') or '').strip()
+        member.designation = (request.POST.get('designation') or '').strip()
+        member.bio = (request.POST.get('bio') or '').strip()
+
+        image = request.FILES.get('image')
+        if image:
+            member.image = image
+
+        member.save()
+        return redirect(f"{reverse('team_list')}?success=2")
+
+    return render(request, "team_edit.html", {"member": member})
+
+
+# Delete team member
+def team_delete(request, pk):
+    member = get_object_or_404(Team, pk=pk)
+    member.delete()
+    return redirect(f"{reverse('team_list')}?success=3")
+
+def client_add(request):
+    if request.method == 'POST':
+        name = request.POST.get('name')
+        logo = request.FILES.get('logo')
+        status = request.POST.get('status', 'active')  # default active
+
+        if not name:
+            return render(request, 'client_list.html', {
+                'error_message': "Client name is required"
+            })
+
+        Client.objects.create(
+            name=name,
+            logo=logo,
+            status=status
+        )
+
+        # Redirect to list with success=1
+        return redirect(f"{reverse('client_list')}?success=1")
+
+    return redirect('client_list')
+
+
+# ------------------ Edit Client ------------------
+def client_edit(request, pk):
+    client = get_object_or_404(Client, pk=pk)
+
+    if request.method == 'POST':
+        name = request.POST.get('name')
+        logo = request.FILES.get('logo')
+        status = request.POST.get('status', 'active')
+
+        client.name = name
+        client.status = status
+        if logo:
+            client.logo = logo
+
+        client.save()
+
+        # Redirect with success=2
+        return redirect(f"{reverse('client_list')}?success=2")
+
+    return render(request, 'client_edit.html', {'client': client})
+
+
+# ------------------ Delete Client ------------------
+def client_delete(request, pk):
+    client = get_object_or_404(Client, pk=pk)
+    client.delete()
+    # Redirect with success=3
+    return redirect(f"{reverse('client_list')}?success=3")
+
+
+# ------------------ List Clients ------------------
+def client_list(request):
+    clients_list = Client.objects.all().order_by('-id')
+
+    # Search
+    search_query = request.GET.get('q', '').strip()
+    if search_query:
+        clients_list = clients_list.filter(Q(name__icontains=search_query))
+
+    # Per page
+    per_page = request.GET.get('per_page', '10')
+    try:
+        per_page = int(per_page)
+        if per_page not in [10, 25, 50, 100]:
+            per_page = 10
+    except (ValueError, TypeError):
+        per_page = 10
+
+    paginator = Paginator(clients_list, per_page)
+    page_number = request.GET.get('page')
+    try:
+        clients = paginator.page(page_number)
+    except PageNotAnInteger:
+        clients = paginator.page(1)
+    except EmptyPage:
+        clients = paginator.page(paginator.num_pages)
+
+    # Toastify messages
+    success_messages = {
+        '1': 'Client added successfully!',
+        '2': 'Client updated successfully!',
+        '3': 'Client deleted successfully!'
+    }
+    success_code = request.GET.get("success")
+    success_message = success_messages.get(success_code, "")
+
+    return render(request, "client_list.html", {
+        "clients": clients,
+        "per_page": per_page,
+        "search_query": search_query,
+        "success_message": success_message
+    })

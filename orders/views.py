@@ -1,6 +1,7 @@
 from django.shortcuts import render, redirect, get_object_or_404
 from eshop_app.models import Product, Banner
 from django.utils import timezone
+from django.views.decorators.http import require_POST
 from datetime import timedelta
 from decimal import Decimal
 from urllib.parse import quote_plus
@@ -12,18 +13,18 @@ from eshop_app.models import CustomUser
 from django.http import JsonResponse
 from eshop_app.models import Contact
 from django.core.mail import send_mail
+from eshop_app.models import Blog
+from eshop_app.models import AboutUs, Team, Client
+from .models import Wishlist
+from .models import Cart
 
 
 def index(request):
     filter_type = request.GET.get('filter', 'all')
     
-    # All active products
     all_products = Product.objects.filter(status='active')
-    
-    # Only featured products for the banner (3 most recent)
     featured_products = Product.objects.filter(is_featured=True, status='active').order_by('-created_at')[:3]
 
-    # Apply filters for main product listing
     if filter_type == 'new-arrivals':
         all_products = all_products.filter(
             created_at__gte=timezone.now() - timedelta(days=7)
@@ -33,18 +34,22 @@ def index(request):
     else:
         all_products = all_products.order_by('-created_at')
 
-    # Slice for homepage: 3 rows, 3 products per row = 9 products
     homepage_products = all_products[:9]
-
-    # Fetch banners if needed
     banners = Banner.objects.all()
     
+    # ✅ Add wishlisted_ids for authenticated users
+    if request.user.is_authenticated:
+        wishlisted_ids = Wishlist.objects.filter(user=request.user).values_list('product_id', flat=True)
+    else:
+        wishlisted_ids = []
+    
     context = {
-        'products': homepage_products,       # only 9 products for homepage
-        'total_products_count': all_products.count(),  # to show Read More button
+        'products': homepage_products,
+        'total_products_count': all_products.count(),
         'filter_type': filter_type,
         'banners': banners,
         'featured_products': featured_products,
+        'wishlisted_ids': wishlisted_ids,  # ✅ Pass this to template
     }
     
     return render(request, 'index.html', context)
@@ -73,171 +78,110 @@ def product_detail_view(request, pk):
     return render(request, 'product_details.html', context)
 
 
+@login_required
 def add_to_cart_view(request, product_id):
     """
-    Handles adding a product and its options (quantity, size, color) to the cart 
-    stored in the user's session.
+    Adds a product to the cart if size and color are selected.
+    Shows toast if already in cart or not selected.
     """
     if request.method == 'POST':
-        
-        # 1. Get the product object or return a 404 error
         product = get_object_or_404(Product, pk=product_id)
 
-        # 2. Extract data from the POST request
+        selected_size = request.POST.get('size', '').strip()
+        selected_color = request.POST.get('color', '').strip()
+
         try:
             quantity = int(request.POST.get('quantity', 1))
         except ValueError:
             quantity = 1
-            
-        selected_size = request.POST.get('size', 'N/A')
-        selected_color = request.POST.get('color', 'N/A')
 
-        # 3. Create a unique identifier for this specific cart item 
-        item_key = f"{product_id}-{selected_size}-{selected_color}"
+        redirect_url = reverse('product_detail', kwargs={'pk': product_id})
 
-        # 4. Initialize the cart in the session if it doesn't exist
-        cart = request.session.get('cart', {})
-        
-        # 5. Add or update the item in the cart
-        if item_key in cart:
-            cart[item_key]['quantity'] += quantity
+        # Validate size & color selection
+        if not selected_size or not selected_color:
+            # Neither size nor color selected
+            return redirect(f"{redirect_url}?cart_invalid=1")
+
+        # Check if the item already exists in cart
+        cart_item = Cart.objects.filter(
+            user=request.user,
+            product=product,
+            size=selected_size,
+            color=selected_color
+        ).first()
+
+        if cart_item:
+            # Already in cart
+            return redirect(f"{redirect_url}?cart_exists=1")
         else:
-            cart[item_key] = {
-                'product_id': product_id,
-                'quantity': quantity,
-                'price': str(product.price), 
-                'title': product.title,
-                'size': selected_size,
-                'color': selected_color,
-            }
+            # Not in cart → create new
+            Cart.objects.create(
+                user=request.user,
+                product=product,
+                size=selected_size,
+                color=selected_color,
+                quantity=quantity
+            )
+            return redirect(f"{redirect_url}?cart_added=1")
 
-        # 6. Save the modified cart back to the session
-        request.session['cart'] = cart
-        request.session.modified = True
-        
-        # 7. Redirect the user back to the product detail page (FIXED)
-        
-        # A. Safely encode the product name for the URL
-        product_name_encoded = quote_plus(product.title) # 👈 Correct encoding
-        
-        # B. Get the base URL
-        redirect_url = reverse('product_detail', kwargs={'pk': product_id}) 
-        
-        # C. Redirect with the correctly encoded parameter
-        return redirect(f"{redirect_url}?cart_added={product_name_encoded}") 
-
-    # If the request method is not POST, redirect back.
     return redirect('product_detail', pk=product_id)
 
 
+@login_required
 def shopping_cart_view(request):
     """
-    Renders the shopping cart page, processing items stored in the session.
+    Show the shopping cart for the logged-in user
     """
-    # 1. Get the cart data from the session
-    # Defaults to an empty dictionary if the cart doesn't exist
-    session_cart = request.session.get('cart', {})
-    
-    cart_items = []
+    cart_items = Cart.objects.filter(user=request.user).select_related('product')
+
     cart_subtotal = Decimal('0.00')
-    
-    # 2. Iterate through the session cart to fetch product details and calculate totals
-    for item_key, item_data in session_cart.items():
-        
-        # item_key looks like "4-L-Blue"
-        product_id = item_data.get('product_id')
-        print(product_id)
-        quantity = item_data.get('quantity', 0)
-        
-        # Skip if quantity is 0 or less
-        if quantity <= 0:
-            continue
-            
-        try:
-            # Fetch the actual Product object from the database
-            product = Product.objects.get(pk=product_id)
-        except Product.DoesNotExist:
-            # Handle case where the product may have been deleted
-            # You might want to remove this item from the session cart here,
-            # but for simplicity, we'll just skip it for now.
-            continue
-            
-        # Get the price (ensure it's treated as a Decimal for calculations)
-        # We stored the price as a string in add_to_cart_view to avoid serialization issues
-        item_price = Decimal(item_data.get('price', product.price))
-        
-        # Calculate line total
-        line_total = item_price * quantity
+    enriched_items = []
+
+    for item in cart_items:
+        line_total = item.subtotal
         cart_subtotal += line_total
-        
-        # 3. Compile the enriched item data for the template
-        cart_items.append({
-            'product': product,          # The full Product object
-            'quantity': quantity,
-            'size': item_data.get('size', 'N/A'),
-            'color': item_data.get('color', 'N/A'),
-            'price': item_price,
+        enriched_items.append({
+            'product': item.product,
+            'quantity': item.quantity,
+            'size': item.size or 'N/A',
+            'color': item.color or 'N/A',
+            'price': item.product.price,
             'line_total': line_total,
-            # Pass the unique key to help with update/remove views later
-            'item_key': item_key,
+            'item_id': item.id,  # ✅ DB id for removal
         })
 
-    # 4. Calculate final totals (e.g., tax, shipping)
-    # NOTE: You will need to define your own logic for these values!
-    shipping_cost = Decimal('10.00')  # Example fixed shipping
-    tax_rate = Decimal('0.05')        # Example 5% tax
-    
+    shipping_cost = Decimal('10.00')
+    tax_rate = Decimal('0.05')
     tax_amount = (cart_subtotal * tax_rate).quantize(Decimal('0.01'))
     order_total = cart_subtotal + tax_amount + shipping_cost
 
-    # 5. Prepare the context dictionary
     context = {
-        'cart_items': cart_items,
+        'cart_items': enriched_items,
         'cart_subtotal': cart_subtotal,
         'shipping_cost': shipping_cost,
         'tax_amount': tax_amount,
         'order_total': order_total,
     }
-    
-    # 6. Render the template
+
     return render(request, 'shopping_cart.html', context)
 
 
+@login_required
+@require_POST
 def remove_from_cart_view(request):
     """
-    Removes a specific item from the session cart based on item_key
-    and redirects with a parameter for Toastify notification.
+    Remove a cart item using its DB id (safer than parsing strings)
     """
-    if request.method == 'POST':
-        item_key = request.POST.get('item_key')
-        cart = request.session.get('cart', {})
-
-        if item_key and item_key in cart:
-            try:
-                # Get the product title before deletion for the toast message
-                product_title = cart[item_key].get('title', 'An item') 
-                
-                # Remove the item dictionary from the cart
-                del cart[item_key]
-                
-                # Save the modified cart back to the session
-                request.session['cart'] = cart
-                request.session.modified = True
-
-                # Redirect back to the shopping cart page with a success parameter
-                redirect_url = redirect('shopping_cart').url
-                
-                # Use a specific message to display in Toastify
-                return redirect(f"{redirect_url}?cart_removed={product_title}") 
-                
-            except Exception as e:
-                # Should handle critical error if session or key logic fails
-                print(f"Error removing item: {e}")
-                pass # Fall through to default redirect
-
-    # If item removal fails or request is not POST, redirect to the cart page
+    cart_id = request.POST.get('cart_id')
+    if cart_id:
+        try:
+            cart_item = Cart.objects.get(id=cart_id, user=request.user)
+            product_title = cart_item.product.title
+            cart_item.delete()
+            return redirect(f"{reverse('shopping_cart')}?cart_removed={product_title}")
+        except Cart.DoesNotExist:
+            pass
     return redirect('shopping_cart')
-
 
 def shop_all_products(request):
     query = request.GET.get('q', '')  # Search term
@@ -245,8 +189,9 @@ def shop_all_products(request):
     max_price = request.GET.get('max_price')
     size = request.GET.get('size')
     color = request.GET.get('color')
-    sort_option = request.GET.get('sort')  # ✅ New field for sorting
+    sort_option = request.GET.get('sort')  # Sorting option
 
+    # Base queryset
     products = Product.objects.filter(status='active').order_by('-created_at')
 
     # --- Filters ---
@@ -274,8 +219,14 @@ def shop_all_products(request):
     brands = Brand.objects.filter(status='active')
 
     # --- Sizes and colors ---
-    sizes_list = ['xs','s','m','l','xl','2xl','xxl','3xl','4xl']
+    sizes_list = ['xs', 's', 'm', 'l', 'xl', '2xl', 'xxl', '3xl', '4xl']
     colors_list = ['c-1','c-2','c-3','c-4','c-5','c-6','c-7','c-8','c-9']
+
+    # --- Wishlist data ---
+    if request.user.is_authenticated:
+        wishlisted_ids = Wishlist.objects.filter(user=request.user).values_list('product_id', flat=True)
+    else:
+        wishlisted_ids = []
 
     context = {
         'products': products,
@@ -288,7 +239,8 @@ def shop_all_products(request):
         'sizes_list': sizes_list,
         'colors_list': colors_list,
         'search_query': query,
-        'selected_sort': sort_option,  # ✅ Add this to remember selection
+        'selected_sort': sort_option,
+        'wishlisted_ids': wishlisted_ids,  # ✅ Pass wishlisted product IDs
     }
 
     return render(request, 'shop_all.html', context)
@@ -401,3 +353,79 @@ def landing_contact(request):
             success_message = f"Error sending message: {e}"
 
     return render(request, 'landing_contact.html', {'contact': contact, 'success_message': success_message})
+
+def landing_blog(request):
+    """
+    Display all published blogs on the landing page.
+    """
+    blogs = Blog.objects.filter(status=1).order_by('-publish_date')  # only published
+    context = {
+        'blogs': blogs
+    }
+    return render(request, 'landing_blog.html', context)
+
+def landing_blog_detail(request, slug):
+    blog = get_object_or_404(Blog, slug=slug, status=1)
+    return render(request, 'landing_blog_detail.html', {'blog': blog})
+def landing_about_us(request):
+    # Get AboutUs single record
+    about = AboutUs.objects.first()
+
+    # Get all team members
+    team_members = Team.objects.all().order_by('id')
+
+    # Get all active clients
+    clients = Client.objects.filter(status='active').order_by('id')
+
+    return render(request, "landing_about_us.html", {
+        "about": about,
+        "team_members": team_members,
+        "clients": clients
+    })
+
+@login_required
+def toggle_wishlist(request, product_id):
+    if request.method == "POST":
+        try:
+            product = get_object_or_404(Product, pk=product_id)
+            wishlist_item, created = Wishlist.objects.get_or_create(
+                user=request.user, 
+                product=product
+            )
+
+            if not created:
+                wishlist_item.delete()
+                is_added = False
+            else:
+                is_added = True
+
+            # Get updated wishlist count
+            wishlist_count = Wishlist.objects.filter(user=request.user).count()
+
+            return JsonResponse({
+                'status': 'ok', 
+                'is_added': is_added,
+                'wishlist_count': wishlist_count  # ✅ Return count
+            })
+        except Exception as e:
+            return JsonResponse({
+                'status': 'error', 
+                'message': str(e)
+            }, status=400)
+    
+    return JsonResponse({
+        'status': 'error', 
+        'message': 'Invalid request method'
+    }, status=405)
+
+@login_required
+def wishlist_view(request):
+    """
+    Display all products in user's wishlist
+    """
+    wishlist_items = Wishlist.objects.filter(user=request.user).select_related('product')
+    
+    context = {
+        'wishlist_items': wishlist_items,
+    }
+    return render(request, 'wishlist.html', context)

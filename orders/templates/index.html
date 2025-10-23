@@ -92,6 +92,14 @@
     font-size: 14px; /* smaller "Shop now" link */
     padding: -1px 10px; /* optional: smaller padding */
 }
+.heart-outlined {
+    color: #ffffff;
+    text-shadow: 
+        -1px -1px 0 #000,
+        1px -1px 0 #000,
+        -1px 1px 0 #000,
+        1px 1px 0 #000;
+}
 </style>
 
 <section class="banner spad">
@@ -160,29 +168,48 @@
             </div>
         </div>
 
-        <!-- Products Grid -->
         <div class="row product__filter position-relative">
             {% for product in products|slice:":8" %}
             <div class="col-lg-3 col-md-6 col-sm-6 mix
                         {% if product.is_new %}new-arrivals{% elif product.is_sale %}hot-sales{% endif %}">
                 <div class="product__item {% if product.is_sale %}sale{% endif %}">
-                    <div class="product__item__pic set-bg"
+
+                    <!-- Image container -->
+                    <div class="product__item__pic set-bg" 
                          data-setbg="{% if product.photo %}{{ product.photo.url }}{% else %}{% static 'frontend/img/product/placeholder.jpg' %}{% endif %}">
-                        {% if product.is_new %}
-                            <span class="label">New</span>
-                        {% elif product.is_sale %}
-                            <span class="label">Sale</span>
-                        {% endif %}
+                        {% if product.is_new %}<span class="label">New</span>{% elif product.is_sale %}<span class="label">Sale</span>{% endif %}
+
+                        <!-- Hover icons -->
                         <ul class="product__hover">
-                            <li><a href="#"><img src="{% static 'frontend/img/icon/heart.png' %}" alt=""></a></li>
+                            <li>
+                                {% if user.is_authenticated %}
+                                <a href="#" class="wishlist-btn" data-product-id="{{ product.pk }}">
+                                    {% if product.pk in wishlisted_ids %}
+                                        <i class="fa fa-heart" style="color: #ff0000; font-size: 18px;"></i>
+                                    {% else %}
+                                        <i class="fa fa-heart heart-outlined" style="font-size: 18px;"></i>
+                                    {% endif %}
+                                </a>
+                                {% else %}
+                                <a href="{% url 'login' %}">
+                                    <i class="fa fa-heart heart-outlined" style="font-size: 18px;"></i>
+                                </a>
+                                {% endif %}
+                            </li>
                             <li><a href="#"><img src="{% static 'frontend/img/icon/compare.png' %}" alt=""><span>Compare</span></a></li>
                             <li><a href="#"><img src="{% static 'frontend/img/icon/search.png' %}" alt=""></a></li>
                         </ul>
+
+                        <!-- Clickable overlay for image -->
+                        <a href="{% url 'product_detail' product.pk %}" class="image-link"></a>
                     </div>
 
+                    <!-- Product info below image -->
                     <div class="product__item__text">
                         <h6>{{ product.title }}</h6>
-                        <a href="{% url 'product_detail' product.pk %}" class="add-cart">+ Add To Cart</a>
+                        <a href="{% url 'product_detail' product.pk %}" class="add-cart">
+                            {% if user.is_authenticated %}+ Add To Cart{% else %}Login to Add{% endif %}
+                        </a>
 
                         <div class="rating">
                             <i class="fa fa-star-o"></i>
@@ -214,18 +241,16 @@
             </div>
             {% endfor %}
 
-            {% comment %}
-            Read More link always at bottom-right of last row
-            {% endcomment %}
             {% if total_products_count > 8 %}
             <div class="col-12 d-flex justify-content-end mt-2">
                 <a href="{% url 'shop_all' %}" class="read-more-link">Read More</a>
             </div>
             {% endif %}
-
         </div>
     </div>
 </section>
+
+
 
 <!-- CSS -->
 <style>
@@ -240,9 +265,28 @@
     color: #0a3d62; /* dark blue on hover */
     text-decoration: underline;
 }
+.product__item__pic {
+    position: relative;
+}
+
+/* Hover icons above everything */
+.product__hover {
+    position: absolute;
+    top: 10px;
+    right: 10px;
+    z-index: 2;
+}
+
+/* Full-size invisible link for image click */
+.image-link {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    z-index: 1; /* below hover icons */
+}
 </style>
-
-
 
 <!-- Product Section End -->
 
@@ -385,5 +429,59 @@
     </div>
 </div>
 <!-- Search End -->
+
+<script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+<script>
+$(document).ready(function() {
+    $('.wishlist-btn').on('click', function(e) {
+        e.preventDefault();
+        var btn = $(this);
+        var productId = btn.data('product-id');
+        var csrftoken = '{{ csrf_token }}';
+
+        $.ajax({
+            url: '/toggle-wishlist/' + productId + '/',
+            type: 'POST',
+            data: {
+                'csrfmiddlewaretoken': csrftoken
+            },
+            dataType: 'json',
+            success: function(response) {
+                if (response.status === 'ok') {
+                    var heartIcon = btn.find('i');
+
+                    if (response.is_added) {
+                        heartIcon.removeClass('heart-outlined').css('color', '#ff0000');
+                    } else {
+                        heartIcon.addClass('heart-outlined').css('color', '');
+                    }
+
+                    // Update badge
+                    updateWishlistBadge(response.wishlist_count);
+                }
+            },
+            error: function(xhr) {
+                console.log('Error:', xhr.responseText);
+                alert('Something went wrong. Please try again.');
+            }
+        });
+    });
+
+    function updateWishlistBadge(count) {
+        var badge = $('.wishlist-count-badge');
+        if (count > 0) {
+            if (badge.length > 0) {
+                badge.text(count).show();
+            } else {
+                var heartLink = $('a[href*="wishlist"]').first();
+                heartLink.css('position', 'relative');
+                heartLink.append('<span class="badge bg-danger rounded-circle wishlist-count-badge" style="position: absolute; top: -5px; right: -5px; font-size: 10px; min-width: 18px; height: 18px; padding: 2px 5px; line-height: 14px;">' + count + '</span>');
+            }
+        } else {
+            badge.hide();
+        }
+    }
+});
+</script>
 
 {% endblock %}

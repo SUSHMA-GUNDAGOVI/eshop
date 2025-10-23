@@ -1,0 +1,165 @@
+{% extends "admin_base.html" %}
+{% load static %}
+
+{% block title %}Blog List{% endblock %}
+
+{% block content %}
+
+<div class="container-fluid my-4">
+    <!-- Header -->
+    <div class="d-flex align-items-center justify-content-between mb-3">
+        <h1 class="h3 text-gray-800">Blog List</h1>
+        <a href="{% url 'blog_add' %}" class="btn btn-primary">Add Blog</a>
+    </div>
+
+    <!-- Search & Entries -->
+    <div class="card shadow mb-4">
+        <div class="card-body d-flex justify-content-between align-items-center flex-wrap">
+            <!-- Entries per page -->
+            <form method="get" class="d-flex align-items-center mb-2 mb-md-0">
+                <label class="me-2 mb-0">Show</label>
+                <select name="per_page" class="form-control form-control-sm me-2" onchange="this.form.submit()">
+                    <option value="10" {% if per_page|default:"10" == "10" %}selected{% endif %}>10</option>
+                    <option value="25" {% if per_page|default:"10" == "25" %}selected{% endif %}>25</option>
+                    <option value="50" {% if per_page|default:"10" == "50" %}selected{% endif %}>50</option>
+                    <option value="100" {% if per_page|default:"10" == "100" %}selected{% endif %}>100</option>
+                </select>
+                <span>entries</span>
+                {% if search_query %}
+                <input type="hidden" name="q" value="{{ search_query }}">
+                {% endif %}
+            </form>
+
+            <!-- Search -->
+            <form method="get" id="searchForm" class="d-flex align-items-center">
+                <div class="input-group input-group-sm">
+                    <input type="text" name="q" id="searchInput" class="form-control"
+                        placeholder="Search by title or content" value="{{ search_query }}">
+                    {% if per_page %}
+                    <input type="hidden" name="per_page" value="{{ per_page }}">
+                    {% endif %}
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Table -->
+    <div class="card shadow mb-4">
+        <div class="card-body">
+            <div class="table-responsive">
+                <table class="table table-bordered table-striped align-middle">
+                    <thead class="table">
+                        <tr>
+                            <th>Image</th>
+                            <th>Title</th>
+                            <th>Status</th>
+                            <th>Created At</th>
+                            <th>Action</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for blog in blogs %}
+                        <tr>
+                            <!-- Blog Image -->
+                            <td>
+                                <img src="{% if blog.featured_image %}{{ blog.featured_image.url }}{% else %}{% static 'frontend/img/blog/default.jpg' %}{% endif %}" 
+                                     alt="{{ blog.title }}" 
+                                     style="width: 80px; height: 50px; object-fit: cover; border-radius: 4px;">
+                            </td>
+
+                            <!-- Blog Title -->
+                            <td>{{ blog.title }}</td>
+
+                            <!-- Status -->
+                            <td>
+                                <span class="badge text-white {% if blog.status == 1 %}bg-success{% else %}bg-secondary{% endif %}">
+                                    {{ blog.get_status_display }}
+                                </span>
+                            </td>
+
+                            <!-- Created At -->
+                            <td>{{ blog.created_at|date:"d M Y H:i" }}</td>
+
+                            <!-- Action Buttons -->
+                            <td style="white-space: nowrap;">
+                                <a href="{% url 'blog_edit' blog.id %}" class="btn btn-sm btn-primary"><i class="fas fa-edit"></i></a>
+                                <a href="{% url 'blog_delete' blog.id %}" class="btn btn-sm btn-danger" onclick="return confirm('Are you sure?');">
+                                    <i class="fas fa-trash-alt"></i>
+                                </a>
+                            </td>
+                        </tr>
+                        {% empty %}
+                        <tr>
+                            <td colspan="5" class="text-center">No blogs found.</td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+
+            <!-- Pagination -->
+            {% if blogs.has_other_pages %}
+            <nav>
+                <ul class="pagination justify-content-center">
+                    {% if blogs.has_previous %}
+                    <li class="page-item">
+                        <a class="page-link" href="?page={{ blogs.previous_page_number }}{% if search_query %}&q={{ search_query }}{% endif %}{% if per_page %}&per_page={{ per_page }}{% endif %}">&laquo;</a>
+                    </li>
+                    {% else %}
+                    <li class="page-item disabled"><span class="page-link">&laquo;</span></li>
+                    {% endif %}
+
+                    {% for i in blogs.paginator.page_range %}
+                    {% if blogs.number == i %}
+                    <li class="page-item active"><span class="page-link">{{ i }}</span></li>
+                    {% else %}
+                    <li class="page-item">
+                        <a class="page-link" href="?page={{ i }}{% if search_query %}&q={{ search_query }}{% endif %}{% if per_page %}&per_page={{ per_page }}{% endif %}">{{ i }}</a>
+                    </li>
+                    {% endif %}
+                    {% endfor %}
+
+                    {% if blogs.has_next %}
+                    <li class="page-item">
+                        <a class="page-link" href="?page={{ blogs.next_page_number }}{% if search_query %}&q={{ search_query }}{% endif %}{% if per_page %}&per_page={{ per_page }}{% endif %}">&raquo;</a>
+                    </li>
+                    {% else %}
+                    <li class="page-item disabled"><span class="page-link">&raquo;</span></li>
+                    {% endif %}
+                </ul>
+            </nav>
+            {% endif %}
+
+            <div class="text-center text-muted mt-2">
+                Showing {{ blogs.start_index }} to {{ blogs.end_index }} of {{ blogs.paginator.count }} entries
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Toastify -->
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/toastify-js/src/toastify.min.css">
+<script src="https://cdn.jsdelivr.net/npm/toastify-js"></script>
+
+{% if success_message %}
+<script>
+    Toastify({
+        text: "{{ success_message|escapejs }}",
+        duration: 2000,
+        close: true,
+        gravity: "top",
+        position: "right",
+        backgroundColor: "#4CAF50",
+        stopOnFocus: true
+    }).showToast();
+
+    // Remove ?success from URL
+    if (window.history.replaceState) {
+        const url = new URL(window.location);
+        url.searchParams.delete("success");
+        window.history.replaceState({}, document.title, url.pathname);
+    }
+</script>
+{% endif %}
+
+{% endblock %}
