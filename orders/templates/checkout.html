@@ -1,0 +1,198 @@
+{% extends 'landing_base.html' %}
+{% block title %}Checkout{% endblock %}
+
+{% block content %}
+<section class="breadcrumb-option">
+    <div class="container">
+        <div class="row">
+            <div class="col-lg-12">
+                <div class="breadcrumb__text">
+                    <h4>Check Out</h4>
+                    <div class="breadcrumb__links">
+                        <a href="{% url 'index' %}">Home</a>
+                        <a href="#">Shop</a>
+                        <span>Check Out</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<section class="checkout spad">
+    <div class="container">
+        <div class="checkout__form">
+            <form method="POST" action="">
+                {% csrf_token %}
+                <div class="row">
+                    <div class="col-lg-8 col-md-6">
+                        <h6 class="checkout__title">Billing Details</h6>
+
+                        <div class="checkout__input">
+                            <p>First Name<span>*</span></p>
+                            <input type="text" name="first_name" required>
+                        </div>
+
+                        <div class="checkout__input">
+                            <p>Last Name<span>*</span></p>
+                            <input type="text" name="last_name" required>
+                        </div>
+
+                        <div class="checkout__input">
+                            <p>Email<span>*</span></p>
+                            <input type="email" name="email" required>
+                        </div>
+
+                        <!-- ✅ Address field with Change button -->
+                        <div class="checkout__input">
+                            <p>Address <span>*</span></p>
+                            <div class="d-flex align-items-center flex-nowrap">
+                                <input type="text" 
+                                       name="address" 
+                                       id="address-field" 
+                                       class="form-control flex-grow-1" 
+                                       placeholder="Enter your address" 
+                                       required 
+                                       style="min-width:0;">
+                                <button type="button" 
+                                        class="btn btn-sm btn-outline-secondary ms-2 change-btn" 
+                                        data-bs-toggle="modal" 
+                                        data-bs-target="#addressModal"
+                                        style="font-size:10px; white-space:nowrap;">
+                                    Change To
+                                </button>
+                            </div>
+                        </div>
+
+                        <div class="checkout__input">
+                            <p>Phone<span>*</span></p>
+                            <input type="text" name="phone" required>
+                        </div>
+                    </div>
+
+                    <div class="col-lg-4 col-md-6">
+                        <div class="checkout__order">
+                            <h4 class="order__title">Your order</h4>
+
+                            {% for item in cart_items %}
+                            <div class="checkout__order__products mb-2">
+                                <strong>{{ item.product.title }}</strong> × {{ item.quantity }}
+                                <span>₹{{ item.line_total|floatformat:2 }}</span>
+                            </div>
+                            <!-- Display shipping charge per product -->
+                            {% if item.shipping_charge > 0 %}
+                            <div class="text-muted small ps-3">
+                                <span>Shipping: ₹{{ item.shipping_charge|floatformat:2 }}</span>
+                            </div>
+                            {% elif item.shipping_charge == 0 %}
+                            <div class="text-muted small ps-3">
+                                <span>Shipping: Free</span>
+                            </div>
+                            {% endif %}
+                            {% endfor %}
+
+                            <hr>
+
+                            <div class="d-flex justify-content-between">
+                                <span>Subtotal</span>
+                                <span id="subtotal">₹{{ subtotal|floatformat:2 }}</span>
+                            </div>
+
+                            <!-- ✅ FIXED: Now displays the total shipping from all products -->
+                            <div class="d-flex justify-content-between mt-1">
+                                <span>Total Shipping</span>
+                                <span>
+                                    {% if shipping_charge == 0 %}
+                                        <span class="text-success">Free</span>
+                                    {% else %}
+                                        ₹{{ shipping_charge|floatformat:2 }}
+                                    {% endif %}
+                                </span>
+                            </div>
+
+                            {% if applied_coupon %}
+                            <div class="d-flex justify-content-between mt-1">
+                                <span>Discount ({{ applied_coupon.code }})</span>
+                                <span class="text-success">-₹{{ discount_amount|floatformat:2 }}</span>
+                            </div>
+                            {% endif %}
+
+                            <hr class="my-2">
+
+                            <div class="d-flex justify-content-between mt-2">
+                                <strong>Total</strong>
+                                <strong>₹{{ total|floatformat:2 }}</strong>
+                            </div>
+
+                            <div class="checkout__input__checkbox mt-3">
+                                <label for="payment">
+                                    Cash on Delivery
+                                    <input type="checkbox" id="payment" name="payment_method" value="cod" checked>
+                                    <span class="checkmark"></span>
+                                </label>
+                            </div>
+
+                            <button type="submit" class="site-btn w-100 mt-3">PLACE ORDER</button>
+                        </div>
+                    </div>
+                </div>
+            </form>
+        </div>
+    </div>
+</section>
+
+<!-- ✅ Address Selection Modal -->
+<div class="modal fade" id="addressModal" tabindex="-1" aria-labelledby="addressModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered modal-lg">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="addressModalLabel">Select Saved Address</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                {% if addresses %}
+                <div class="row">
+                    {% for addr in addresses %}
+                    <div class="col-md-6 mb-3">
+                        <div class="border rounded p-3 h-100">
+                            <strong>{{ addr.full_name }}</strong><br>
+                            {{ addr.street_address }}, {{ addr.city }}, {{ addr.state }} - {{ addr.zip_code }}<br>
+                            <small>Phone: {{ addr.phone }}</small><br>
+                            {% if addr.is_default %}
+                            <span class="badge bg-success mt-2">Default</span>
+                            {% endif %}
+                            <button 
+                                class="btn btn-sm btn-outline-primary mt-2 select-address"
+                                data-address="{{ addr.street_address }}, {{ addr.city }}, {{ addr.state }} - {{ addr.zip_code }}">
+                                Deliver Here
+                            </button>
+                        </div>
+                    </div>
+                    {% endfor %}
+                </div>
+                {% else %}
+                <p>No saved addresses found.</p>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- ✅ Script to handle address selection -->
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const addressField = document.getElementById('address-field');
+
+    document.querySelectorAll('.select-address').forEach(btn => {
+        btn.addEventListener('click', function() {
+            const selectedAddress = this.dataset.address;
+            addressField.value = selectedAddress;
+
+            const modal = bootstrap.Modal.getInstance(document.getElementById('addressModal'));
+            modal.hide();
+        });
+    });
+});
+</script>
+
+{% endblock %}

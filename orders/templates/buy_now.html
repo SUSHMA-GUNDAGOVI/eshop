@@ -1,0 +1,287 @@
+{% extends 'landing_base.html' %}
+{% block title %}Checkout - {{ product.title }}{% endblock %}
+
+{% block content %}
+
+<style>
+    .change-btn {
+        font-size: 0.85rem;
+        padding: 7px 10px;
+        border-radius: 6px;
+        transition: all 0.2s ease-in-out;
+    }
+
+    .change-btn:hover {
+        background-color: #007bff;
+        color: #fff;
+        border-color: #007bff;
+    }
+</style>
+<section class="breadcrumb-option">
+    <div class="container">
+        <div class="row">
+            <div class="col-lg-12">
+                <div class="breadcrumb__text">
+                    <h4>Check Out</h4>
+                    <div class="breadcrumb__links">
+                        <a href="{% url 'index' %}">Home</a>
+                        <a href="#">Shop</a>
+                        <span>Check Out</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<section class="checkout spad">
+    <div class="container">
+        <div class="checkout__form">
+            <form method="POST" action="">
+                {% csrf_token %}
+                <input type="hidden" name="product_id" value="{{ product.pk }}">
+                <input type="hidden" name="size" value="{{ selected_size }}">
+                <input type="hidden" name="color" value="{{ selected_color }}">
+                <input type="hidden" name="quantity" value="{{ quantity }}">
+
+                <div class="row">
+                    <div class="col-lg-8 col-md-6">
+                        <h6 class="coupon__code">
+                            <span class="icon_tag_alt"></span>
+                            Have a coupon?
+                            <a href="#" data-bs-toggle="modal" data-bs-target="#couponModal">Click here</a> to enter
+                            your code
+                        </h6>
+
+                        <h6 class="checkout__title">Billing Details</h6>
+                        <div class="checkout__input">
+                            <p>First Name<span>*</span></p>
+                            <input type="text" name="first_name" required>
+                        </div>
+                        <div class="checkout__input">
+                            <p>Last Name<span>*</span></p>
+                            <input type="text" name="last_name" required>
+                        </div>
+                        <div class="checkout__input">
+                            <p>Email<span>*</span></p>
+                            <input type="email" name="email" required>
+                        </div>
+                        <div class="checkout__input">
+    <p>Address <span>*</span></p>
+    <div class="d-flex align-items-center flex-nowrap">
+        <input type="text" 
+               name="address" 
+               id="address-field" 
+               class="form-control" 
+               placeholder="Enter your address" 
+               required 
+               style="min-width: 0; flex: 1;">
+        <button type="button" 
+                class="btn btn-sm btn-outline-secondary change-btn ms-2"
+                data-bs-toggle="modal" 
+                data-bs-target="#addressModal"
+                style="font-size: 12px; white-space: nowrap;">
+            Change To
+        </button>
+    </div>
+</div>
+
+                        <div class="checkout__input">
+                            <p>Phone<span>*</span></p>
+                            <input type="text" name="phone" required>
+                        </div>
+                    </div>
+
+                    <div class="col-lg-4 col-md-6">
+                        <div class="checkout__order">
+                            <h4 class="order__title">Your order</h4>
+                            <div class="checkout__order__products">
+                                <strong>{{ product.title }}</strong> × {{ quantity }}
+                                <span id="subtotal">₹{{ order_total|floatformat:2 }}</span>
+                            </div>
+
+                            <hr>
+
+                           <div class="d-flex justify-content-between">
+    <span>Shipping</span>
+    {% if product.is_free_shipping %}
+        <span id="shipping-charge">Free Shipping</span>
+    {% else %}
+        <span id="shipping-charge">₹{{ product.shipping_charge|floatformat:2 }}</span>
+    {% endif %}
+</div>
+
+                            <div class="d-flex justify-content-between">
+                                <span>Discount</span>
+                                <span id="discount-amount">₹0.00</span>
+                            </div>
+
+                            <div class="d-flex justify-content-between mt-2">
+                                <strong>Total</strong>
+                                <strong id="order-total">₹{{ order_total|floatformat:2 }}</strong>
+                            </div>
+
+                            <div class="checkout__input__checkbox mt-3">
+                                <label for="payment">
+                                    Cash on Delivery
+                                    <input type="checkbox" id="payment" name="payment_method" value="cod" checked>
+                                    <span class="checkmark"></span>
+                                </label>
+                            </div>
+
+                            <button type="submit" class="site-btn w-100 mt-3">PLACE ORDER</button>
+                        </div>
+                    </div>
+                </div>
+            </form>
+        </div>
+    </div>
+</section>
+
+<!-- Address Modal -->
+<div class="modal fade" id="addressModal" tabindex="-1" aria-labelledby="addressModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered modal-lg">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="addressModalLabel">Select Saved Address</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                {% if addresses %}
+                <div class="row">
+                    {% for addr in addresses %}
+                    <div class="col-md-6 mb-3">
+                        <div class="border rounded p-3 h-100">
+                            <strong>{{ addr.full_name }}</strong><br>
+                            {{ addr.street_address }}, {{ addr.city }}, {{ addr.state }} - {{ addr.zip_code }}<br>
+                            <small>Phone: {{ addr.phone }}</small><br>
+                            {% if addr.is_default %}
+                            <span class="badge bg-success mt-2">Default</span>
+                            {% endif %}
+                            <button class="btn btn-sm btn-outline-primary mt-2 select-address"
+                                data-address="{{ addr.street_address }}, {{ addr.city }}, {{ addr.state }} - {{ addr.zip_code }}">
+                                Deliver Here
+                            </button>
+                        </div>
+                    </div>
+                    {% endfor %}
+                </div>
+                {% else %}
+                <p>No saved addresses found.</p>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Coupon Modal -->
+<div class="modal fade" id="couponModal" tabindex="-1" aria-labelledby="couponModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="couponModalLabel">Available Coupons</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                {% if coupons %}
+                <ul class="list-group">
+                    {% for coupon in coupons %}
+                    <li class="list-group-item d-flex justify-content-between align-items-center">
+                        <div>
+                            <strong>{{ coupon.code }}</strong><br>
+                            <small>{{ coupon.discount_value }} {{ coupon.get_discount_type_display }}</small><br>
+                            <small>Valid: {{ coupon.start_date|date:"d M Y H:i" }} to {{ coupon.end_date|default:"No
+                                Expiry"|date:"d M Y H:i" }}</small><br>
+                            <small>Min Order: ₹{{ coupon.min_order_amount|default:0 }}</small>
+                        </div>
+                        <button type="button" class="btn btn-sm btn-primary apply-coupon" data-code="{{ coupon.code }}"
+                            data-discount="{{ coupon.discount_value }}" data-type="{{ coupon.discount_type }}"
+                            data-min="{{ coupon.min_order_amount|default:0 }}">
+                            Apply
+                        </button>
+                    </li>
+                    {% endfor %}
+                </ul>
+                {% else %}
+                <p>No coupons available for this order amount right now.</p>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+document.addEventListener('DOMContentLoaded', function () {
+    const unitPrice = parseFloat("{{ product.price }}");
+    const quantity = parseInt("{{ quantity }}");
+    const subtotalEl = document.getElementById('subtotal');
+    const discountEl = document.getElementById('discount-amount');
+    const totalEl = document.getElementById('order-total');
+
+    // ✅ Dynamically handle shipping
+    const isFreeShipping = {{ product.is_free_shipping|yesno:"true,false" }};
+    const shippingCharge = isFreeShipping ? 0 : parseFloat("{{ product.shipping_charge|default:0 }}");
+
+    let subtotal = unitPrice * quantity;
+    let discount = 0;
+
+    // ✅ Update subtotal and initial total
+    subtotalEl.textContent = `₹${subtotal.toFixed(2)}`;
+
+    const updateTotal = () => {
+        const total = subtotal - discount + shippingCharge;
+        totalEl.textContent = `₹${total.toFixed(2)}`;
+    };
+
+    updateTotal();
+
+    // ✅ Coupon logic
+    document.querySelectorAll('.apply-coupon').forEach(btn => {
+        btn.addEventListener('click', function () {
+            const discountValue = parseFloat(this.dataset.discount);
+            const discountType = this.dataset.type;
+            const minOrder = parseFloat(this.dataset.min) || 0;
+
+            if (subtotal < minOrder) {
+                alert(`This coupon requires a minimum order of ₹${minOrder.toFixed(2)}`);
+                return;
+            }
+
+            // Calculate discount
+            if (discountType === 'percent' || discountType === 'percentage') {
+                discount = subtotal * (discountValue / 100);
+            } else if (discountType === 'fixed') {
+                discount = discountValue;
+            }
+
+            // Ensure discount doesn't exceed subtotal
+            discount = Math.min(discount, subtotal);
+
+            // ✅ Update displayed discount and total
+            discountEl.textContent = `-₹${discount.toFixed(2)}`;
+            updateTotal();
+
+            // Close modal
+            const modal = bootstrap.Modal.getInstance(document.getElementById('couponModal'));
+            if (modal) modal.hide();
+        });
+    });
+});
+</script>
+
+<script>
+    document.addEventListener('DOMContentLoaded', function () {
+        const addressField = document.getElementById('address-field');
+
+        document.querySelectorAll('.select-address').forEach(btn => {
+            btn.addEventListener('click', function () {
+                const selectedAddress = this.dataset.address;
+                addressField.value = selectedAddress;
+
+                const modal = bootstrap.Modal.getInstance(document.getElementById('addressModal'));
+                modal.hide();
+            });
+        });
+    });
+</script>
+{% endblock %}

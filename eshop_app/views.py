@@ -19,6 +19,7 @@ from django.core.files.storage import default_storage
 from django.contrib.auth import update_session_auth_hash
 from django.contrib.auth import logout
 from django.core.exceptions import PermissionDenied
+from decimal import Decimal
 
 
 
@@ -530,11 +531,10 @@ def brand_list(request):
 def product_add(request):
     categories = Category.objects.filter(parent__isnull=True, status="active")
     brands = Brand.objects.filter(status="active")
-    
-    # Define product status choices
     STATUS_CHOICES = ['active', 'inactive', 'pending']
 
     if request.method == "POST":
+        # --- Basic product data ---
         title = request.POST.get("title")
         summary = request.POST.get("summary")
         description = request.POST.get("description")
@@ -544,13 +544,15 @@ def product_add(request):
         price = request.POST.get("price")
         discount = request.POST.get("discount") or 0
 
-        sizes = request.POST.getlist("size")  # This returns a list of selected sizes
-        size_string = ",".join(sizes) if sizes else ""  # Convert list to comma-separated string
+        sizes = request.POST.getlist("size")
+        size_string = ",".join(sizes) if sizes else ""
+
+        # --- Handle color data (JSON structure) ---
         color_data = []
         color_names = request.POST.getlist("color_name")
-        color_codes = request.POST.getlist("color_code")  
+        color_codes = request.POST.getlist("color_code")
         for name, code in zip(color_names, color_codes):
-            if name and code:  # Only add if both name and code exist
+            if name and code:
                 color_data.append({
                     'name': name,
                     'code': code
@@ -559,30 +561,49 @@ def product_add(request):
         brand_id = request.POST.get("brand_id")
         condition = request.POST.get("condition")
         stock = request.POST.get("stock")
-        
-        # 🚨 FIX 1: Safely get status, default to 'inactive' if not provided (e.g., by vendor)
-        status_from_post = request.POST.get("status")
-        if status_from_post in STATUS_CHOICES:
-            final_status = status_from_post
-        else:
-            # Default to 'inactive' for new product submission
-            final_status = 'inactive'
-            
-        photo = request.FILES.get("photo")
 
-        # Optional: Validate file type
-        if photo and not photo.content_type.startswith(("image", "video")):
+        # --- Handle product status ---
+        status_from_post = request.POST.get("status")
+        final_status = status_from_post if status_from_post in STATUS_CHOICES else 'inactive'
+
+        # --- Handle shipping logic ---
+        shipping_option = request.POST.get("shipping_option")
+        shipping_charge_value = request.POST.get("shipping_charge")
+
+        if shipping_option == "free":
+            is_free_shipping = True
+            shipping_charge = Decimal('0.00')
+        else:
+            is_free_shipping = False
+            shipping_charge = Decimal(shipping_charge_value or '0.00')
+
+        # --- Handle media files ---
+        media_files = request.FILES.getlist("media_files")
+
+        # Validate at least one file
+        if not media_files:
             return render(request, "product_add.html", {
                 "categories": categories,
                 "brands": brands,
-                "error_message": "Only images or videos are allowed."
+                "error_message": "Please upload at least one image or video."
             })
 
+        # Validate file types
+        for file in media_files:
+            if not file.content_type.startswith(("image", "video")):
+                return render(request, "product_add.html", {
+                    "categories": categories,
+                    "brands": brands,
+                    "error_message": f"Invalid file type: {file.name}. Only images or videos are allowed."
+                })
+
+        # --- Fetch related objects ---
         category = Category.objects.get(id=cat_id) if cat_id else None
         child_category = Category.objects.get(id=child_cat_id) if child_cat_id else None
         brand = Brand.objects.get(id=brand_id) if brand_id else None
 
-        Product.objects.create(
+        # --- Create the Product ---
+        product = Product.objects.create(
             title=title,
             summary=summary,
             description=description,
@@ -592,23 +613,33 @@ def product_add(request):
             price=price,
             discount=discount,
             size=size_string,
-            color_data=color_data, 
+            color_data=color_data,
             brand=brand,
             condition=condition,
             stock=stock,
-            status=final_status, # ⬅️ Use the safely determined status
-            photo=photo,
-            user=request.user
+            status=final_status,
+            shipping_charge=shipping_charge,
+            is_free_shipping=is_free_shipping,  # ✅ NEW FIELD
+            photo=media_files[0],  # First file as main photo
+            user=request.user,
         )
 
+        # --- Create ProductMedia entries ---
+        for i, file in enumerate(media_files):
+            ProductMedia.objects.create(
+                product=product,
+                file=file,
+                is_primary=(i == 0)
+            )
+
+        # --- Redirect after success ---
         return redirect(f"{reverse('product_list')}?success=1")
 
+    # --- GET request (Render form) ---
     return render(request, "product_add.html", {
         "categories": categories,
         "brands": brands,
     })
-
-# ✅ Edit Product - Fixed Color Handling
 def product_edit(request, pk):
     product = get_object_or_404(Product, pk=pk)
     categories = Category.objects.filter(parent__isnull=True, status="active")
@@ -653,18 +684,32 @@ def product_edit(request, pk):
             product.size = ','.join(size_values) if size_values else ''
             print(f"Size saved: '{product.size}'")
             
-            # Handle colors - Multiple checkboxes with name "colors"
-            color_values = request.POST.getlist('colors')
-            print(f"Colors received: {color_values}")
-            product.color = ','.join(color_values) if color_values else ''
-            print(f"Color saved: '{product.color}'")
+            # ✅ FIXED: Handle colors - Only use the color checkboxes, not hidden inputs
+            color_names = request.POST.getlist('color')
+            color_hex_codes = request.POST.getlist('color_hex')  # Get the hex codes
+            print(f"Colors received from checkboxes: {color_names}")
+            print(f"Hex codes received: {color_hex_codes}")
+            
+            # Create color_data structure ONLY from selected checkboxes
+            color_data = []
+            # Use zip to pair the color names and their corresponding hex codes
+            for color_name, color_hex in zip(color_names, color_hex_codes):
+                if color_name.strip() and color_hex.strip():
+                    # The hex code is now correctly provided from the frontend
+                    color_data.append({
+                        'name': color_name.strip(),
+                        'code': color_hex.strip() # Use the hex code from the hidden input
+                    })
+
+            product.color_data = color_data
+            print(f"Color data saved: {color_data}")
             
             # Handle other fields
             product.condition = request.POST.get("condition", "default")
             product.stock = int(request.POST.get("stock", 0))
             product.status = request.POST.get("status", "active")
 
-            # Handle file upload
+            # Handle single file upload (for backward compatibility)
             photo = request.FILES.get("photo")
             if photo:
                 if not photo.content_type.startswith(("image", "video")):
@@ -675,6 +720,26 @@ def product_edit(request, pk):
                         "error_message": "Only images or videos are allowed."
                     })
                 product.photo = photo
+
+            # Handle multiple media files
+            media_files = request.FILES.getlist("media_files")
+            if media_files:
+                # Validate file types
+                for file in media_files:
+                    if not file.content_type.startswith(("image", "video")):
+                        return render(request, "product_edit.html", {
+                            "product": product,
+                            "categories": categories,
+                            "brands": brands,
+                            "error_message": f"Invalid file type: {file.name}. Only images or videos are allowed."
+                        })
+                
+                # Add new media files
+                for file in media_files:
+                    ProductMedia.objects.create(
+                        product=product,
+                        file=file
+                    )
 
             # Save the product
             product.save()
@@ -693,20 +758,56 @@ def product_edit(request, pk):
                 "error_message": f"Error updating product: {str(e)}"
             })
 
-    return render(request, "product_edit.html", {
+    # Prepare context with product data
+    context = {
         "product": product,
         "categories": categories,
         "brands": brands,
-    })
+        "color_map": product.color_map,
+        "media_files": product.media_files.all(),  # Add existing media files to context
+    }
+    
+    print(f"Existing product color_data: {product.color_data}")
+    print(f"Existing product size: '{product.size}'")
+    print(f"Existing media files: {product.media_files.count()}")
+    
+    return render(request, "product_edit.html", context)
+
+# Helper function to get hex codes for colors
+def get_color_hex(color_name):
+    color_map = {
+        'Black': '#000000',
+        'White': '#ffffff', 
+        'Navy Blue': '#000080',
+        'Cream': '#fffdd0'
+    }
+    return color_map.get(color_name, '#cccccc')
+
+
+def remove_media(request, media_id):
+    if request.method == "POST":
+        try:
+            media = get_object_or_404(ProductMedia, id=media_id)
+            # Check if user owns this product or has permission
+            if media.product.user == request.user or request.user.is_staff:
+                media.delete()
+                return JsonResponse({'success': True})
+            else:
+                return JsonResponse({'success': False, 'error': 'Permission denied'})
+        except Exception as e:
+            return JsonResponse({'success': False, 'error': str(e)})
+    
+    return JsonResponse({'success': False, 'error': 'Invalid method'})
 
 def product_toggle_status(request, pk):
     if not request.user.is_authenticated or not (request.user.is_staff or request.user.is_superuser):
         raise PermissionDenied("You do not have permission to change product status.")
-
-    product = get_object_or_404(Product, pk=pk)
-    product.status = 'inactive' if product.status == 'active' else 'active'
-    product.save()
-
+    
+    if request.method == 'POST':
+        product = get_object_or_404(Product, pk=pk)
+        product.status = 'inactive' if product.status == 'active' else 'active'
+        product.save()
+    
     # Redirect back to the previous page
     redirect_url = request.META.get('HTTP_REFERER', reverse('product_list'))
     return redirect(redirect_url)

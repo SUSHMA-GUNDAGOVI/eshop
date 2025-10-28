@@ -247,107 +247,107 @@
                     </div>
                 </div>
 
-                <!-- Color Section - Fixed to show existing values -->
-                <div class="form-group">
-                    <label for="color">Color <span class="text-danger">*</span></label>
-                    
-                    <!-- Color Selection Grid -->
-                    <div class="color-selection-grid mb-3">
-                        <div class="row">
-                            <!-- Black -->
-                            <div class="col-md-2 col-4 mb-2">
-                                <div class="color-option" data-color="Black" data-hex="#000000">
-                                    <input type="checkbox" class="color-checkbox" name="color" value="Black" id="color_black" hidden
-                                        {% if 'Black' in product.color %}checked{% endif %}>
-                                    <label for="color_black" class="color-label">
-                                        <span class="color-swatch" style="background-color: #000000;"></span>
-                                        <span class="color-name">Black</span>
-                                    </label>
-                                </div>
-                            </div>
-                            <!-- White -->
-                            <div class="col-md-2 col-4 mb-2">
-                                <div class="color-option" data-color="White" data-hex="#ffffff">
-                                    <input type="checkbox" class="color-checkbox" name="color" value="White" id="color_white" hidden
-                                        {% if 'White' in product.color %}checked{% endif %}>
-                                    <label for="color_white" class="color-label">
-                                        <span class="color-swatch" style="background-color: #ffffff; border: 1px solid #ddd;"></span>
-                                        <span class="color-name">White</span>
-                                    </label>
-                                </div>
-                            </div>
-                            <!-- Navy Blue -->
-                            <div class="col-md-2 col-4 mb-2">
-                                <div class="color-option" data-color="Navy Blue" data-hex="#000080">
-                                    <input type="checkbox" class="color-checkbox" name="color" value="Navy Blue" id="color_navy" hidden
-                                        {% if 'Navy Blue' in product.color %}checked{% endif %}>
-                                    <label for="color_navy" class="color-label">
-                                        <span class="color-swatch" style="background-color: #000080;"></span>
-                                        <span class="color-name">Navy Blue</span>
-                                    </label>
-                                </div>
-                            </div>
-                            <!-- Cream -->
-                            <div class="col-md-2 col-4 mb-2">
-                                <div class="color-option" data-color="Cream" data-hex="#fffdd0">
-                                    <input type="checkbox" class="color-checkbox" name="color" value="Cream" id="color_cream" hidden
-                                        {% if 'Cream' in product.color %}checked{% endif %}>
-                                    <label for="color_cream" class="color-label">
-                                        <span class="color-swatch" style="background-color: #fffdd0; border: 1px solid #ddd;"></span>
-                                        <span class="color-name">Cream</span>
-                                    </label>
-                                </div>
-                            </div>
-                            <!-- Add Custom Color Button -->
-                            <div class="col-md-2 col-4 mb-2">
-                                <div class="color-option add-color-option" onclick="openColorModal()">
-                                    <div class="color-label text-center">
-                                        <span class="color-swatch add-color-swatch">
-                                            <i class="fas fa-plus"></i>
-                                        </span>
-                                        <span class="color-name">Add Color</span>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-
-                    <!-- Selected Colors Display -->
-                    <div class="selected-colors-container mb-3">
-                        <label>Selected Colors:</label>
-                        <div id="selectedColors" class="d-flex flex-wrap gap-2 mt-2">
-                            <!-- Selected colors will appear here dynamically -->
-                        </div>
+               <!-- Color Section - Fixed to work with color_data -->
+<div class="form-group">
+    <label for="color">Color <span class="text-danger">*</span></label>
+    
+    <!-- Color Selection Grid -->
+    <div class="color-selection-grid mb-3">
+        <div class="row">
+            <!-- Black -->
+            <div class="col-md-2 col-4 mb-2">
+                <div class="color-option" data-color="Black" data-hex="#000000">
+                    <input type="checkbox" class="color-checkbox" name="color" value="Black" id="color_black" hidden
+                        {% if 'Black' in product.color_names %}checked{% endif %}>
+                    <label for="color_black" class="color-label">
+                        <span class="color-swatch" style="background-color: #000000;"></span>
+                        <span class="color-name">Black</span>
+                    </label>
+                </div>
+            </div>
+            <!-- White -->
+            <div class="col-md-2 col-4 mb-2">
+                <div class="color-option" data-color="White" data-hex="#ffffff">
+                    <input type="checkbox" class="color-checkbox" name="color" value="White" id="color_white" hidden
+                        {% if 'White' in product.color_names %}checked{% endif %}>
+                    <label for="color_white" class="color-label">
+                        <span class="color-swatch" style="background-color: #ffffff; border: 1px solid #ddd;"></span>
+                        <span class="color-name">White</span>
+                    </label>
+                </div>
+            </div>
+            <!-- Navy Blue -->
+            <div class="col-md-2 col-4 mb-2">
+                <div class="color-option" data-color="Navy Blue" data-hex="#000080">
+                    <input type="checkbox" class="color-checkbox" name="color" value="Navy Blue" id="color_navy" hidden
+                        {% if 'Navy Blue' in product.color_names %}checked{% endif %}>
+                    <label for="color_navy" class="color-label">
+                        <span class="color-swatch" style="background-color: #000080;"></span>
+                        <span class="color-name">Navy Blue</span>
+                    </label>
+                </div>
+            </div>
+            <!-- Cream -->
+            <div class="col-md-2 col-4 mb-2">
+                <div class="color-option" data-color="Cream" data-hex="#fffdd0">
+                    <input type="checkbox" class="color-checkbox" name="color" value="Cream" id="color_cream" hidden
+                        {% if 'Cream' in product.color_names %}checked{% endif %}>
+                    <label for="color_cream" class="color-label">
+                        <span class="color-swatch" style="background-color: #fffdd0; border: 1px solid #ddd;"></span>
+                        <span class="color-name">Cream</span>
+                    </label>
+                </div>
+            </div>
+            <!-- Add Custom Color Button -->
+            <div class="col-md-2 col-4 mb-2">
+                <div class="color-option add-color-option" onclick="openColorModal()">
+                    <div class="color-label text-center">
+                        <span class="color-swatch add-color-swatch">
+                            <i class="fas fa-plus"></i>
+                        </span>
+                        <span class="color-name">Add Color</span>
                     </div>
                 </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Selected Colors Display -->
+    <div class="selected-colors-container mb-3">
+        <label>Selected Colors:</label>
+        <div id="selectedColors" class="d-flex flex-wrap gap-2 mt-2">
+            <!-- Selected colors will appear here dynamically -->
+        </div>
+    </div>
+</div>
 
                 <!-- Custom Color Modal -->
-                <div class="modal fade" id="colorModal" tabindex="-1" aria-hidden="true">
-                    <div class="modal-dialog modal-sm">
-                        <div class="modal-content">
-                            <div class="modal-header">
-                                <h5 class="modal-title">Add Custom Color</h5>
-                                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-                            </div>
-                            <div class="modal-body">
-                                <div class="mb-3">
-                                    <label for="customColorName" class="form-label">Color Name</label>
-                                    <input type="text" class="form-control" id="customColorName" placeholder="e.g., Burgundy" maxlength="50">
-                                </div>
-                                <div class="mb-3">
-                                    <label for="customColorPicker" class="form-label">Select Color</label>
-                                    <input type="color" class="form-control form-control-color" id="customColorPicker" value="#ff0000">
-                                </div>
-                            </div>
-                            <div class="modal-footer">
-                                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
-                                <button type="button" class="btn btn-primary" onclick="addCustomColor()">
-                                    <i class="fas fa-plus"></i> Add
-                                </button>
-                            </div>
-                        </div>
-                    </div>
+<div class="modal fade" id="colorModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-sm">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Add Custom Color</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <div class="mb-3">
+                    <label for="customColorName" class="form-label">Color Name</label>
+                    <input type="text" class="form-control" id="customColorName" placeholder="e.g., Burgundy" maxlength="50">
                 </div>
+                <div class="mb-3">
+                    <label for="customColorPicker" class="form-label">Select Color</label>
+                    <input type="color" class="form-control form-control-color" id="customColorPicker" value="#ff0000">
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                <button type="button" class="btn btn-primary" onclick="addCustomColor()">
+                    <i class="fas fa-plus"></i> Add Color
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
 
                 <div id="hiddenColorInputs" style="display: none;">
                     <!-- Hidden inputs for color data will be added here -->
@@ -381,24 +381,85 @@
                         class="form-control" required>
                 </div>
 
-                <div class="mb-3">
-                    <label>Current Photo/Video</label><br>
-                    {% if product.photo %}
-                        {% if product.photo.url|lower|slice:"-4:" == '.mp4' or product.photo.url|lower|slice:"-5:" == '.webm' %}
-                            <video width="320" height="240" controls><source src="{{ product.photo.url }}" type="video/mp4"></video>
-                        {% else %}
-                            <img src="{{ product.photo.url }}" width="150" class="img-thumbnail">
-                        {% endif %}
-                    {% else %}
-                        <p>No current file uploaded.</p>
+                <!-- Current Main Photo/Video -->
+<div class="mb-3">
+    <label>Current Main Photo/Video</label><br>
+    {% if product.photo %}
+        {% if product.photo.url|lower|slice:"-4:" == '.mp4' or product.photo.url|lower|slice:"-5:" == '.webm' %}
+            <video width="320" height="240" controls>
+                <source src="{{ product.photo.url }}" type="video/mp4">
+                Your browser does not support the video tag.
+            </video>
+        {% else %}
+            <img src="{{ product.photo.url }}" width="200" class="img-thumbnail">
+        {% endif %}
+    {% else %}
+        <p class="text-muted">No main photo/video uploaded.</p>
+    {% endif %}
+</div>
+
+<!-- Change Main Photo/Video (Single file - for backward compatibility) -->
+<div class="form-group mb-4">
+    <label for="photo">Change Main Photo/Video</label>
+    <input id="photo" class="form-control" type="file" name="photo" accept="image/,video/">
+    <small class="form-text text-muted">Leave blank to keep current main file. This will replace the primary image.</small>
+</div>
+
+<!-- Existing Media Files -->
+<div class="form-group mb-4">
+    <label>Existing Additional Media Files</label>
+    <div class="row">
+        {% for media in media_files %}
+        <div class="col-md-3 mb-3">
+            <div class="card position-relative">
+                {% if media.file_type == 'image' %}
+                    <img src="{{ media.file.url }}" class="card-img-top" alt="{{ product.title }}" style="height: 150px; object-fit: cover;">
+                {% else %}
+                    <div class="card-img-top bg-dark d-flex align-items-center justify-content-center" style="height: 150px;">
+                        <video width="100%" height="150" controls>
+                            <source src="{{ media.file.url }}" type="video/mp4">
+                        </video>
+                    </div>
+                {% endif %}
+                <div class="card-body p-2">
+                    <small class="text-muted d-block">{{ media.file_type|title }}</small>
+                    <small class="text-muted d-block">{{ media.file.name|slice:"-20:" }}</small>
+                    {% if media.is_primary %}
+                        <span class="badge bg-primary">Primary</span>
                     {% endif %}
                 </div>
+                <!-- Remove button -->
+                <button type="button" class="btn btn-danger btn-sm position-absolute top-0 end-0 m-1" 
+                        onclick="removeMedia({{ media.id }})" title="Remove this file">
+                    <i class="fas fa-times"></i>
+                </button>
+            </div>
+        </div>
+        {% empty %}
+        <div class="col-12">
+            <p class="text-muted">No additional media files uploaded.</p>
+        </div>
+        {% endfor %}
+    </div>
+</div>
 
-                <div class="form-group">
-                    <label for="photo">Change Photo/Video</label>
-                    <input id="photo" class="form-control" type="file" name="photo">
-                    <small class="form-text text-muted">Leave blank to keep current file.</small>
-                </div>
+<!-- Add Multiple Media Files -->
+<div class="form-group">
+    <label for="media_files">Add More Images/Videos</label>
+    <input id="media_files" class="form-control" type="file" name="media_files" multiple accept="image/,video/">
+    <small class="form-text text-muted">
+        Select multiple files to add more images/videos to this product. 
+        Supported formats: Images (JPEG, PNG, GIF) and Videos (MP4, WebM)
+    </small>
+</div>
+
+<!-- File Preview -->
+<div class="form-group">
+    <label>New Files Preview:</label>
+    <div id="filePreview" class="mt-2 p-3 border rounded bg-light">
+        <span class="text-muted">No new files selected</span>
+    </div>
+</div>
 
                 <div class="form-group d-none">
                     <label for="status">Status <span class="text-danger">*</span></label>
@@ -420,38 +481,52 @@
         </div>
     </div>
 </div>
-
 <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
 <script>
-// Store for color mapping (name -> hex)
-const colorMap = {
+// Initialize colorMap with actual data from the product
+const initialColorMap = {
+    {% for color_name, color_hex in color_map.items %}
+    '{{ color_name }}': '{{ color_hex }}',
+    {% endfor %}
+};
+
+// Default colors for fallback
+const defaultColorMap = {
     'Black': '#000000',
     'White': '#ffffff',
     'Navy Blue': '#000080',
     'Cream': '#fffdd0'
 };
 
+// Merge initial color map with defaults
+const colorMap = { ...defaultColorMap, ...initialColorMap };
+
 // Function to prepare color inputs for form submission
 function prepareColorInputs() {
-    const hiddenContainer = $('#hiddenColorInputs');
-    hiddenContainer.empty();
+    // Clear previous dynamic inputs
+    $('#hiddenColorInputs').empty();
     
+    // Iterate over all checked color checkboxes
     $('.color-checkbox:checked').each(function() {
         const colorName = $(this).val();
-        const colorHex = colorMap[colorName] || '#cccccc';
+        const colorHex = colorMap[colorName] || '#cccccc'; // Get the hex code from the JS map
         
-        const nameInput = `<input type="hidden" name="color_name" value="${colorName}">`;
-        const codeInput = `<input type="hidden" name="color_code" value="${colorHex}">`;
-        
-        hiddenContainer.append(nameInput);
-        hiddenContainer.append(codeInput);
+        // Append a hidden input for the hex code for the server to read
+        // The name 'color_hex' will be used by request.POST.getlist('color_hex')
+        $('#hiddenColorInputs').append(
+            <input type="hidden" name="color_hex" value="${colorHex}">
+        );
     });
+
+    console.log("Hidden color hex codes prepared for submission.");
 }
 
 // Initialize on page load
 $(document).ready(function() {
-    // Initialize color display with existing values
-    updateSelectedColorsDisplay();
+    console.log("Initial colorMap:", colorMap);
+    
+    // ✅ FIXED: Initialize existing colors from product data
+    initializeExistingColors();
     
     // Handle color selection
     $('.color-option:not(.add-color-option)').on('click', function() {
@@ -460,23 +535,57 @@ $(document).ready(function() {
         updateSelectedColorsDisplay();
     });
     
-    // Initialize existing custom colors from the product
-    initializeExistingCustomColors();
+    // Initialize category functionality
+    initializeCategorySelection();
 });
 
-// Function to initialize existing custom colors
-function initializeExistingCustomColors() {
-    // Get all checked color checkboxes
-    $('.color-checkbox:checked').each(function() {
-        const colorName = $(this).val();
-        const colorHex = colorMap[colorName] || '#cccccc';
+// ✅ FIXED: Function to initialize existing colors from product
+function initializeExistingColors() {
+    try {
+        // Get existing colors from the product's color_data
+        const existingColors = {{ product.color_names|safe }};
+        console.log("Existing colors from color_data:", existingColors);
+        console.log("Available colorMap:", colorMap);
         
-        // If this color is not in our default colorMap, it's a custom color
-        if (!['Black', 'White', 'Navy Blue', 'Cream'].includes(colorName)) {
-            // Add it to our colorMap
-            colorMap[colorName] = colorHex;
+        // ✅ FIXED: First, uncheck ALL color checkboxes to start fresh
+        $('.color-checkbox').prop('checked', false);
+        
+        if (existingColors && existingColors.length > 0) {
+            console.log("Parsed colors array:", existingColors);
+            
+            existingColors.forEach(colorName => {
+                const trimmedColor = colorName.trim();
+                if (trimmedColor) {
+                    console.log("Processing color:", trimmedColor, "Hex:", colorMap[trimmedColor]);
+                    
+                    // Check if this is a custom color not in our default map
+                    if (!['Black', 'White', 'Navy Blue', 'Cream'].includes(trimmedColor)) {
+                        // For custom colors, create the option if it doesn't exist
+                        if (!$(.color-checkbox[value="${trimmedColor}"]).length) {
+                            const colorHex = colorMap[trimmedColor] || '#cccccc';
+                            createColorOption(trimmedColor, colorHex);
+                        }
+                    }
+                    
+                    // Check the checkbox for this color
+                    const checkbox = $(.color-checkbox[value="${trimmedColor}"]);
+                    if (checkbox.length > 0) {
+                        checkbox.prop('checked', true);
+                        console.log(Checked existing color: ${trimmedColor});
+                    } else {
+                        console.log(Checkbox not found for color: ${trimmedColor});
+                    }
+                }
+            });
+        } else {
+            console.log("No existing colors found");
         }
-    });
+        
+        // Update the display
+        updateSelectedColorsDisplay();
+    } catch (error) {
+        console.error("Error initializing colors:", error);
+    }
 }
 
 // Function to open modal
@@ -502,13 +611,14 @@ function addCustomColor() {
         return;
     }
 
+    // Add to colorMap and create option
     colorMap[colorName] = colorHex;
     createColorOption(colorName, colorHex);
     
     var colorModal = bootstrap.Modal.getInstance(document.getElementById('colorModal'));
     colorModal.hide();
     
-    showTempMessage(`Color "${colorName}" added successfully!`, 'success');
+    showTempMessage(Color "${colorName}" added successfully!, 'success');
 }
 
 function createColorOption(colorName, colorHex) {
@@ -528,7 +638,8 @@ function createColorOption(colorName, colorHex) {
     
     $('.add-color-option').parent().before(colorOption);
     
-    $(`.color-option[data-color="${colorName}"]`).on('click', function() {
+    // Add click handler for the new color option
+    $(.color-option[data-color="${colorName}"]).on('click', function() {
         const checkbox = $(this).find('.color-checkbox');
         checkbox.prop('checked', !checkbox.prop('checked'));
         updateSelectedColorsDisplay();
@@ -539,24 +650,31 @@ function createColorOption(colorName, colorHex) {
 }
 
 function removeColor(colorName) {
-    $(`.color-checkbox[value="${colorName}"]`).prop('checked', false);
+    $(.color-checkbox[value="${colorName}"]).prop('checked', false);
     updateSelectedColorsDisplay();
-    showTempMessage(`Color "${colorName}" removed!`, 'warning');
+    showTempMessage(Color "${colorName}" removed!, 'warning');
 }
 
 function updateSelectedColorsDisplay() {
     const displayContainer = $('#selectedColors');
     displayContainer.empty();
     
-    $('.color-checkbox:checked').each(function() {
+    const checkedBoxes = $('.color-checkbox:checked');
+    
+    if (checkedBoxes.length === 0) {
+        displayContainer.html('<span class="text-muted">No colors selected</span>');
+        return;
+    }
+    
+    checkedBoxes.each(function() {
         const colorName = $(this).val();
         const colorHex = colorMap[colorName] || '#cccccc';
         const textColor = getTextColor(colorHex);
         
         const colorBadge = `
-            <div class="selected-color-badge" style="background-color: ${colorHex}; color: ${textColor};">
+            <div class="selected-color-badge" style="background-color: ${colorHex}; color: ${textColor}; border: 1px solid #dee2e6;">
                 ${colorName}
-                <button type="button" class="remove-color-btn" onclick="removeColor('${colorName}')">
+                <button type="button" class="remove-color-btn" onclick="removeColor('${colorName}')" title="Remove ${colorName}">
                     <i class="fas fa-times"></i>
                 </button>
             </div>
@@ -588,25 +706,8 @@ function showTempMessage(message, type) {
     }, 3000);
 }
 
-// Form submission handler
-$('form').on('submit', function() {
-    prepareColorInputs();
-    
-    const selectedColors = $('.color-checkbox:checked').length;
-    if (selectedColors === 0) {
-        alert('Please select at least one color');
-        return false;
-    }
-    
-    const selectedSizes = $('input[name="size"]:checked').length;
-    if (selectedSizes === 0) {
-        alert('Please select at least one size');
-        return false;
-    }
-});
-
 // Category AJAX functionality
-$(document).ready(function() {
+function initializeCategorySelection() {
     function loadChildCategories(parent_id, child_cat_id_to_select) {
         if(parent_id) {
             $.ajax({
@@ -617,7 +718,7 @@ $(document).ready(function() {
                     var childCatSelect = $("#child_cat_id");
                     childCatSelect.empty();
                     
-                    if(response.child_categories.length > 0){
+                    if(response.child_categories && response.child_categories.length > 0){
                         $("#child_cat_div").removeClass("d-none");
                         childCatSelect.append('<option value="">--Select any sub category--</option>');
                         $.each(response.child_categories, function(i, cat) {
@@ -626,7 +727,12 @@ $(document).ready(function() {
                         });
                     } else {
                         $("#child_cat_div").addClass("d-none");
+                        childCatSelect.append('<option value="">--No sub categories--</option>');
                     }
+                },
+                error: function(xhr, status, error) {
+                    console.error("Error loading child categories:", error);
+                    $("#child_cat_div").addClass("d-none");
                 }
             });
         } else {
@@ -637,13 +743,170 @@ $(document).ready(function() {
     var initialParentId = $("#cat_id").val();
     var initialChildId = "{{ product.child_category.id|default:'' }}";
     if (initialParentId) {
-      loadChildCategories(initialParentId, initialChildId);
+        loadChildCategories(initialParentId, initialChildId);
     }
  
     $("#cat_id").change(function() {
         var parent_id = $(this).val();
         loadChildCategories(parent_id, '');
     });
+}
+
+// Form submission handler
+$('form').on('submit', function(e) {
+    prepareColorInputs(); // <-- CALL THIS TO ADD HIDDEN HEX INPUTS
+    
+    const selectedColors = $('.color-checkbox:checked').length;
+    // ... (rest of the form validation remains the same)
+    
+    if (selectedColors === 0) {
+        alert('Please select at least one color');
+        e.preventDefault();
+        return false;
+    }
+    
+    const selectedSizes = $('input[name="size"]:checked').length;
+    if (selectedSizes === 0) {
+        alert('Please select at least one size');
+        e.preventDefault();
+        return false;
+    }
+    
+    return true;
 });
+
+// Debug function to show current state
+function showDebugInfo() {
+    const debugInfo = $('#debugInfo');
+    const selectedColors = $('.color-checkbox:checked').map(function() {
+        const colorName = $(this).val();
+        return ${colorName} (${colorMap[colorName]});
+    }).get();
+    
+    const debugContent = `
+        <strong>Selected Colors (${selectedColors.length}):</strong> ${selectedColors.join(', ') || 'None'}<br>
+        <strong>Will be saved:</strong> Only the ${selectedColors.length} selected colors above
+    `;
+    
+    debugInfo.html(debugContent);
+}
+
+// Initialize debug info
+$(document).ready(function() {
+    showDebugInfo();
+    setInterval(showDebugInfo, 2000);
+});
+
+$(document).ready(function() {
+    $('#media_files').on('change', function() {
+        const preview = $('#filePreview');
+        const files = this.files;
+        
+        if (files.length > 0) {
+            let previewHTML = <p class="text-success mb-2"><strong>${files.length} new file(s) selected:</strong></p>;
+            let totalSize = 0;
+            
+            for (let i = 0; i < files.length; i++) {
+                const file = files[i];
+                const fileSize = (file.size / 1024 / 1024).toFixed(2);
+                totalSize += parseFloat(fileSize);
+                const fileType = file.type.split('/')[0];
+                const icon = fileType === 'video' ? '🎥 Video' : '🖼 Image';
+                
+                previewHTML += `
+                    <div class="file-item mb-2 p-2 border rounded bg-white">
+                        <div class="d-flex justify-content-between align-items-center">
+                            <div>
+                                <strong>${icon}</strong><br>
+                                <small class="text-muted">${file.name}</small><br>
+                                <small class="text-info">${fileSize} MB</small>
+                            </div>
+                            <div class="file-preview-icon">
+                                ${fileType === 'image' ? 
+                                    <img src="${URL.createObjectURL(file)}" width="50" height="50" style="object-fit: cover;" class="rounded"> : 
+                                    '<i class="fas fa-video fa-2x text-secondary"></i>'
+                                }
+                            </div>
+                        </div>
+                    </div>
+                `;
+            }
+            
+            previewHTML += `<div class="mt-2 p-2 bg-info text-white rounded">
+                <strong>Total: ${files.length} files (${totalSize.toFixed(2)} MB)</strong>
+            </div>`;
+            
+            preview.html(previewHTML);
+        } else {
+            preview.html('<span class="text-muted">No new files selected</span>');
+        }
+    });
+
+    // Form validation
+    $('form').on('submit', function(e) {
+        prepareColorInputs();
+        
+        // Color validation
+        const selectedColors = $('.color-checkbox:checked').length;
+        if (selectedColors === 0) {
+            alert('Please select at least one color');
+            e.preventDefault();
+            return false;
+        }
+        
+        // Size validation
+        const selectedSizes = $('input[name="size"]:checked').length;
+        if (selectedSizes === 0) {
+            alert('Please select at least one size');
+            e.preventDefault();
+            return false;
+        }
+        
+        return true;
+    });
+});
+
+// Function to remove media file (you'll need to implement the backend for this)
+function removeMedia(mediaId) {
+    if (confirm('Are you sure you want to remove this file?')) {
+        // You'll need to implement this endpoint
+        fetch(/remove-media/${mediaId}/, {
+            method: 'POST',
+            headers: {
+                'X-CSRFToken': getCookie('csrftoken'),
+                'Content-Type': 'application/json',
+            },
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                location.reload(); // Reload to see changes
+            } else {
+                alert('Error removing file: ' + data.error);
+            }
+        })
+        .catch(error => {
+            console.error('Error:', error);
+            alert('Error removing file');
+        });
+    }
+}
+
+// Helper function to get CSRF token
+function getCookie(name) {
+    let cookieValue = null;
+    if (document.cookie && document.cookie !== '') {
+        const cookies = document.cookie.split(';');
+        for (let i = 0; i < cookies.length; i++) {
+            const cookie = cookies[i].trim();
+            if (cookie.substring(0, name.length + 1) === (name + '=')) {
+                cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+                break;
+            }
+        }
+    }
+    return cookieValue;
+}
+
 </script>
 {% endblock %}

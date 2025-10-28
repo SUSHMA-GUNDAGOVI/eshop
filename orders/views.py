@@ -13,17 +13,20 @@ from eshop_app.models import CustomUser
 from django.http import JsonResponse
 from eshop_app.models import Contact
 from django.core.mail import send_mail
-from eshop_app.models import Blog
+from eshop_app.models import Blog, Coupon
 from eshop_app.models import AboutUs, Team, Client
-from .models import Wishlist
+from .models import Wishlist, Address
 from .models import Cart
+from django.db.models import Q
+from django.template.loader import render_to_string
+
 
 
 def index(request):
     filter_type = request.GET.get('filter', 'all')
     
     all_products = Product.objects.filter(status='active')
-    featured_products = Product.objects.filter(is_featured=True, status='active').order_by('-created_at')[:3]
+    featured_products = Product.objects.filter(is_featured=True, status='active').order_by('-created_at')
 
     if filter_type == 'new-arrivals':
         all_products = all_products.filter(
@@ -37,7 +40,6 @@ def index(request):
     homepage_products = all_products[:9]
     banners = Banner.objects.all()
     
-    # ✅ Add wishlisted_ids for authenticated users
     if request.user.is_authenticated:
         wishlisted_ids = Wishlist.objects.filter(user=request.user).values_list('product_id', flat=True)
     else:
@@ -48,11 +50,12 @@ def index(request):
         'total_products_count': all_products.count(),
         'filter_type': filter_type,
         'banners': banners,
-        'featured_products': featured_products,
-        'wishlisted_ids': wishlisted_ids,  # ✅ Pass this to template
+        'featured_products': featured_products,  # All featured products
+        'wishlisted_ids': wishlisted_ids,
     }
     
     return render(request, 'index.html', context)
+
 
 
 
@@ -62,7 +65,6 @@ def product_detail_view(request, pk):
     # Process sizes - split comma-separated string
     sizes = []
     if product.size:
-        # Split by comma and remove any whitespace
         sizes = [size.strip() for size in product.size.split(',')]
     
     # Process colors
@@ -70,10 +72,24 @@ def product_detail_view(request, pk):
     if hasattr(product, 'color_data') and product.color_data:
         colors = product.color_data
     
+    # Get related products from the same category (exclude current product)
+    related_products = Product.objects.filter(
+        category=product.category,
+        status='active'
+    ).exclude(pk=product.pk).order_by('-created_at')[:4]  # Show 4 related products
+    
+    # Get wishlisted product IDs for authenticated users
+    if request.user.is_authenticated:
+        wishlisted_ids = Wishlist.objects.filter(user=request.user).values_list('product_id', flat=True)
+    else:
+        wishlisted_ids = []
+    
     context = {
         'product': product,
-        'sizes': sizes,  # Pass the processed list
+        'sizes': sizes,
         'colors': colors,
+        'related_products': related_products,
+        'wishlisted_ids': wishlisted_ids,
     }
     return render(request, 'product_details.html', context)
 
@@ -126,83 +142,236 @@ def add_to_cart_view(request, product_id):
 
     return redirect('product_detail', pk=product_id)
 
+def cart_preview(request):
+    cart_items = Cart.objects.filter(user=request.user).select_related('product')[:3]
+    html = render_to_string('cart_preview.html', {'cart_items': cart_items})
+    return JsonResponse({'html': html})
+
 
 @login_required
 def shopping_cart_view(request):
     """
-    Show the shopping cart for the logged-in user
+    Display the shopping cart for the logged-in user.
     """
     cart_items = Cart.objects.filter(user=request.user).select_related('product')
 
+    if not cart_items.exists():
+        return redirect('shop_all_products')
+
     cart_subtotal = Decimal('0.00')
+    total_shipping = Decimal('0.00')
+    all_free_shipping = True
     enriched_items = []
 
     for item in cart_items:
         line_total = item.subtotal
         cart_subtotal += line_total
+
+        # ✅ Determine per-product shipping
+        product = item.product
+        product_shipping = Decimal('0.00')
+
+        # Check if product has free shipping
+        if hasattr(product, 'shipping_label') and product.shipping_label == 'free':
+            product_shipping = Decimal('0.00')
+        else:
+            # Use product.shipping_charge if available, else fallback
+            product_shipping = Decimal(str(getattr(product, 'shipping_charge', 10.00)))
+            all_free_shipping = False
+
+        total_shipping += product_shipping
+
         enriched_items.append({
-            'product': item.product,
+            'product': product,
             'quantity': item.quantity,
             'size': item.size or 'N/A',
             'color': item.color or 'N/A',
-            'price': item.product.price,
+            'price': product.price,
             'line_total': line_total,
-            'item_id': item.id,  # ✅ DB id for removal
+            'item_id': item.id,
+            'shipping_charge': product_shipping,
         })
 
-    shipping_cost = Decimal('10.00')
-    tax_rate = Decimal('0.05')
-    tax_amount = (cart_subtotal * tax_rate).quantize(Decimal('0.01'))
-    order_total = cart_subtotal + tax_amount + shipping_cost
+    # ✅ If all items are free shipping
+    if all_free_shipping:
+        total_shipping = Decimal('0.00')
+
+    # ✅ Compute totals
+    order_total = cart_subtotal + total_shipping
+
+    # ✅ Handle applied coupon (do not remove it)
+    applied_coupon = request.session.get('applied_coupon')
+    discount_amount = Decimal('0.00')
+
+    if applied_coupon:
+        discount_amount = Decimal(applied_coupon['discount_amount'])
+        order_total -= discount_amount
+
+    # ✅ Get active coupons for dropdown
+    now = timezone.now()
+    coupons = Coupon.objects.filter(
+        is_active=True,
+        start_date__lte=now,
+        end_date__gte=now
+    )
 
     context = {
         'cart_items': enriched_items,
         'cart_subtotal': cart_subtotal,
-        'shipping_cost': shipping_cost,
-        'tax_amount': tax_amount,
+        'shipping_cost': total_shipping,
         'order_total': order_total,
+        'coupons': coupons,
+        'applied_coupon': applied_coupon,
+        'discount_amount': discount_amount,
     }
 
     return render(request, 'shopping_cart.html', context)
 
+def apply_coupon(request):
+    if request.method == 'POST':
+        code = request.POST.get('coupon_code')
+        now = timezone.now()
+
+        try:
+            coupon = Coupon.objects.get(
+                code=code,
+                is_active=True,
+                start_date__lte=now,
+                end_date__gte=now
+            )
+        except Coupon.DoesNotExist:
+            request.session.pop('applied_coupon', None)
+            return redirect('shopping_cart')
+
+        # Calculate subtotal
+        cart_items = Cart.objects.filter(user=request.user)
+        subtotal = sum([item.subtotal for item in cart_items])
+
+        # Check minimum order condition
+        if subtotal < coupon.min_order_amount:
+            request.session.pop('applied_coupon', None)
+            return redirect('shopping_cart')
+
+        # ✅ Calculate discount based on type
+        if coupon.discount_type == 'percent':
+            discount_amount = (subtotal * coupon.discount_value / Decimal('100')).quantize(Decimal('0.01'))
+        else:  # fixed discount
+            discount_amount = coupon.discount_value
+
+        # Save applied coupon info in session
+        request.session['applied_coupon'] = {
+            'code': coupon.code,
+            'discount_type': coupon.discount_type,
+            'discount_value': str(coupon.discount_value),
+            'discount_amount': str(discount_amount)
+        }
+
+        return redirect('shopping_cart')
+
+    return redirect('shopping_cart')
+
+def remove_coupon(request):
+    """
+    Remove any applied coupon from session
+    """
+    if 'applied_coupon' in request.session:
+        del request.session['applied_coupon']
+    return redirect('shopping_cart')
+
 
 @login_required
-@require_POST
 def remove_from_cart_view(request):
     """
-    Remove a cart item using its DB id (safer than parsing strings)
+    Remove a cart item - handles both AJAX and regular POST
     """
-    cart_id = request.POST.get('cart_id')
-    if cart_id:
-        try:
-            cart_item = Cart.objects.get(id=cart_id, user=request.user)
-            product_title = cart_item.product.title
-            cart_item.delete()
-            return redirect(f"{reverse('shopping_cart')}?cart_removed={product_title}")
-        except Cart.DoesNotExist:
-            pass
+    if request.method == 'POST':
+        # Try to get item_id from POST data
+        item_id = request.POST.get('item_id')
+        
+        print(f"DEBUG: item_id received = {item_id}")  # Debug
+        print(f"DEBUG: All POST data = {request.POST}")  # Debug
+        
+        if item_id:
+            try:
+                cart_item = Cart.objects.get(id=item_id, user=request.user)
+                product_title = cart_item.product.title
+                cart_item.delete()
+                
+                # Check if AJAX request
+                if request.headers.get('X-Requested-With') == 'XMLHttpRequest':
+                    return JsonResponse({
+                        'status': 'success',
+                        'message': f'{product_title} was removed from your cart.'
+                    })
+                else:
+                    return redirect(f"{reverse('shopping_cart')}?cart_removed={product_title}")
+                    
+            except Cart.DoesNotExist:
+                if request.headers.get('X-Requested-With') == 'XMLHttpRequest':
+                    return JsonResponse({
+                        'status': 'error',
+                        'message': 'Item not found in cart.'
+                    }, status=404)
+                else:
+                    return redirect('shopping_cart')
+        else:
+            # item_id is missing
+            if request.headers.get('X-Requested-With') == 'XMLHttpRequest':
+                return JsonResponse({
+                    'status': 'error',
+                    'message': 'Item ID is missing from request.'
+                }, status=400)
+            else:
+                return redirect('shopping_cart')
+    
     return redirect('shopping_cart')
 
 def shop_all_products(request):
-    query = request.GET.get('q', '')  # Search term
+    # Get all query parameters
+    query = request.GET.get('q', '')
+    category_id = request.GET.get('category')
+    brand_id = request.GET.get('brand')
     min_price = request.GET.get('min_price')
     max_price = request.GET.get('max_price')
     size = request.GET.get('size')
     color = request.GET.get('color')
-    sort_option = request.GET.get('sort')  # Sorting option
+    sort_option = request.GET.get('sort', 'low_to_high')
 
     # Base queryset
-    products = Product.objects.filter(status='active').order_by('-created_at')
+    products = Product.objects.filter(status='active')
 
-    # --- Filters ---
+    # --- Apply Filters ---
+    
+    # Category filter
+    if category_id:
+        category = get_object_or_404(Category, pk=category_id, status='active')
+        # Include main category + child categories
+        if category.children.exists():
+            child_ids = category.children.values_list('id', flat=True)
+            all_ids = list(child_ids) + [category.id]
+            products = products.filter(category_id__in=all_ids)
+        else:
+            products = products.filter(category_id=category.id)
+    
+    # Brand filter
+    if brand_id:
+        products = products.filter(brand_id=brand_id)
+    
+    # Search query
     if query:
         products = products.filter(title__icontains=query)
+    
+    # Price range filter
     if min_price:
         products = products.filter(price__gte=min_price)
     if max_price:
         products = products.filter(price__lte=max_price)
+    
+    # Size filter
     if size:
         products = products.filter(size__icontains=size)
+    
+    # Color filter
     if color:
         products = products.filter(color_data__icontains=color)
 
@@ -220,7 +389,7 @@ def shop_all_products(request):
 
     # --- Sizes and colors ---
     sizes_list = ['xs', 's', 'm', 'l', 'xl', '2xl', 'xxl', '3xl', '4xl']
-    colors_list = ['c-1','c-2','c-3','c-4','c-5','c-6','c-7','c-8','c-9']
+    colors_list = ['c-1', 'c-2', 'c-3', 'c-4', 'c-5', 'c-6', 'c-7', 'c-8', 'c-9']
 
     # --- Wishlist data ---
     if request.user.is_authenticated:
@@ -240,7 +409,7 @@ def shop_all_products(request):
         'colors_list': colors_list,
         'search_query': query,
         'selected_sort': sort_option,
-        'wishlisted_ids': wishlisted_ids,  # ✅ Pass wishlisted product IDs
+        'wishlisted_ids': list(wishlisted_ids),
     }
 
     return render(request, 'shop_all.html', context)
@@ -283,6 +452,63 @@ def shop_by_brand(request, brand_id):
         'brands': brands,
         'selected_category': None,
         'selected_brand': brand,
+    }
+    return render(request, 'shop_all.html', context)
+
+
+def shop_by_color(request, color):
+    products = Product.objects.filter(color_data__icontains=color, status='active')
+
+    parent_cats = Category.objects.filter(is_parent=True, status='active')
+    brands = Brand.objects.filter(status='active')
+
+    context = {
+        'products': products,
+        'parent_cats': parent_cats,
+        'brands': brands,
+        'selected_color': color,
+        'selected_category': None,
+        'selected_brand': None,
+        'selected_size': None,
+    }
+    return render(request, 'shop_all.html', context)
+
+
+# --- Shop by Size ---
+def shop_by_size(request, size):
+    products = Product.objects.filter(size__icontains=size, status='active')
+
+    parent_cats = Category.objects.filter(is_parent=True, status='active')
+    brands = Brand.objects.filter(status='active')
+
+    context = {
+        'products': products,
+        'parent_cats': parent_cats,
+        'brands': brands,
+        'selected_size': size,
+        'selected_category': None,
+        'selected_brand': None,
+        'selected_color': None,
+    }
+    return render(request, 'shop_all.html', context)
+
+
+# --- Shop by Price ---
+def shop_by_price(request, min_price, max_price):
+    products = Product.objects.filter(price__gte=min_price, price__lte=max_price, status='active')
+
+    parent_cats = Category.objects.filter(is_parent=True, status='active')
+    brands = Brand.objects.filter(status='active')
+
+    context = {
+        'products': products,
+        'parent_cats': parent_cats,
+        'brands': brands,
+        'selected_price_range': f"{min_price}-{max_price}",
+        'selected_category': None,
+        'selected_brand': None,
+        'selected_color': None,
+        'selected_size': None,
     }
     return render(request, 'shop_all.html', context)
 
@@ -429,3 +655,190 @@ def wishlist_view(request):
         'wishlist_items': wishlist_items,
     }
     return render(request, 'wishlist.html', context)
+
+def wishlist_preview(request):
+    wishlist_items = Wishlist.objects.filter(user=request.user).select_related('product')[:3]  # Show only 3
+    html = render_to_string('wishlist_preview.html', {'wishlist_items': wishlist_items})
+    return JsonResponse({'html': html})
+
+
+def buy_now_view(request, pk):
+    # ✅ Remove any previously applied coupon when entering Buy Now page
+    if 'applied_coupon' in request.session:
+        del request.session['applied_coupon']
+
+    product = get_object_or_404(Product, pk=pk)
+    size = request.GET.get('size')
+    color = request.GET.get('color')
+    quantity = int(request.GET.get('quantity', 1))
+    order_total = Decimal(str(product.price)) * Decimal(str(quantity))
+
+    now = timezone.now()
+
+    # ✅ Fetch only valid coupons
+    coupons = Coupon.objects.filter(
+        is_active=True,
+        min_order_amount__lte=order_total,
+        start_date__lte=now
+    ).filter(
+        Q(end_date__isnull=True) | Q(end_date__gte=now)
+    )
+
+    valid_coupons = []
+    for coupon in coupons:
+        if coupon.usage_limit > 0 and hasattr(coupon, "used_count"):
+            if coupon.used_count >= coupon.usage_limit:
+                continue
+        if coupon.per_user_limit > 0 and hasattr(coupon, "used_by_user_count"):
+            if coupon.used_by_user_count >= coupon.per_user_limit:
+                continue
+        valid_coupons.append(coupon)
+
+    # ✅ Fetch user's saved addresses (if logged in)
+    addresses = []
+    if request.user.is_authenticated:
+        addresses = Address.objects.filter(user=request.user).order_by('-is_default', '-id')
+
+    context = {
+        'product': product,
+        'selected_size': size,
+        'selected_color': color,
+        'quantity': quantity,
+        'order_total': order_total,
+        'coupons': valid_coupons,
+        'addresses': addresses,  # ✅ Pass addresses to template
+    }
+
+    return render(request, 'buy_now.html', context)
+
+def checkout_view(request):
+    """
+    Display checkout page with proper shipping calculation.
+    """
+    cart_items = Cart.objects.filter(user=request.user).select_related('product')
+    if not cart_items.exists():
+        return redirect('shopping_cart')
+
+    subtotal = Decimal('0.00')
+    total_shipping = Decimal('0.00')
+    all_free_shipping = True
+    enriched_items = []
+
+    for item in cart_items:
+        product = item.product
+        line_total = item.subtotal
+        subtotal += line_total
+
+        # ✅ Calculate shipping per product
+        shipping_label = getattr(product, 'shipping_label', '')
+        shipping_charge = getattr(product, 'shipping_charge', Decimal('0.00'))
+
+        # If product has explicit free shipping
+        if shipping_label == 'free' or shipping_charge == 0:
+            product_shipping = Decimal('0.00')
+        else:
+            product_shipping = Decimal(str(shipping_charge))
+            all_free_shipping = False
+
+        total_shipping += product_shipping
+
+        enriched_items.append({
+            'product': product,
+            'quantity': item.quantity,
+            'line_total': line_total,
+            'shipping_charge': product_shipping,
+        })
+
+    # ✅ Automatic Free Shipping condition (only if total >= 1000)
+    # if subtotal >= 1000:
+    #     total_shipping = Decimal('0.00')
+    # ❌ Don’t force free shipping just because all items are labeled free — only skip if subtotal < 1000.
+
+    # ✅ Apply coupon if available
+    applied_coupon = request.session.get('applied_coupon')
+    discount_amount = Decimal('0.00')
+    if applied_coupon:
+        discount_amount = Decimal(applied_coupon['discount_amount'])
+
+    total = subtotal + total_shipping - discount_amount
+
+    # ✅ Fetch saved addresses
+    addresses = Address.objects.filter(user=request.user)
+
+    context = {
+        'cart_items': enriched_items,
+        'subtotal': subtotal,
+        'shipping_charge': total_shipping,
+        'discount_amount': discount_amount,
+        'total': total,
+        'applied_coupon': applied_coupon,
+        'addresses': addresses,
+    }
+
+    return render(request, 'checkout.html', context)
+
+
+@login_required
+def account_address(request):
+    addresses = Address.objects.filter(user=request.user).order_by('-id')
+    return render(request, 'account_address.html', {'addresses': addresses})
+
+@login_required
+def account_profile(request):
+    return render(request, 'orders/account_profile.html')
+
+@login_required
+def add_address(request):
+    if request.method == 'POST':
+        full_name = request.POST.get('full_name')
+        phone = request.POST.get('phone')
+        street = request.POST.get('street_address')
+        city = request.POST.get('city')
+        state = request.POST.get('state')
+        zip_code = request.POST.get('zip_code')
+        address_type = request.POST.get('address_type')
+        is_default = True if request.POST.get('is_default') == 'true' else False
+
+        if is_default:
+            Address.objects.filter(user=request.user, is_default=True).update(is_default=False)
+
+        Address.objects.create(
+            user=request.user,
+            full_name=full_name,
+            phone=phone,
+            street_address=street,
+            city=city,
+            state=state,
+            zip_code=zip_code,
+            address_type=address_type,
+            is_default=is_default,
+        )
+        return redirect('account_address')
+    return redirect('account_address')
+
+@login_required
+def delete_address(request, pk):
+    address = get_object_or_404(Address, pk=pk, user=request.user)
+    if request.method == 'POST':
+        address.delete()
+        return redirect('account_address')  # Redirect to the address list page
+    return redirect('account_address')
+
+@login_required
+def edit_address(request, pk):
+    address = get_object_or_404(Address, pk=pk, user=request.user)
+    
+    if request.method == 'POST':
+        address.full_name = request.POST.get('full_name')
+        address.phone = request.POST.get('phone')
+        address.street_address = request.POST.get('street_address')
+        address.city = request.POST.get('city')
+        address.state = request.POST.get('state')
+        address.zip_code = request.POST.get('zip_code')
+        address.address_type = request.POST.get('address_type')
+        address.is_default = True if request.POST.get('is_default') == 'true' else False
+        address.save()
+        return redirect('account_address')
+
+    return redirect('account_address')
+

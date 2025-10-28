@@ -43,26 +43,26 @@
 
                 <!-- Discount Value -->
                 <div class="form-group">
-                    <label for="id_discount_value">Discount Value</label>
-                    <input type="number" step="0.01" class="form-control" id="id_discount_value" name="discount_value" placeholder="Enter discount value">
+                    <label for="id_discount_value">Discount Value <span class="text-danger">*</span></label>
+                    <input type="number" step="0.01" class="form-control" id="id_discount_value" name="discount_value" placeholder="e.g. 10 for 10% or ₹10" required min="0">
                 </div>
 
                 <!-- Minimum Order Amount -->
                 <div class="form-group">
                     <label for="id_min_order_amount">Minimum Order Amount</label>
-                    <input type="number" step="0.01" class="form-control" id="id_min_order_amount" name="min_order_amount" placeholder="Optional">
+                    <input type="number" step="0.01" class="form-control" id="id_min_order_amount" name="min_order_amount" placeholder="Optional (e.g. 100)" min="0">
                 </div>
 
                 <!-- Usage Limit -->
                 <div class="form-group">
                     <label for="id_usage_limit">Total Usage Limit</label>
-                    <input type="number" class="form-control" id="id_usage_limit" name="usage_limit" placeholder="0 = Unlimited">
+                    <input type="number" class="form-control" id="id_usage_limit" name="usage_limit" placeholder="0 = Unlimited" min="0">
                 </div>
 
                 <!-- Per User Limit -->
                 <div class="form-group">
                     <label for="id_per_user_limit">Per User Limit</label>
-                    <input type="number" class="form-control" id="id_per_user_limit" name="per_user_limit" placeholder="0 = Unlimited">
+                    <input type="number" class="form-control" id="id_per_user_limit" name="per_user_limit" placeholder="0 = Unlimited" min="0">
                 </div>
 
                 <!-- Start Date -->

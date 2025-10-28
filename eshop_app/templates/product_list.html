@@ -77,19 +77,23 @@
                                 {% endif %}
                             </td>
                             <td>{{ product.price|floatformat:2 }}</td>
-                            <td>
-                            {% if user.is_staff or user.is_superuser %}
-    <a href="{% url 'product_toggle_status' product.id %}" 
-       class="badge text-white text-decoration-none {% if product.status == 'active' %}bg-success{% else %}bg-danger{% endif %}"
-       title="Click to change status">
-        {{ product.status|title }}
-    </a>
-{% else %}
-    <span class="badge text-white {% if product.status == 'active' %}bg-success{% else %}bg-danger{% endif %}">
-        {{ product.status|title }}
-    </span>
-{% endif %}
-                        </td>
+                         <td>
+    {% if user.is_staff or user.is_superuser %}
+        <form method="post" action="{% url 'product_toggle_status' product.id %}" style="display:inline;">
+            {% csrf_token %}
+            <button type="submit" 
+                    class="badge text-white text-decoration-none border-0 {% if product.status == 'active' %}bg-success{% else %}bg-danger{% endif %}"
+                    style="cursor: pointer;"
+                    title="Click to change status">
+                {{ product.status|title }}
+            </button>
+        </form>
+    {% else %}
+        <span class="badge text-white {% if product.status == 'active' %}bg-success{% else %}bg-danger{% endif %}">
+            {{ product.status|title }}
+        </span>
+    {% endif %}
+</td>
                         <td>
                             {% if product.photo %}
                                 {% with url=product.photo.url|lower %}

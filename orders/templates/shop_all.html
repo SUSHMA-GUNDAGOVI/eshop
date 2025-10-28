@@ -6,27 +6,6 @@
 
 <style>
    .product__item__pic {
-    width: 100%;          /* full container width */
-    height: 250px;        /* fixed height for all images */
-    overflow: hidden;     /* hide any overflow */
-    position: relative;
-}
-
-.product__item__pic img {
-    width: 100%;
-    height: 100%;
-    object-fit: cover;    /* scale & crop to fill container */
-    display: block;
-}
-.heart-outlined {
-    color: #ffffff;
-    text-shadow: 
-        -1px -1px 0 #000,
-        1px -1px 0 #000,
-        -1px 1px 0 #000,
-        1px 1px 0 #000;
-}
-.product__item__pic {
     width: 100%;
     height: 250px;
     overflow: hidden;
@@ -44,7 +23,7 @@
     position: absolute;
     top: 10px;
     right: 10px;
-    z-index: 2; /* above image overlay */
+    z-index: 2;
 }
 
 .image-link {
@@ -53,7 +32,7 @@
     left: 0;
     width: 100%;
     height: 100%;
-    z-index: 1; /* below hover icons */
+    z-index: 1;
 }
 
 .heart-outlined {
@@ -64,24 +43,62 @@
         -1px 1px 0 #000,
         1px 1px 0 #000;
 }
+
+/* Active filter styling */
+.active-cat {
+    color: #ca1515 !important;
+    font-weight: bold;
+}
+
+.shop__sidebar__size .active-cat {
+    color: #ca1515 !important;
+    font-weight: bold;
+}
+
+.shop__sidebar__color label.active-color a {
+    border: 3px solid #ca1515;
+    box-shadow: 0 0 5px rgba(202, 21, 21, 0.5);
+}
 </style>
+
 <section class="shop spad">
     <div class="container">
         <div class="row">
             <!-- Sidebar -->
             <div class="col-lg-3">
                 <div class="shop__sidebar">
-                    <!-- Search -->
+                    <!-- 🔍 Search -->
                     <div class="shop__sidebar__search">
                         <form method="GET" action="{% url 'shop_all' %}">
-                            <input type="text" name="q" placeholder="Search..." value="{{ search_query }}">
+                            <input type="text" name="q" placeholder="Search..." value="{{ request.GET.q }}">
+                            <!-- Preserve other filters -->
+                            {% if request.GET.category %}
+                                <input type="hidden" name="category" value="{{ request.GET.category }}">
+                            {% endif %}
+                            {% if request.GET.brand %}
+                                <input type="hidden" name="brand" value="{{ request.GET.brand }}">
+                            {% endif %}
+                            {% if request.GET.min_price %}
+                                <input type="hidden" name="min_price" value="{{ request.GET.min_price }}">
+                            {% endif %}
+                            {% if request.GET.max_price %}
+                                <input type="hidden" name="max_price" value="{{ request.GET.max_price }}">
+                            {% endif %}
+                            {% if request.GET.size %}
+                                <input type="hidden" name="size" value="{{ request.GET.size }}">
+                            {% endif %}
+                            {% if request.GET.color %}
+                                <input type="hidden" name="color" value="{{ request.GET.color }}">
+                            {% endif %}
                             <button type="submit"><span class="icon_search"></span></button>
                         </form>
                     </div>
-                    <!-- Accordion Filters -->
+
+                    <!-- 🧩 Accordion Filters -->
                     <div class="shop__sidebar__accordion">
                         <div class="accordion" id="accordionExample">
-                            <!-- Categories -->
+
+                            <!-- 🟦 Categories -->
                             <div class="card">
                                 <div class="card-heading">
                                     <a data-toggle="collapse" data-target="#collapseCategories">Categories</a>
@@ -90,10 +107,16 @@
                                     <div class="card-body">
                                         <div class="shop__sidebar__categories">
                                             <ul class="nice-scroll">
+                                                <li>
+                                                    <a href="?{% if request.GET.brand %}brand={{ request.GET.brand }}&{% endif %}{% if request.GET.min_price %}min_price={{ request.GET.min_price }}&max_price={{ request.GET.max_price }}&{% endif %}{% if request.GET.size %}size={{ request.GET.size }}&{% endif %}{% if request.GET.color %}color={{ request.GET.color }}&{% endif %}{% if request.GET.q %}q={{ request.GET.q }}&{% endif %}{% if request.GET.sort %}sort={{ request.GET.sort }}{% endif %}"
+                                                       {% if not request.GET.category %}class="active-cat"{% endif %}>
+                                                       All Categories
+                                                    </a>
+                                                </li>
                                                 {% for parent in parent_cats %}
                                                     <li>
-                                                        <a href="{% url 'shop_by_category' parent.id %}" 
-                                                           class="{% if selected_category and selected_category.id == parent.id %}active-cat{% endif %}">
+                                                        <a href="?category={{ parent.id }}{% if request.GET.brand %}&brand={{ request.GET.brand }}{% endif %}{% if request.GET.min_price %}&min_price={{ request.GET.min_price }}&max_price={{ request.GET.max_price }}{% endif %}{% if request.GET.size %}&size={{ request.GET.size }}{% endif %}{% if request.GET.color %}&color={{ request.GET.color }}{% endif %}{% if request.GET.q %}&q={{ request.GET.q }}{% endif %}{% if request.GET.sort %}&sort={{ request.GET.sort }}{% endif %}" 
+                                                           {% if request.GET.category|add:'0' == parent.id %}class="active-cat"{% endif %}>
                                                            {{ parent.title }}
                                                         </a>
                                                     </li>
@@ -103,7 +126,8 @@
                                     </div>
                                 </div>
                             </div>
-                            <!-- Brand -->
+
+                            <!-- 🟨 Branding -->
                             <div class="card">
                                 <div class="card-heading">
                                     <a data-toggle="collapse" data-target="#collapseBrand">Branding</a>
@@ -112,10 +136,16 @@
                                     <div class="card-body">
                                         <div class="shop__sidebar__brand">
                                             <ul>
+                                                <li>
+                                                    <a href="?{% if request.GET.category %}category={{ request.GET.category }}&{% endif %}{% if request.GET.min_price %}min_price={{ request.GET.min_price }}&max_price={{ request.GET.max_price }}&{% endif %}{% if request.GET.size %}size={{ request.GET.size }}&{% endif %}{% if request.GET.color %}color={{ request.GET.color }}&{% endif %}{% if request.GET.q %}q={{ request.GET.q }}&{% endif %}{% if request.GET.sort %}sort={{ request.GET.sort }}{% endif %}"
+                                                       {% if not request.GET.brand %}class="active-cat"{% endif %}>
+                                                       All Brands
+                                                    </a>
+                                                </li>
                                                 {% for brand in brands %}
                                                     <li>
-                                                        <a href="{% url 'shop_by_brand' brand.id %}" 
-                                                           class="{% if selected_brand and selected_brand.id == brand.id %}active-cat{% endif %}">
+                                                        <a href="?brand={{ brand.id }}{% if request.GET.category %}&category={{ request.GET.category }}{% endif %}{% if request.GET.min_price %}&min_price={{ request.GET.min_price }}&max_price={{ request.GET.max_price }}{% endif %}{% if request.GET.size %}&size={{ request.GET.size }}{% endif %}{% if request.GET.color %}&color={{ request.GET.color }}{% endif %}{% if request.GET.q %}&q={{ request.GET.q }}{% endif %}{% if request.GET.sort %}&sort={{ request.GET.sort }}{% endif %}" 
+                                                           {% if request.GET.brand|add:'0' == brand.id %}class="active-cat"{% endif %}>
                                                            {{ brand.title }}
                                                         </a>
                                                     </li>
@@ -127,9 +157,104 @@
                                     </div>
                                 </div>
                             </div>
-                            <!-- Price, Size, Colors, Tags (keep as-is) -->
-                            <!-- ... your existing code ... -->
-                        </div>
+
+                            <!-- 🟩 Filter by Price -->
+                            <div class="card">
+                                <div class="card-heading">
+                                    <a data-toggle="collapse" data-target="#collapsePrice">Filter Price</a>
+                                </div>
+                                <div id="collapsePrice" class="collapse show" data-parent="#accordionExample">
+                                    <div class="card-body">
+                                        <div class="shop__sidebar__price">
+                                            <ul>
+                                                <li>
+                                                    <a href="?{% if request.GET.category %}category={{ request.GET.category }}&{% endif %}{% if request.GET.brand %}brand={{ request.GET.brand }}&{% endif %}{% if request.GET.size %}size={{ request.GET.size }}&{% endif %}{% if request.GET.color %}color={{ request.GET.color }}&{% endif %}{% if request.GET.q %}q={{ request.GET.q }}&{% endif %}{% if request.GET.sort %}sort={{ request.GET.sort }}{% endif %}"
+                                                       {% if not request.GET.min_price %}class="active-cat"{% endif %}>
+                                                       All Prices
+                                                    </a>
+                                                </li>
+                                                <li>
+                                                    <a href="?min_price=0&max_price=50{% if request.GET.category %}&category={{ request.GET.category }}{% endif %}{% if request.GET.brand %}&brand={{ request.GET.brand }}{% endif %}{% if request.GET.size %}&size={{ request.GET.size }}{% endif %}{% if request.GET.color %}&color={{ request.GET.color }}{% endif %}{% if request.GET.q %}&q={{ request.GET.q }}{% endif %}{% if request.GET.sort %}&sort={{ request.GET.sort }}{% endif %}"
+                                                       {% if request.GET.min_price == '0' and request.GET.max_price == '50' %}class="active-cat"{% endif %}>
+                                                       ₹0 - ₹50
+                                                    </a>
+                                                </li>
+                                                <li>
+                                                    <a href="?min_price=50&max_price=100{% if request.GET.category %}&category={{ request.GET.category }}{% endif %}{% if request.GET.brand %}&brand={{ request.GET.brand }}{% endif %}{% if request.GET.size %}&size={{ request.GET.size }}{% endif %}{% if request.GET.color %}&color={{ request.GET.color }}{% endif %}{% if request.GET.q %}&q={{ request.GET.q }}{% endif %}{% if request.GET.sort %}&sort={{ request.GET.sort }}{% endif %}"
+                                                       {% if request.GET.min_price == '50' and request.GET.max_price == '100' %}class="active-cat"{% endif %}>
+                                                       ₹50 - ₹100
+                                                    </a>
+                                                </li>
+                                                <li>
+                                                    <a href="?min_price=100&max_price=200{% if request.GET.category %}&category={{ request.GET.category }}{% endif %}{% if request.GET.brand %}&brand={{ request.GET.brand }}{% endif %}{% if request.GET.size %}&size={{ request.GET.size }}{% endif %}{% if request.GET.color %}&color={{ request.GET.color }}{% endif %}{% if request.GET.q %}&q={{ request.GET.q }}{% endif %}{% if request.GET.sort %}&sort={{ request.GET.sort }}{% endif %}"
+                                                       {% if request.GET.min_price == '100' and request.GET.max_price == '200' %}class="active-cat"{% endif %}>
+                                                       ₹100 - ₹200
+                                                    </a>
+                                                </li>
+                                                <li>
+                                                    <a href="?min_price=200&max_price=500{% if request.GET.category %}&category={{ request.GET.category }}{% endif %}{% if request.GET.brand %}&brand={{ request.GET.brand }}{% endif %}{% if request.GET.size %}&size={{ request.GET.size }}{% endif %}{% if request.GET.color %}&color={{ request.GET.color }}{% endif %}{% if request.GET.q %}&q={{ request.GET.q }}{% endif %}{% if request.GET.sort %}&sort={{ request.GET.sort }}{% endif %}"
+                                                       {% if request.GET.min_price == '200' and request.GET.max_price == '500' %}class="active-cat"{% endif %}>
+                                                       ₹200 - ₹500
+                                                    </a>
+                                                </li>
+                                                <li>
+                                                    <a href="?min_price=500&max_price=1000{% if request.GET.category %}&category={{ request.GET.category }}{% endif %}{% if request.GET.brand %}&brand={{ request.GET.brand }}{% endif %}{% if request.GET.size %}&size={{ request.GET.size }}{% endif %}{% if request.GET.color %}&color={{ request.GET.color }}{% endif %}{% if request.GET.q %}&q={{ request.GET.q }}{% endif %}{% if request.GET.sort %}&sort={{ request.GET.sort }}{% endif %}"
+                                                       {% if request.GET.min_price == '500' and request.GET.max_price == '1000' %}class="active-cat"{% endif %}>
+                                                       ₹500 - ₹1000
+                                                    </a>
+                                                </li>
+                                            </ul>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- 🟧 Filter by Size -->
+                            <div class="card">
+                                <div class="card-heading">
+                                    <a data-toggle="collapse" data-target="#collapseSize">Size</a>
+                                </div>
+                                <div id="collapseSize" class="collapse show" data-parent="#accordionExample">
+                                    <div class="card-body">
+                                        <div class="shop__sidebar__size">
+                                            <label>
+                                                <a href="?{% if request.GET.category %}category={{ request.GET.category }}&{% endif %}{% if request.GET.brand %}brand={{ request.GET.brand }}&{% endif %}{% if request.GET.min_price %}min_price={{ request.GET.min_price }}&max_price={{ request.GET.max_price }}&{% endif %}{% if request.GET.color %}color={{ request.GET.color }}&{% endif %}{% if request.GET.q %}q={{ request.GET.q }}&{% endif %}{% if request.GET.sort %}sort={{ request.GET.sort }}{% endif %}"
+                                                   {% if not request.GET.size %}class="active-cat"{% endif %}>
+                                                   ALL
+                                                </a>
+                                            </label>
+                                            {% for s in sizes_list %}
+                                                <label for="{{ s }}">
+                                                    <a href="?size={{ s }}{% if request.GET.category %}&category={{ request.GET.category }}{% endif %}{% if request.GET.brand %}&brand={{ request.GET.brand }}{% endif %}{% if request.GET.min_price %}&min_price={{ request.GET.min_price }}&max_price={{ request.GET.max_price }}{% endif %}{% if request.GET.color %}&color={{ request.GET.color }}{% endif %}{% if request.GET.q %}&q={{ request.GET.q }}{% endif %}{% if request.GET.sort %}&sort={{ request.GET.sort }}{% endif %}" 
+                                                       {% if request.GET.size == s %}class="active-cat"{% endif %}>
+                                                       {{ s|upper }}
+                                                    </a>
+                                                </label>
+                                            {% endfor %}
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- 🟥 Filter by Color -->
+                            <div class="card">
+                                <div class="card-heading">
+                                    <a data-toggle="collapse" data-target="#collapseColor">Colors</a>
+                                </div>
+                                <div id="collapseColor" class="collapse show" data-parent="#accordionExample">
+                                    <div class="card-body">
+                                        <div class="shop__sidebar__color">
+                                            {% for color in colors_list %}
+                                                <label class="{{ color }} {% if request.GET.color == color %}active-color{% endif %}">
+                                                    <a href="?color={{ color }}{% if request.GET.category %}&category={{ request.GET.category }}{% endif %}{% if request.GET.brand %}&brand={{ request.GET.brand }}{% endif %}{% if request.GET.min_price %}&min_price={{ request.GET.min_price }}&max_price={{ request.GET.max_price }}{% endif %}{% if request.GET.size %}&size={{ request.GET.size }}{% endif %}{% if request.GET.q %}&q={{ request.GET.q }}{% endif %}{% if request.GET.sort %}&sort={{ request.GET.sort }}{% endif %}"></a>
+                                                </label>
+                                            {% endfor %}
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+
+                        </div> <!-- accordion end -->
                     </div>
                 </div>
             </div>
@@ -141,8 +266,8 @@
                         <label for="sort" class="mb-0 me-2 fw-semibold">Sort by:</label>
                         <select name="sort" id="sort" class="form-select form-select-sm w-auto"
                                 onchange="document.getElementById('sortForm').submit();">
-                            <option value="low_to_high" {% if selected_sort == 'low_to_high' %}selected{% endif %}>Low to High</option>
-                            <option value="high_to_low" {% if selected_sort == 'high_to_low' %}selected{% endif %}>High to Low</option>
+                            <option value="low_to_high" {% if request.GET.sort == 'low_to_high' %}selected{% endif %}>Low to High</option>
+                            <option value="high_to_low" {% if request.GET.sort == 'high_to_low' %}selected{% endif %}>High to Low</option>
                         </select>
                         {% for key, value in request.GET.items %}
                             {% if key != 'sort' %}
@@ -204,7 +329,7 @@
                                     <i class="fa fa-star-o"></i>
                                 </div>
 
-                                <h5>${{ product.price|floatformat:2 }}</h5>
+                                <h5>₹{{ product.price|floatformat:2 }}</h5>
                                 
                                 <!-- Color selection -->
                                 <div class="product__color__select">

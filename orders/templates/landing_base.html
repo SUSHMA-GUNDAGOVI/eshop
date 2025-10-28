@@ -69,77 +69,129 @@
     <header class="header">
 
         <div class="container">
-            <div class="row">
+            <div class="row align-items-center">
                 <div class="col-lg-3 col-md-3">
                     <div class="header__logo">
                         <a href="/"><img src="/static/frontend/img/logo.png" alt=""></a>
                     </div>
                 </div>
+
                 <div class="col-lg-6 col-md-6">
                     <nav class="header__menu mobile-menu">
-    <ul>
-        <li class="{% if request.resolver_match.url_name == 'home' or request.path == '/' %}active{% endif %}">
-            <a href="/">Home</a>
-        </li>
-        <li class="{% if 'shop' in request.path %}active{% endif %}">
-            <a href="{% url 'shop_all' %}">Shop</a>
-        </li>
-        <li class="{% if 'about' in request.path or 'pages' in request.path %}active{% endif %}">
-            <a href="#">Pages</a>
-            <ul class="dropdown">
-                <li><a href="{% url 'landing_about_us' %}">About Us</a></li>
-                <li><a href="{% url 'shop_all' %}">Shop Details</a></li>
-                <li><a href="{% url 'landing_blog' %}">Blog Details</a></li>
-            </ul>
-        </li>
-        <li class="{% if request.resolver_match.url_name == 'landing_blog' %}active{% endif %}">
-            <a href="{% url 'landing_blog' %}">Blog</a>
-        </li>
-        <li class="{% if request.resolver_match.url_name == 'landing_contact' %}active{% endif %}">
-            <a href="{% url 'landing_contact' %}">Contacts</a>
-        </li>
-    </ul>
-</nav>
+                        <ul>
+                            <li
+                                class="{% if request.resolver_match.url_name == 'home' or request.path == '/' %}active{% endif %}">
+                                <a href="/">Home</a>
+                            </li>
+                            <li class="{% if 'shop' in request.path %}active{% endif %}">
+                                <a href="{% url 'shop_all' %}">Shop</a>
+                            </li>
+                            <li class="{% if 'about' in request.path or 'pages' in request.path %}active{% endif %}">
+                                <a href="#">Pages</a>
+                                <ul class="dropdown">
+                                    <li><a href="{% url 'landing_about_us' %}">About Us</a></li>
+                                    <li><a href="{% url 'shop_all' %}">Shop Details</a></li>
+                                    <li><a href="{% url 'landing_blog' %}">Blog Details</a></li>
+                                </ul>
+                            </li>
+                            <li class="{% if request.resolver_match.url_name == 'landing_blog' %}active{% endif %}">
+                                <a href="{% url 'landing_blog' %}">Blog</a>
+                            </li>
+                            <li class="{% if request.resolver_match.url_name == 'landing_contact' %}active{% endif %}">
+                                <a href="{% url 'landing_contact' %}">Contacts</a>
+                            </li>
+                        </ul>
+                    </nav>
                 </div>
-                <div class="col-lg-3 col-md-3 d-flex align-items-center justify-content-end">
-                    <div class="header__nav__option d-flex align-items-center me-3">
+
+                <!-- RIGHT ICON SECTION -->
+                <div class="col-lg-3 col-md-3">
+                    <div
+                        class="header__nav__option d-flex align-items-center justify-content-end me-3 position-relative">
+
+                        <!-- Search -->
                         <a href="#" class="search-switch me-3">
                             <img src="/static/frontend/img/icon/search.png" alt="">
                         </a>
-                       <a href="{% url 'wishlist' %}" class="me-3">
-    <img src="/static/frontend/img/icon/heart.png" alt="">
-    {% if user.is_authenticated %}
-        {% with wishlist_count=user.wishlist.count %}
-            {% if wishlist_count > 0 %}
-                <span class="badge bg-danger rounded-circle" style="position: absolute; top: -5px; right: -5px; font-size: 10px;">{{ wishlist_count }}</span>
-            {% endif %}
-        {% endwith %}
-    {% endif %}
-</a>
-                       <a href="{% url 'shopping_cart' %}" class="me-3">
-    <img src="/static/frontend/img/icon/cart.png" alt="">
-    <span>{{ cart_total_quantity }}</span>  <!-- Automatically updated -->
-</a>
-                       
-                    </div>
-                    <div class="dropdown" style="margin-left:40px;">
-                        <a href="#" class="profile-link d-flex align-items-center" id="profileDropdown" role="button"
-                            data-bs-toggle="dropdown" aria-expanded="false" style="color:#000; font-weight:600;">
-                            <i class="fa-solid fa-circle-user" style="margin-right:5px; font-size:2rem;"></i>
-                        </a>
-                        <ul class="dropdown-menu dropdown-menu-end" aria-labelledby="profileDropdown">
-                            {% if user.is_authenticated %}
-                            <li><a class="dropdown-item" href="{% url 'profile' %}">Profile</a></li>
-                            <li><a class="dropdown-item" href="{% url 'logout' %}">Logout</a></li>
-                            {% else %}
-                            <li><a class="dropdown-item" href="{% url 'login' %}">Login</a></li>
-                            {% endif %}
-                        </ul>
+
+                        <!-- Wishlist -->
+                        <div class="wishlist-wrapper position-relative me-3">
+                            <a href="{% url 'wishlist' %}" id="wishlistIcon">
+                                <img src="/static/frontend/img/icon/heart.png" alt="">
+                                {% if user.is_authenticated %}
+                                {% with wishlist_count=user.wishlist.count %}
+                                {% if wishlist_count > 0 %}
+                                <span class="badge bg-danger rounded-circle"
+                                    style="position: absolute; top: -5px; right: -5px; font-size: 10px;">
+                                    {{ wishlist_count }}
+                                </span>
+                                {% endif %}
+                                {% endwith %}
+                                {% endif %}
+                            </a>
+
+                            <!-- Wishlist Popup -->
+                            <div id="wishlistPopup" class="wishlist-popup shadow p-2 bg-white rounded position-absolute"
+                                style="display:none; top:35px; right:0; width:220px; z-index:1000;">
+                                <div id="wishlistContent">
+                                    <p class="text-center text-muted small mb-1">Loading...</p>
+                                </div>
+                                <div class="text-center mt-2">
+                                    <a href="{% url 'wishlist' %}" class="text-primary small">View All Wishlist</a>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Cart -->
+                        <div class="cart-wrapper position-relative me-3">
+                            <a href="{% url 'shopping_cart' %}" id="cartIcon" class="position-relative">
+                                <img src="/static/frontend/img/icon/cart.png" alt="">
+                                {% if cart_total_quantity > 0 %}
+                                <span
+                                    class="badge bg-danger rounded-circle position-absolute top-0 start-100 translate-middle"
+                                    style="font-size: 10px; min-width: 18px; height: 18px; line-height: 18px; text-align: center; margin-top:-13px">
+                                    {{ cart_total_quantity }}
+                                </span>
+                                {% endif %}
+                            </a>
+
+                            <!-- Cart Popup -->
+                            <div id="cartPopup" class="cart-popup shadow p-2 bg-white rounded position-absolute"
+                                style="display:none; top:35px; right:0; width:250px; z-index:1000;">
+                                <div id="cartContent">
+                                    <p class="text-center text-muted small mb-1">Loading...</p>
+                                </div>
+                                <div class="text-center mt-2">
+                                    <a href="{% url 'shopping_cart' %}" class="text-primary small">View All Cart
+                                        Items</a>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Profile -->
+                        <div class="dropdown position-relative">
+                            <a href="#" class="profile-link d-flex align-items-center" id="profileDropdown"
+                                role="button" data-bs-toggle="dropdown" aria-expanded="false"
+                                style="color:#000; font-weight:600;">
+                                <i class="fa-solid fa-user" style="font-size:1.5rem;"></i>
+                            </a>
+                            <ul class="dropdown-menu dropdown-menu-end" aria-labelledby="profileDropdown">
+                                {% if user.is_authenticated %}
+                                <li><a class="dropdown-item" href="{% url 'profile' %}">Profile</a></li>
+                                <li><a class="dropdown-item" href="{% url 'logout' %}">Logout</a></li>
+                                {% else %}
+                                <li><a class="dropdown-item" href="{% url 'login' %}">Login</a></li>
+                                {% endif %}
+                            </ul>
+                        </div>
+
                     </div>
                 </div>
-
             </div>
-            <div class="canvas__open"><i class="fa fa-bars"></i></div>
+
+
+        </div>
+        <div class="canvas__open"><i class="fa fa-bars"></i></div>
         </div>
     </header>
     <!-- Header Section End -->
@@ -219,14 +271,14 @@
     <!-- Footer Section End -->
 
     <!-- Search Begin -->
-   <div class="search-model">
-    <div class="h-100 d-flex align-items-center justify-content-center">
-        <div class="search-close-switch">+</div>
-        <form class="search-model-form" method="GET" action="{% url 'shop_all' %}">
-            <input type="text" name="q" id="search-input" placeholder="Search here.....">
-        </form>
+    <div class="search-model">
+        <div class="h-100 d-flex align-items-center justify-content-center">
+            <div class="search-close-switch">+</div>
+            <form class="search-model-form" method="GET" action="{% url 'shop_all' %}">
+                <input type="text" name="q" id="search-input" placeholder="Search here.....">
+            </form>
+        </div>
     </div>
-</div>
     <!-- Search End -->
     <script>
         document.addEventListener('DOMContentLoaded', function () {
@@ -251,6 +303,44 @@
     <link rel="stylesheet" type="text/css" href="https://cdn.jsdelivr.net/npm/toastify-js/src/toastify.min.css">
 
     <script type="text/javascript" src="https://cdn.jsdelivr.net/npm/toastify-js"></script>
+
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <script>
+        $(document).ready(function () {
+
+            // Wishlist hover
+            $(".wishlist-wrapper").hover(
+                function () {
+                    $("#wishlistPopup").stop(true, true).fadeIn(200);
+                    $.ajax({
+                        url: "{% url 'wishlist_preview' %}",
+                        success: function (data) {
+                            $("#wishlistContent").html(data.html);
+                        }
+                    });
+                },
+                function () {
+                    $("#wishlistPopup").stop(true, true).fadeOut(200);
+                }
+            );
+
+            // Cart hover
+            $(".cart-wrapper").hover(
+                function () {
+                    $("#cartPopup").stop(true, true).fadeIn(200);
+                    $.ajax({
+                        url: "{% url 'cart_preview' %}",
+                        success: function (data) {
+                            $("#cartContent").html(data.html);
+                        }
+                    });
+                },
+                function () {
+                    $("#cartPopup").stop(true, true).fadeOut(200);
+                }
+            );
+        });
+    </script>
 </body>
 
 </html>

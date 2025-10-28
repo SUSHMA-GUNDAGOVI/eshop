@@ -122,14 +122,60 @@ class Product(models.Model):
     condition = models.CharField(max_length=20, choices=CONDITION_CHOICES, default="default")
     stock = models.PositiveIntegerField(default=0)
 
+    shipping_charge = models.DecimalField(max_digits=8, decimal_places=2, default=0.00)
+    is_free_shipping = models.BooleanField(default=False)
+
     photo = models.ImageField(upload_to="products/")
     status = models.CharField(max_length=10, choices=[('active', 'Active'), ('inactive', 'Inactive')], default="active")
 
     user = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.SET_NULL, null=True, related_name="products_created")
     created_at = models.DateTimeField(auto_now_add=True)
     
-    def __str__(self):
+    def _str_(self):
         return self.title
+     # ✅ ADD THESE PROPERTIES TO YOUR PRODUCT MODEL:
+    @property
+    def color_names(self):
+        """Return list of color names for template usage"""
+        if self.color_data:
+            return [color.get('name', '') for color in self.color_data if color.get('name')]
+        return []
+    
+    @property 
+    def color_names_string(self):
+        """Return color names as comma-separated string"""
+        return ','.join(self.color_names)
+    
+    @property
+    def color_map(self):
+        """Return a dictionary of color names to hex codes"""
+        if self.color_data:
+            return {color.get('name', ''): color.get('code', '#cccccc') for color in self.color_data if color.get('name')}
+        return {}
+    
+    def get_color_hex(self, color_name):
+        """Get hex code for a color name"""
+        color_map = self.color_map
+        return color_map.get(color_name, '#cccccc')
+    
+class ProductMedia(models.Model):
+    product = models.ForeignKey(Product, on_delete=models.CASCADE, related_name='media_files')
+    file = models.FileField(upload_to='product_media/')
+    file_type = models.CharField(max_length=20, choices=[('image', 'Image'), ('video', 'Video')])
+    is_primary = models.BooleanField(default=False)
+    created_at = models.DateTimeField(auto_now_add=True)
+    
+    def save(self, *args, **kwargs):
+        # Auto-detect file type
+        if self.file.name.lower().endswith(('.mp4', '.webm', '.avi', '.mov', '.mkv')):
+            self.file_type = 'video'
+        else:
+            self.file_type = 'image'
+        super().save(*args, **kwargs)
+    
+    def _str_(self):
+        return f"{self.product.title} - {self.file_type}"
+
 
 class Coupon(models.Model):
     DISCOUNT_TYPE_CHOICES = (
