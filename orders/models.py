@@ -38,15 +38,19 @@ class Cart(models.Model):
     quantity = models.PositiveIntegerField(default=1)
     size = models.CharField(max_length=10, blank=True, null=True)
     color = models.CharField(max_length=50, blank=True, null=True)
+
+    # ✅ New field — stores the exact image URL/path of the selected variant
+    selected_image = models.URLField(blank=True, null=True)
+
     added_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
 
     class Meta:
-        unique_together = ('user', 'product', 'size', 'color')  # prevent duplicates with same options
+        unique_together = ('user', 'product', 'size', 'color')  # prevent duplicates
 
     def __str__(self):
         return f"{self.user} - {self.product.title} (x{self.quantity})"
-    
+
     @property
     def subtotal(self):
         return self.product.price * self.quantity
@@ -80,3 +84,5 @@ class Address(models.Model):
 
     def __str__(self):
         return f"{self.full_name} - {self.city} ({self.address_type})"
+    
+

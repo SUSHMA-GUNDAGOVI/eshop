@@ -173,6 +173,21 @@
     </div>
 </li>
 
+<!-- FAQs Menu -->
+<li class="nav-item">
+    <a class="nav-link collapsed" href="#" data-toggle="collapse" data-target="#collapseFAQs" aria-expanded="true"
+        aria-controls="collapseFAQs">
+        <i class="fas fa-fw fa-users"></i>
+        <span>FAQs</span>
+    </a>
+    <div id="collapseFAQs" class="collapse" aria-labelledby="headingUsers" data-parent="#accordionSidebar">
+        <div class="bg-white py-2 collapse-inner rounded">
+            <h6 class="collapse-header">FAQs Options:</h6>
+            <a class="collapse-item" href="{% url 'faqs_list' %}">FAQs</a>
+        </div>
+    </div>
+</li>
+
 <!-- Contact Menu -->
 <li class="nav-item">
     <a class="nav-link" href="{% url 'contact_add' %}">

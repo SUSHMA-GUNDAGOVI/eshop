@@ -57,4 +57,9 @@ urlpatterns = [
     path('clients/add/', views.client_add, name='client_add'),
     path('clients/edit/<int:pk>/', views.client_edit, name='client_edit'),
     path('clients/delete/<int:pk>/', views.client_delete, name='client_delete'),
+    path('faqs/', views.faqs_list_view, name='faqs_list'),
+    path('faqs/add/', views.add_general_faqs_view, name='add_general_faqs'),
+    path('faqs/edit/<int:pk>/', views.faqs_edit_view, name='faqs_edit'),
+    path('faqs/delete/<int:pk>/', views.faqs_delete_view, name='faqs_delete'),
+    
 ]

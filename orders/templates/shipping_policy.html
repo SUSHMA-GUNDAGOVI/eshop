@@ -1,0 +1,582 @@
+{% extends 'landing_base.html' %}
+{% load static %}
+
+{% block title %}Shipping & Delivery Policy{% endblock %}
+
+{% block content %}
+
+<!-- Page Header Section -->
+<section class="page-header spad" style="background: linear-gradient(135deg, #ababab 0%, #fff0f0 100%);">
+    <div class="container">
+        <div class="row">
+            <div class="col-lg-12 text-center">
+                <div class="page-header__text">
+                    <h2 data-aos="fade-up" data-aos-duration="800">Shipping & Delivery Policy</h2>
+                    <p data-aos="fade-up" data-aos-duration="800" data-aos-delay="200">
+                        Learn about our shipping methods, delivery times, and tracking information
+                    </p>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- Shipping Policy Content -->
+<section class="shipping-policy spad">
+    <div class="container">
+        <div class="row">
+            <div class="col-lg-10 mx-auto">
+                <!-- Last Updated -->
+                <div class="last-updated mb-5 text-center" data-aos="fade-up">
+                    <p class="text-muted"><strong>Last Updated:</strong> January 1, 2024</p>
+                </div>
+
+                <!-- Overview Section -->
+                <div class="policy-section mb-5" data-aos="fade-up" data-aos-duration="800">
+                    <div class="section-header mb-4">
+                        <h3><i class="fa fa-info-circle mr-3"></i>Overview</h3>
+                    </div>
+                    <div class="section-content">
+                        <p>At <strong>Your Store Name</strong>, we are committed to providing reliable and efficient shipping services. This policy outlines our shipping methods, delivery times, and related information to ensure a smooth shopping experience.</p>
+                    </div>
+                </div>
+
+                <!-- Shipping Methods & Costs -->
+                <div class="policy-section mb-5" data-aos="fade-up" data-aos-duration="800" data-aos-delay="100">
+                    <div class="section-header mb-4">
+                        <h3><i class="fa fa-shipping-fast mr-3"></i>Shipping Methods & Costs</h3>
+                    </div>
+                    <div class="section-content">
+                        <div class="table-responsive">
+                            <table class="table table-bordered shipping-table">
+                                <thead class="thead-light">
+                                    <tr>
+                                        <th>Shipping Method</th>
+                                        <th>Delivery Time</th>
+                                        <th>Cost</th>
+                                        <th>Free Shipping Threshold</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    <tr>
+                                        <td><strong>Standard Shipping</strong></td>
+                                        <td>5-7 business days</td>
+                                        <td>$4.99</td>
+                                        <td>Orders over $50</td>
+                                    </tr>
+                                    <tr>
+                                        <td><strong>Express Shipping</strong></td>
+                                        <td>2-3 business days</td>
+                                        <td>$9.99</td>
+                                        <td>Orders over $100</td>
+                                    </tr>
+                                    <tr>
+                                        <td><strong>Next Day Delivery</strong></td>
+                                        <td>1 business day</td>
+                                        <td>$19.99</td>
+                                        <td>Not available</td>
+                                    </tr>
+                                    <tr>
+                                        <td><strong>Same Day Delivery*</strong></td>
+                                        <td>Same day (Order by 12 PM)</td>
+                                        <td>$24.99</td>
+                                        <td>Not available</td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
+                        <p class="text-muted mt-3"><small>*Same day delivery available in select metropolitan areas only.</small></p>
+                    </div>
+                </div>
+
+                <!-- Processing Time -->
+                <div class="policy-section mb-5" data-aos="fade-up" data-aos-duration="800" data-aos-delay="200">
+                    <div class="section-header mb-4">
+                        <h3><i class="fa fa-clock mr-3"></i>Order Processing Time</h3>
+                    </div>
+                    <div class="section-content">
+                        <div class="processing-steps">
+                            <div class="step-item">
+                                <div class="step-icon">
+                                    <i class="fa fa-shopping-cart"></i>
+                                </div>
+                                <div class="step-content">
+                                    <h5>Order Placed</h5>
+                                    <p>Orders are processed within 24-48 hours during business days (Monday-Friday).</p>
+                                </div>
+                            </div>
+                            <div class="step-item">
+                                <div class="step-icon">
+                                    <i class="fa fa-box"></i>
+                                </div>
+                                <div class="step-content">
+                                    <h5>Order Processed</h5>
+                                    <p>We verify order details, process payment, and prepare your shipment.</p>
+                                </div>
+                            </div>
+                            <div class="step-item">
+                                <div class="step-icon">
+                                    <i class="fa fa-shipping-fast"></i>
+                                </div>
+                                <div class="step-content">
+                                    <h5>Order Shipped</h5>
+                                    <p>You'll receive a shipping confirmation email with tracking information.</p>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="alert alert-info mt-4">
+                            <strong>Note:</strong> Orders placed after 2 PM EST or on weekends/holidays will be processed the next business day.
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Domestic Shipping -->
+                <div class="policy-section mb-5" data-aos="fade-up" data-aos-duration="800" data-aos-delay="300">
+                    <div class="section-header mb-4">
+                        <h3><i class="fa fa-map-marker-alt mr-3"></i>Domestic Shipping (USA)</h3>
+                    </div>
+                    <div class="section-content">
+                        <div class="row">
+                            <div class="col-md-6">
+                                <div class="feature-box">
+                                    <h5><i class="fa fa-check text-success mr-2"></i>Shipping Carriers</h5>
+                                    <p>We partner with trusted carriers including USPS, UPS, and FedEx.</p>
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="feature-box">
+                                    <h5><i class="fa fa-check text-success mr-2"></i>Delivery Areas</h5>
+                                    <p>We ship to all 50 states including Alaska and Hawaii.</p>
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="feature-box">
+                                    <h5><i class="fa fa-check text-success mr-2"></i>Rural Areas</h5>
+                                    <p>Additional 1-2 business days may be required for rural deliveries.</p>
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="feature-box">
+                                    <h5><i class="fa fa-check text-success mr-2"></i>PO Boxes</h5>
+                                    <p>We can ship to PO Boxes via USPS only.</p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- International Shipping -->
+                <div class="policy-section mb-5" data-aos="fade-up" data-aos-duration="800" data-aos-delay="400">
+                    <div class="section-header mb-4">
+                        <h3><i class="fa fa-globe mr-3"></i>International Shipping</h3>
+                    </div>
+                    <div class="section-content">
+                        <div class="alert alert-warning">
+                            <strong>International Orders:</strong> Please read this section carefully before ordering.
+                        </div>
+                        
+                        <div class="row mb-4">
+                            <div class="col-md-6">
+                                <h5>Available Countries</h5>
+                                <p>We currently ship to over 50 countries including:</p>
+                                <ul>
+                                    <li>Canada</li>
+                                    <li>United Kingdom</li>
+                                    <li>Australia</li>
+                                    <li>Germany</li>
+                                    <li>France</li>
+                                    <li>Japan</li>
+                                    <li>And many more...</li>
+                                </ul>
+                            </div>
+                            <div class="col-md-6">
+                                <h5>Shipping Time</h5>
+                                <p>International delivery typically takes:</p>
+                                <ul>
+                                    <li><strong>Standard:</strong> 10-15 business days</li>
+                                    <li><strong>Express:</strong> 5-7 business days</li>
+                                </ul>
+                            </div>
+                        </div>
+
+                        <div class="important-notes">
+                            <h5>Important Information:</h5>
+                            <div class="note-item">
+                                <i class="fa fa-exclamation-triangle text-warning mr-2"></i>
+                                <span>Customs fees, import duties, and taxes are the responsibility of the recipient</span>
+                            </div>
+                            <div class="note-item">
+                                <i class="fa fa-exclamation-triangle text-warning mr-2"></i>
+                                <span>International orders may be subject to customs inspection</span>
+                            </div>
+                            <div class="note-item">
+                                <i class="fa fa-exclamation-triangle text-warning mr-2"></i>
+                                <span>Please ensure your shipping address is complete and accurate</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Order Tracking -->
+                <div class="policy-section mb-5" data-aos="fade-up" data-aos-duration="800" data-aos-delay="500">
+                    <div class="section-header mb-4">
+                        <h3><i class="fa fa-map-pin mr-3"></i>Order Tracking</h3>
+                    </div>
+                    <div class="section-content">
+                        <div class="tracking-info">
+                            <div class="row">
+                                <div class="col-md-4 text-center">
+                                    <div class="tracking-step">
+                                        <div class="step-number">1</div>
+                                        <h5>Order Confirmation</h5>
+                                        <p>Receive order confirmation email immediately after purchase</p>
+                                    </div>
+                                </div>
+                                <div class="col-md-4 text-center">
+                                    <div class="tracking-step">
+                                        <div class="step-number">2</div>
+                                        <h5>Shipping Notification</h5>
+                                        <p>Get tracking number via email once your order ships</p>
+                                    </div>
+                                </div>
+                                <div class="col-md-4 text-center">
+                                    <div class="tracking-step">
+                                        <div class="step-number">3</div>
+                                        <h5>Real-time Updates</h5>
+                                        <p>Track your package with live updates from the carrier</p>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="text-center mt-4">
+                            <a href="{% url 'track_order' %}" class="primary-btn">Track Your Order</a>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Delivery Issues -->
+                <div class="policy-section mb-5" data-aos="fade-up" data-aos-duration="800" data-aos-delay="600">
+                    <div class="section-header mb-4">
+                        <h3><i class="fa fa-exclamation-circle mr-3"></i>Delivery Issues</h3>
+                    </div>
+                    <div class="section-content">
+                        <div class="issue-solutions">
+                            <div class="issue-item">
+                                <h5>Failed Delivery Attempts</h5>
+                                <p>If delivery is attempted but no one is available, the carrier will leave a notice with instructions for pickup or rescheduling.</p>
+                            </div>
+                            <div class="issue-item">
+                                <h5>Incorrect Address</h5>
+                                <p>If you provided an incorrect address, contact us immediately. Additional shipping fees may apply for address corrections.</p>
+                            </div>
+                            <div class="issue-item">
+                                <h5>Lost or Stolen Packages</h5>
+                                <p>If your tracking shows delivered but you haven't received your package, contact us within 7 days for investigation.</p>
+                            </div>
+                            <div class="issue-item">
+                                <h5>Damaged Packages</h5>
+                                <p>Inspect your package upon delivery. If items are damaged, take photos and contact us within 48 hours.</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Holiday Schedule -->
+                <div class="policy-section mb-5" data-aos="fade-up" data-aos-duration="800" data-aos-delay="700">
+                    <div class="section-header mb-4">
+                        <h3><i class="fa fa-calendar-alt mr-3"></i>Holiday Shipping Schedule</h3>
+                    </div>
+                    <div class="section-content">
+                        <p>During holiday seasons, please allow extra processing and delivery time. We do not process or ship orders on the following holidays:</p>
+                        <div class="row">
+                            <div class="col-md-6">
+                                <ul>
+                                    <li>New Year's Day</li>
+                                    <li>Memorial Day</li>
+                                    <li>Independence Day</li>
+                                    <li>Labor Day</li>
+                                </ul>
+                            </div>
+                            <div class="col-md-6">
+                                <ul>
+                                    <li>Thanksgiving Day</li>
+                                    <li>Christmas Day</li>
+                                    <li>Day after Thanksgiving</li>
+                                    <li>Christmas Eve</li>
+                                </ul>
+                            </div>
+                        </div>
+                        <div class="alert alert-info mt-3">
+                            <strong>Holiday Notice:</strong> Order processing may take 3-5 business days during peak holiday seasons (November-December).
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Contact Support -->
+                <div class="contact-support text-center p-5 rounded" style="background: #f8f9fa;" data-aos="fade-up" data-aos-duration="800">
+                    <h3 class="mb-3">Need Help With Shipping?</h3>
+                    <p class="mb-4">Our customer service team is here to assist you with any shipping-related questions or concerns.</p>
+                    <div class="support-buttons">
+                        <a href="{% url 'landing_contact' %}" class="primary-btn mr-3">Contact Support</a>
+                        <a href="mailto:shipping@yourstore.com" class="secondary-btn">
+                            <i class="fa fa-envelope mr-2"></i>Email Us
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<style>
+/* Shipping Policy Specific Styles */
+.page-header {
+    padding: 80px 0;
+    color: white;
+}
+
+.page-header__text h2 {
+    font-size: 3rem;
+    font-weight: 700;
+    margin-bottom: 1rem;
+}
+
+.page-header__text p {
+    font-size: 1.2rem;
+    opacity: 0.9;
+}
+
+.shipping-policy {
+    padding: 80px 0;
+}
+
+.policy-section {
+    background: white;
+    padding: 40px;
+    border-radius: 15px;
+    box-shadow: 0 5px 25px rgba(0,0,0,0.08);
+    border-left: 4px solid #e53637;
+}
+
+.section-header h3 {
+    color: #2c3e50;
+    font-weight: 600;
+    font-size: 1.8rem;
+    margin-bottom: 0;
+}
+
+.shipping-table {
+    border-radius: 10px;
+    overflow: hidden;
+}
+
+.shipping-table th {
+    background: #e53637;
+    color: white;
+    font-weight: 600;
+    border: none;
+    padding: 15px;
+}
+
+.shipping-table td {
+    padding: 15px;
+    vertical-align: middle;
+}
+
+.processing-steps {
+    display: flex;
+    justify-content: space-between;
+    flex-wrap: wrap;
+    gap: 20px;
+}
+
+.step-item {
+    flex: 1;
+    min-width: 250px;
+    text-align: center;
+    padding: 20px;
+    background: #f8f9fa;
+    border-radius: 10px;
+    border: 2px solid #e9ecef;
+}
+
+.step-icon {
+    width: 60px;
+    height: 60px;
+    background: #e53637;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin: 0 auto 15px;
+    color: white;
+    font-size: 1.5rem;
+}
+
+.step-content h5 {
+    color: #2c3e50;
+    font-weight: 600;
+    margin-bottom: 10px;
+}
+
+.feature-box {
+    margin-bottom: 20px;
+    padding: 15px;
+    background: #f8f9fa;
+    border-radius: 8px;
+    border-left: 3px solid #28a745;
+}
+
+.important-notes {
+    background: #fff3cd;
+    border: 1px solid #ffeaa7;
+    border-radius: 8px;
+    padding: 20px;
+    margin-top: 20px;
+}
+
+.note-item {
+    display: flex;
+    align-items: flex-start;
+    margin-bottom: 10px;
+}
+
+.tracking-step {
+    padding: 20px;
+}
+
+.step-number {
+    width: 40px;
+    height: 40px;
+    background: #e53637;
+    color: white;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: bold;
+    margin: 0 auto 15px;
+}
+
+.issue-item {
+    background: #f8f9fa;
+    padding: 20px;
+    border-radius: 8px;
+    margin-bottom: 15px;
+    border-left: 3px solid #dc3545;
+}
+
+.issue-item h5 {
+    color: #dc3545;
+    margin-bottom: 10px;
+}
+
+.secondary-btn {
+    display: inline-block;
+    padding: 12px 30px;
+    background: white;
+    color: #e53637;
+    border: 2px solid #e53637;
+    border-radius: 30px;
+    text-decoration: none;
+    font-weight: 500;
+    transition: all 0.3s ease;
+}
+
+.secondary-btn:hover {
+    background: #e53637;
+    color: white;
+    text-decoration: none;
+}
+
+.contact-support {
+    border: 2px dashed #dee2e6;
+}
+
+/* Responsive Design */
+@media (max-width: 768px) {
+    .page-header__text h2 {
+        font-size: 2rem;
+    }
+    
+    .page-header__text p {
+        font-size: 1rem;
+    }
+    
+    .policy-section {
+        padding: 20px;
+    }
+    
+    .processing-steps {
+        flex-direction: column;
+    }
+    
+    .step-item {
+        min-width: 100%;
+    }
+    
+    .shipping-table {
+        font-size: 0.9rem;
+    }
+    
+    .support-buttons .primary-btn,
+    .support-buttons .secondary-btn {
+        display: block;
+        margin: 10px auto;
+        width: 200px;
+    }
+}
+
+@media (max-width: 576px) {
+    .shipping-table {
+        font-size: 0.8rem;
+    }
+    
+    .section-header h3 {
+        font-size: 1.4rem;
+    }
+}
+</style>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // Add smooth scrolling for anchor links
+    document.querySelectorAll('a[href^="#"]').forEach(anchor => {
+        anchor.addEventListener('click', function (e) {
+            e.preventDefault();
+            const target = document.querySelector(this.getAttribute('href'));
+            if (target) {
+                target.scrollIntoView({
+                    behavior: 'smooth',
+                    block: 'start'
+                });
+            }
+        });
+    });
+
+    // Add animation to table rows on scroll
+    const observerOptions = {
+        threshold: 0.1,
+        rootMargin: '0px 0px -50px 0px'
+    };
+
+    const observer = new IntersectionObserver((entries) => {
+        entries.forEach(entry => {
+            if (entry.isIntersecting) {
+                entry.target.style.opacity = '1';
+                entry.target.style.transform = 'translateY(0)';
+            }
+        });
+    }, observerOptions);
+
+    // Observe table rows
+    document.querySelectorAll('.shipping-table tbody tr').forEach((row, index) => {
+        row.style.opacity = '0';
+        row.style.transform = 'translateY(20px)';
+        row.style.transition = `opacity 0.5s ease ${index * 0.1}s, transform 0.5s ease ${index * 0.1}s`;
+        observer.observe(row);
+    });
+});
+</script>
+
+{% endblock %}

@@ -133,7 +133,8 @@ class Product(models.Model):
     
     def _str_(self):
         return self.title
-     # ✅ ADD THESE PROPERTIES TO YOUR PRODUCT MODEL:
+
+    # ✅ ADD THESE PROPERTIES TO YOUR PRODUCT MODEL:
     @property
     def color_names(self):
         """Return list of color names for template usage"""
@@ -158,13 +159,15 @@ class Product(models.Model):
         color_map = self.color_map
         return color_map.get(color_name, '#cccccc')
     
+
 class ProductMedia(models.Model):
     product = models.ForeignKey(Product, on_delete=models.CASCADE, related_name='media_files')
     file = models.FileField(upload_to='product_media/')
     file_type = models.CharField(max_length=20, choices=[('image', 'Image'), ('video', 'Video')])
     is_primary = models.BooleanField(default=False)
+    color_name = models.CharField(max_length=50, blank=True, null=True)  # ✅ New field to map media to a color
     created_at = models.DateTimeField(auto_now_add=True)
-    
+
     def save(self, *args, **kwargs):
         # Auto-detect file type
         if self.file.name.lower().endswith(('.mp4', '.webm', '.avi', '.mov', '.mkv')):
@@ -172,10 +175,9 @@ class ProductMedia(models.Model):
         else:
             self.file_type = 'image'
         super().save(*args, **kwargs)
-    
-    def _str_(self):
-        return f"{self.product.title} - {self.file_type}"
 
+    def __str__(self):
+        return f"{self.product.title} - {self.color_name or 'General'} ({self.file_type})"
 
 class Coupon(models.Model):
     DISCOUNT_TYPE_CHOICES = (
@@ -313,3 +315,25 @@ class Client(models.Model):
     status = models.CharField(max_length=10, choices=STATUS_CHOICES, default='active')
     created_at = models.DateTimeField(auto_now_add=True)
 
+
+class GeneralFAQ(models.Model):
+    """
+    Model for General Frequently Asked Questions (not tied to a product).
+    """
+    
+    question = models.CharField(max_length=255, verbose_name='Question')
+    answer = models.TextField(verbose_name='Answer')
+    
+    # Used for display order
+    order = models.IntegerField(default=0, verbose_name='Display Order')
+    is_active = models.BooleanField(default=True, verbose_name='Is Active')
+    
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        verbose_name = 'General FAQ'
+        verbose_name_plural = 'General FAQs'
+        ordering = ['order', '-created_at'] 
+
+    def _str_(self):
+        return f"FAQ (Order {self.order}): {self.question[:50]}"

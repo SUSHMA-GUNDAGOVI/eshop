@@ -1,6 +1,7 @@
 {% extends 'landing_base.html' %}
 {% load static %}
 
+
 {% block title %}{{ product.name }} Details{% endblock %}
 
 {% block content %}
@@ -150,9 +151,7 @@
     transition: all 0.2s ease;
 }
 
-.color-buttons label.selected {
-    border: 3px solid #000;
-}
+
 
 .size-buttons input[type="radio"],
 .color-buttons input[type="radio"] {
@@ -417,36 +416,30 @@
     <div class="container">
         <div class="row">
             <!-- LEFT -->
-            <div class="col-lg-6 d-flex">
-                <div class="product-gallery w-100">
-                 <div class="thumbnail-list">
-                        <!-- Main product photo as first thumbnail -->
-                        {% if product.photo %}
-                        <img src="{{ product.photo.url }}" alt="{{ product.title }}" class="thumb active" data-index="0">
-                        {% endif %}
-                        
-                        <!-- Additional images from ProductMedia -->
-                        {% for media in product.media_files.all %}
-                            {% if media.file_type == 'image' %}
-                            <img src="{{ media.file.url }}" alt="{{ product.title }} - Image {{ forloop.counter }}" 
-                                class="thumb" data-index="{{ forloop.counter }}">
-                            {% endif %}
-                        {% endfor %}
-                        
-                        <!-- Fallback if no images -->
-                        {% if not product.photo and not product.media_files.all %}
-                        <img src="{% static 'assets/img/product/placeholder.jpg' %}" alt="No image" class="thumb active" data-index="0">
-                        {% endif %}
-         </div>
-                    <div class="main-image-wrapper">
-                        <button class="carousel-btn prev">&lt;</button>
-                        <img id="main-product-img"
-                            src="{% if product.photo %}{{ product.photo.url }}{% else %}{% static 'assets/img/product/placeholder.jpg' %}{% endif %}"
-                            class="main-image" alt="{{ product.name }}">
-                        <button class="carousel-btn next">&gt;</button>
-                    </div>
-                </div>
-            </div>
+         <div class="col-lg-6 d-flex align-items-start">
+    <div class="product-gallery w-100">
+        <!-- Thumbnail List -->
+        <div class="thumbnail-list mb-3" id="thumbnail-list">
+            {% for img_url in gallery_images %}
+    <img src="{{ img_url }}" 
+         alt="{{ product.title }} - Image {{ forloop.counter }}"
+         class="thumb {% if forloop.first %}active{% endif %}">
+{% empty %}
+    <img src="{% static 'assets/img/product/placeholder.jpg' %}" alt="No image" class="thumb active">
+{% endfor %}
+        </div>
+
+        <!-- Main Image Wrapper -->
+        <div class="main-image-wrapper position-relative">
+            <button class="carousel-btn prev">&lt;</button>
+           <img id="main-product-img"
+     src="{% if gallery_images %}{{ gallery_images.0 }}{% else %}{% static 'assets/img/product/placeholder.jpg' %}{% endif %}"
+     class="main-image img-fluid"
+     alt="{{ product.title }}">
+            <button class="carousel-btn next">&gt;</button>
+        </div>
+    </div>
+</div>
 
             <!-- RIGHT -->
             <div class="col-lg-6">
@@ -469,6 +462,7 @@
                     <form id="add-to-cart-form" action="{% url 'add_to_cart' product.pk %}" method="POST">
                         {% csrf_token %}
                         <input type="hidden" name="product_id" value="{{ product.pk }}">
+                        <input type="hidden" name="selected_image" id="selected-image">
 
                         <div class="mb-3 size-buttons">
                             <span class="fw-bold">Sizes:</span><br>
@@ -480,16 +474,28 @@
                             {% endfor %}
                         </div>
 
-                        <div class="mb-4 color-buttons">
-                            <span class="fw-bold">Colors:</span><br>
-                            {% for color in colors %}
-                            <input type="radio" id="color-{{ forloop.counter }}" name="color" value="{{ color.name }}"
-                                {% if color.name == selected_color %}checked{% endif %}>
-                            <label for="color-{{ forloop.counter }}"
-                                class="{% if color.name == selected_color %}selected{% endif %}"
-                                style="background: {{ color.code }}"></label>
-                            {% endfor %}
-                        </div>
+                     <div class="mb-4 color-buttons">
+    <span class="fw-bold d-block mb-2">Colors:</span>
+    <div class="d-flex flex-wrap gap-3">
+        {% for color in colors %}
+        <div class="text-center">
+            <input type="radio" 
+                   id="color-{{ forloop.counter }}" 
+                   name="color" 
+                   value="{{ color.name }}"
+                   {% if forloop.first %}checked{% endif %}>
+            
+            <label for="color-{{ forloop.counter }}"
+                   class="color-img-label {% if forloop.first %}selected{% endif %}" 
+                   data-color="{{ color.name }}"
+                   data-images="{{ color.images|safe }}">
+                <img src="{{ color.thumb }}" alt="{{ color.name }}" class="color-thumb">
+            </label>
+        </div>
+        {% endfor %}
+    </div>
+</div>
+
 
                         <div class="d-flex align-items-center mb-3 gap-2">
                             <input type="number" name="quantity" value="1" min="1" max="100"
@@ -668,34 +674,70 @@
 
 <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
 <script>
-// ===== Thumbnail + Carousel =====
-const thumbs = document.querySelectorAll('.thumb');
-const mainImg = document.getElementById('main-product-img');
+// ===== Image Gallery & Carousel Logic =====
+let thumbs = document.querySelectorAll('.thumb');
+let mainImg = document.getElementById('main-product-img');
 let currentIndex = 0;
-const imageList = Array.from(thumbs).map(img => img.src);
+let imageList = Array.from(thumbs).map(img => img.src);
 
-thumbs.forEach((thumb, index) => {
-    thumb.addEventListener('click', () => {
-        currentIndex = index;
-        updateImage();
-    });
-});
+const prevButton = document.querySelector('.carousel-btn.prev');
+const nextButton = document.querySelector('.carousel-btn.next');
+const thumbnailList = document.getElementById('thumbnail-list');
 
-document.querySelector('.carousel-btn.prev').addEventListener('click', () => {
-    currentIndex = (currentIndex - 1 + imageList.length) % imageList.length;
-    updateImage();
-});
-document.querySelector('.carousel-btn.next').addEventListener('click', () => {
-    currentIndex = (currentIndex + 1) % imageList.length;
-    updateImage();
-});
 function updateImage() {
+    if (imageList.length === 0) return;
+
     mainImg.src = imageList[currentIndex];
     thumbs.forEach(t => t.classList.remove('active'));
-    thumbs[currentIndex].classList.add('active');
+    if (thumbs[currentIndex]) thumbs[currentIndex].classList.add('active');
+    
+    updateSelectedImage(); // ← update hidden input
 }
 
-// ===== Dynamic size & color selection =====
+function handleThumbnailClick(index) {
+    currentIndex = index;
+    updateImage();
+}
+
+function bindThumbnailEvents() {
+    thumbs = document.querySelectorAll('.thumb');
+    imageList = Array.from(thumbs).map(img => img.src);
+
+    thumbs.forEach((thumb, index) => {
+        // Remove previous listeners to prevent duplicates
+        const newThumb = thumb.cloneNode(true);
+        thumb.parentNode.replaceChild(newThumb, thumb);
+        newThumb.addEventListener('click', () => handleThumbnailClick(index));
+    });
+    // Re-select thumbs after replacement
+    thumbs = document.querySelectorAll('.thumb');
+}
+
+function bindCarouselControls() {
+    // Rebind Prev/Next button logic using the current imageList
+    prevButton.onclick = () => {
+        currentIndex = (currentIndex - 1 + imageList.length) % imageList.length;
+        updateImage();
+    };
+    nextButton.onclick = () => {
+        currentIndex = (currentIndex + 1) % imageList.length;
+        updateImage();
+    };
+}
+
+function initializeGallery() {
+    bindThumbnailEvents(); // Initialize thumbnails and imageList
+    bindCarouselControls(); // Initialize carousel buttons
+    // Set initial active state for the first image
+    if (thumbs.length > 0) {
+        thumbs[0].classList.add('active');
+    }
+}
+
+// Initial setup on page load
+initializeGallery(); 
+
+// ===== Dynamic size selection =====
 const sizeLabels = document.querySelectorAll('.size-buttons label');
 sizeLabels.forEach(label => {
     label.addEventListener('click', () => {
@@ -704,11 +746,49 @@ sizeLabels.forEach(label => {
     });
 });
 
+// ===== Dynamic color selection + gallery update =====
 const colorLabels = document.querySelectorAll('.color-buttons label');
+
 colorLabels.forEach(label => {
     label.addEventListener('click', () => {
+        // Visually select color
         colorLabels.forEach(l => l.classList.remove('selected'));
         label.classList.add('selected');
+
+        // Get images from data attribute
+        const imagesData = label.getAttribute('data-images');
+        let images = [];
+        
+        try {
+            // Parse the JSON string
+            images = JSON.parse(imagesData.replace(/'/g, '"'));
+        } catch (e) {
+            console.error('Error parsing images:', e);
+            return;
+        }
+
+        // Clear existing thumbnails
+        thumbnailList.innerHTML = '';
+
+        // Populate thumbnails with new images
+        images.forEach((imgUrl, index) => {
+            const thumb = document.createElement('img');
+            thumb.src = imgUrl;
+            thumb.alt = `Image ${index + 1}`;
+            thumb.className = 'thumb';
+            if (index === 0) thumb.classList.add('active');
+            
+            thumbnailList.appendChild(thumb);
+        });
+
+        // Update main image and reset index
+        if (images.length > 0) {
+            mainImg.src = images[0];
+            currentIndex = 0;
+            updateSelectedImage(); // ← add this line
+        }
+
+        initializeGallery();
     });
 });
 
@@ -718,22 +798,25 @@ function toggleAccordion(header) {
     const icon = header.querySelector('.accordion-icon');
     const isActive = content.classList.contains('active');
     
-    // Close all accordions
-    document.querySelectorAll('.accordion-content').forEach(item => {
+    // Close all other open accordions
+    document.querySelectorAll('.accordion-content.active').forEach(item => {
         item.classList.remove('active');
-    });
-    document.querySelectorAll('.accordion-icon').forEach(item => {
-        item.textContent = '+';
+        item.previousElementSibling.querySelector('.accordion-icon').textContent = '+';
     });
     
-    // Open clicked accordion if it was closed
     if (!isActive) {
         content.classList.add('active');
         icon.textContent = '−';
     }
 }
 
-// ===== Prevent submit if size/color not selected =====
+// Bind accordion click events
+document.querySelectorAll('.accordion-header').forEach(header => {
+    header.addEventListener('click', () => toggleAccordion(header));
+});
+
+
+// ===== Form Validation and Toastify messages =====
 document.getElementById('add-to-cart-form').addEventListener('submit', function (e) {
     const selectedSize = document.querySelector('input[name="size"]:checked');
     const selectedColor = document.querySelector('input[name="color"]:checked');
@@ -750,7 +833,29 @@ document.getElementById('add-to-cart-form').addEventListener('submit', function 
     }
 });
 
-// ===== Toastify messages from GET params =====
+document.getElementById('buy-now-btn').addEventListener('click', function(e) {
+    const size = document.querySelector('input[name="size"]:checked')?.value;
+    const color = document.querySelector('input[name="color"]:checked')?.value;
+    const quantity = document.querySelector('input[name="quantity"]').value || 1;
+
+    if (!size || !color) {
+        e.preventDefault();
+        Toastify({
+            text: "Please select a size and color!",
+            duration: 3000,
+            close: true,
+            gravity: "top",
+            position: "right",
+            backgroundColor: "#ff9800",
+        }).showToast();
+        return;
+    }
+
+    // Assuming a buy_now URL exists as per your original logic
+    window.location.href = `{% url 'buy_now' product.id %}?size=${size}&color=${color}&quantity=${quantity}`;
+});
+
+// ===== Toastify messages from GET params and URL cleanup =====
 {% if request.GET.cart_added %}
 Toastify({
     text: "Product added to cart!",
@@ -773,7 +878,7 @@ Toastify({
 }).showToast();
 {% endif %}
 
-// Remove GET params so toast doesn't show on refresh
+// Remove GET params so toast doesn't repeat
 if (window.history.replaceState) {
     const cleanUrl = window.location.protocol + "//" + window.location.host + window.location.pathname;
     window.history.replaceState({}, document.title, cleanUrl);
@@ -781,61 +886,106 @@ if (window.history.replaceState) {
 
 // ===== Wishlist Toggle for Related Products =====
 $(document).ready(function() {
+    // Add logic to handle the initial state/display of color-thumbs as well
+    // ... your existing color-buttons logic
+    
+    // Add logic to select the primary color label if none is selected on load
+    const initiallySelectedColor = document.querySelector('input[name="color"]:checked');
+    if (initiallySelectedColor) {
+        const correspondingLabel = document.querySelector(`label[for="${initiallySelectedColor.id}"]`);
+        if(correspondingLabel) {
+            correspondingLabel.classList.add('selected');
+        }
+    } else {
+        // If no color is pre-selected (e.g., from URL), select the first one visually
+        const firstColorLabel = document.querySelector('.color-buttons label:first-of-type');
+        if(firstColorLabel) {
+            firstColorLabel.classList.add('selected');
+        }
+    }
+    
     $('.wishlist-btn-related').on('click', function(e) {
         e.preventDefault();
         var btn = $(this);
         var productId = btn.data('product-id');
-        var csrftoken = $('[name=csrfmiddlewaretoken]').val();  // Assuming CSRF in form
+        var csrftoken = $('[name=csrfmiddlewaretoken]').val();
 
         $.ajax({
-            url: '/toggle-wishlist/' + productId + '/',
+            // NOTE: Ensure your Django URL for toggle-wishlist is correctly configured.
+            url: '/toggle-wishlist/' + productId + '/', 
             type: 'POST',
-            data: {
-                'csrfmiddlewaretoken': csrftoken
-            },
+            data: { 'csrfmiddlewaretoken': csrftoken },
             dataType: 'json',
             success: function(response) {
                 if (response.status === 'ok') {
                     var heartIcon = btn.find('i');
-
                     if (response.is_added) {
-                        heartIcon.removeClass('heart-outlined').addClass('fa fa-heart').css('color', '#ff0000');
+                        // Change to solid red heart
+                        heartIcon.removeClass('heart-outlined fa-heart-o').addClass('fa fa-heart').css('color', '#ff0000');
                     } else {
-                        heartIcon.removeClass('fa fa-heart').addClass('heart-outlined').css('color', '');
+                        // Change to outlined heart
+                        heartIcon.removeClass('fa-heart').addClass('heart-outlined fa-heart-o').css('color', '');
                     }
-                    // Refresh the page to reflect the latest wishlist state
-                    window.location.reload();
+                    // A full page reload might be unnecessary for just a change in a related product list, 
+                    // but keeping it if your Django template/context relies on it.
+                    // window.location.reload(); 
                 }
             },
             error: function(xhr) {
-                console.log('Error:', xhr.responseText);
                 alert('Something went wrong. Please try again.');
             }
         });
     });
 });
 </script>
+
 <script>
-document.getElementById('buy-now-btn').addEventListener('click', function(e) {
-    const size = document.querySelector('input[name="size"]:checked')?.value;
-    const color = document.querySelector('input[name="color"]:checked')?.value;
-    const quantity = document.querySelector('input[name="quantity"]').value || 1;
+    function updateSelectedColor(colorName) {
+    document.getElementById('selected_color_input').value = colorName;
+}
 
-    if (!size || !color) {
-        e.preventDefault();
-        Toastify({
-            text: "Please select a size and color!",
-            duration: 3000,
-            close: true,
-            gravity: "top",
-            position: "right",
-            backgroundColor: "#ff9800",
-        }).showToast();
-        return;
+// Function to update hidden input for currently visible image
+function updateSelectedImage() {
+    const selectedImageInput = document.getElementById('selected-image');
+    if (selectedImageInput && mainImg && mainImg.src) {
+        selectedImageInput.value = mainImg.src;
     }
+}
 
-    // Redirect to buy_now URL with selected options
-    window.location.href = `{% url 'buy_now' product.id %}?size=${size}&color=${color}&quantity=${quantity}`;
+// On color select
+colorLabels.forEach(label => {
+    label.addEventListener('click', () => {
+        const selectedColor = label.getAttribute('data-color');
+        updateSelectedColor(selectedColor);
+        updateSelectedImage(); // also set first image of that color
+    });
+});
+
+// When thumbnail clicked or carousel changes
+function handleThumbnailClick(index) {
+    currentIndex = index;
+    updateImage();
+    updateSelectedImage(); // update hidden image input when switching image
+}
+
+// When next/prev buttons clicked
+prevButton.onclick = () => {
+    currentIndex = (currentIndex - 1 + imageList.length) % imageList.length;
+    updateImage();
+    updateSelectedImage();
+};
+nextButton.onclick = () => {
+    currentIndex = (currentIndex + 1) % imageList.length;
+    updateImage();
+    updateSelectedImage();
+};
+
+// Initialize default selected color and image on page load
+window.addEventListener('DOMContentLoaded', () => {
+    const defaultColor = document.querySelector('input[name="color"]:checked')?.value || '';
+    if (defaultColor) updateSelectedColor(defaultColor);
+    updateSelectedImage();
 });
 </script>
+
 {% endblock %}

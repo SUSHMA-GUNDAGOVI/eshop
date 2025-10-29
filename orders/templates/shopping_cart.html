@@ -75,19 +75,23 @@
                             {% if cart_items %}
                                 {% for item in cart_items %}
                                     <tr class="cart-row" data-item-id="{{ item.item_id }}" data-price="{{ item.price }}">
-                                        <td class="product__cart__item">
-                                            <div class="product__cart__item__pic">
-                                                <img src="{{ item.product.photo.url }}" alt="{{ item.product.title }}" style="max-width: 100px;">
-                                            </div>
-                                            <div class="product__cart__item__text">
-                                                <h6>{{ item.product.title }}</h6>
-                                                <p>
-                                                    {% if item.size != 'N/A' %}Size: {{ item.size }}{% endif %}
-                                                    {% if item.size != 'N/A' and item.color != 'N/A' %} | {% endif %}
-                                                    {% if item.color != 'N/A' %}Color: {{ item.color }}{% endif %}
-                                                </p>
-                                            </div>
-                                        </td>
+                                       <td class="product__cart__item">
+    <div class="product__cart__item__pic">
+        {% if item.selected_image %}
+            <img src="{{ item.selected_image }}" alt="{{ item.product.title }}" style="max-width: 100px; border-radius: 8px;">
+        {% else %}
+            <img src="{{ item.product.photo.url }}" alt="{{ item.product.title }}" style="max-width: 100px; border-radius: 8px;">
+        {% endif %}
+    </div>
+    <div class="product__cart__item__text">
+        <h6>{{ item.product.title }}</h6>
+        <p class="mb-0 text-muted small">
+            {% if item.size != 'N/A' %}Size: {{ item.size }}{% endif %}
+            {% if item.size != 'N/A' and item.color != 'N/A' %} | {% endif %}
+            {% if item.color != 'N/A' %}Color: {{ item.color }}{% endif %}
+        </p>
+    </div>
+</td>
 
                                         <td class="cart__price">₹<span class="item-price">{{ item.price|floatformat:2 }}</span></td>
                                         

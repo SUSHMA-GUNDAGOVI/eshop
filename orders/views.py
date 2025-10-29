@@ -19,6 +19,9 @@ from .models import Wishlist, Address
 from .models import Cart
 from django.db.models import Q
 from django.template.loader import render_to_string
+from django.db import transaction
+from django.db.models import Max 
+from eshop_app.models import GeneralFAQ
 
 
 
@@ -61,50 +64,68 @@ def index(request):
 
 def product_detail_view(request, pk):
     product = get_object_or_404(Product, pk=pk)
-    
-    # Process sizes - split comma-separated string
-    sizes = []
-    if product.size:
-        sizes = [size.strip() for size in product.size.split(',')]
-    
-    # Process colors
+
+    sizes = [s.strip() for s in product.size.split(',')] if product.size else []
+
     colors = []
-    if hasattr(product, 'color_data') and product.color_data:
-        colors = product.color_data
-    
-    # Get related products from the same category (exclude current product)
-    related_products = Product.objects.filter(
-        category=product.category,
-        status='active'
-    ).exclude(pk=product.pk).order_by('-created_at')[:4]  # Show 4 related products
-    
-    # Get wishlisted product IDs for authenticated users
-    if request.user.is_authenticated:
-        wishlisted_ids = Wishlist.objects.filter(user=request.user).values_list('product_id', flat=True)
-    else:
-        wishlisted_ids = []
-    
+    primary_color = None
+    gallery_images = []
+
+    # Get all color groups
+    if product.color_data:
+        for color in product.color_data:
+            color_name = color['name']
+            media = product.media_files.filter(
+                file_type='image',
+                color_name__iexact=color_name
+            )
+
+            if media.exists():
+                # Sort: primary first, then others
+                ordered = list(media.order_by('-is_primary', '-id'))
+                color['images'] = [m.file.url for m in ordered]
+                color['thumb'] = ordered[0].file.url
+                colors.append(color)
+
+        # Pick first color as default (main display)
+        if colors:
+            primary_color = colors[0]['name']
+            gallery_images = colors[0]['images']
+
+    # Fallback: no color-specific images
+    if not gallery_images:
+        gallery_images = [
+            m.file.url for m in product.media_files.filter(file_type='image').order_by('-is_primary', '-id')
+        ]
+
+    # ✅ Mark which color is currently displayed
+    for color in colors:
+        color['is_current'] = (color['name'] == primary_color)
+
     context = {
-        'product': product,
-        'sizes': sizes,
-        'colors': colors,
-        'related_products': related_products,
-        'wishlisted_ids': wishlisted_ids,
+        "product": product,
+        "sizes": sizes,
+        "colors": colors,
+        "gallery_images": gallery_images,
+        "primary_color": primary_color,
     }
-    return render(request, 'product_details.html', context)
+
+    return render(request, "product_details.html", context)
 
 
 @login_required
 def add_to_cart_view(request, product_id):
     """
     Adds a product to the cart if size and color are selected.
+    Stores selected image as well.
     Shows toast if already in cart or not selected.
     """
     if request.method == 'POST':
         product = get_object_or_404(Product, pk=product_id)
 
         selected_size = request.POST.get('size', '').strip()
-        selected_color = request.POST.get('color', '').strip()
+        selected_color = request.POST.get('selected_color', '').strip() or request.POST.get('color', '').strip()
+        selected_image = request.POST.get('selected_image', '').strip()
 
         try:
             quantity = int(request.POST.get('quantity', 1))
@@ -113,12 +134,11 @@ def add_to_cart_view(request, product_id):
 
         redirect_url = reverse('product_detail', kwargs={'pk': product_id})
 
-        # Validate size & color selection
+        # ✅ Validate size & color selection
         if not selected_size or not selected_color:
-            # Neither size nor color selected
             return redirect(f"{redirect_url}?cart_invalid=1")
 
-        # Check if the item already exists in cart
+        # ✅ Check if the same product variant already exists in the cart
         cart_item = Cart.objects.filter(
             user=request.user,
             product=product,
@@ -127,16 +147,17 @@ def add_to_cart_view(request, product_id):
         ).first()
 
         if cart_item:
-            # Already in cart
+            # ✅ Already in cart
             return redirect(f"{redirect_url}?cart_exists=1")
         else:
-            # Not in cart → create new
+            # ✅ Create new cart item and store image
             Cart.objects.create(
                 user=request.user,
                 product=product,
                 size=selected_size,
                 color=selected_color,
-                quantity=quantity
+                quantity=quantity,
+                selected_image=selected_image  # ← store image URL/path here
             )
             return redirect(f"{redirect_url}?cart_added=1")
 
@@ -156,7 +177,7 @@ def shopping_cart_view(request):
     cart_items = Cart.objects.filter(user=request.user).select_related('product')
 
     if not cart_items.exists():
-        return redirect('shop_all_products')
+        return redirect('shop_all')
 
     cart_subtotal = Decimal('0.00')
     total_shipping = Decimal('0.00')
@@ -181,6 +202,15 @@ def shopping_cart_view(request):
 
         total_shipping += product_shipping
 
+        # ✅ Use selected image if available, otherwise fall back to product main image
+        if item.selected_image:
+            image_url = item.selected_image
+        else:
+            try:
+                image_url = product.photo.url
+            except Exception:
+                image_url = ""
+
         enriched_items.append({
             'product': product,
             'quantity': item.quantity,
@@ -190,6 +220,7 @@ def shopping_cart_view(request):
             'line_total': line_total,
             'item_id': item.id,
             'shipping_charge': product_shipping,
+            'selected_image': image_url,  # ✅ Added field for display in template
         })
 
     # ✅ If all items are free shipping
@@ -199,7 +230,7 @@ def shopping_cart_view(request):
     # ✅ Compute totals
     order_total = cart_subtotal + total_shipping
 
-    # ✅ Handle applied coupon (do not remove it)
+    # ✅ Handle applied coupon
     applied_coupon = request.session.get('applied_coupon')
     discount_amount = Decimal('0.00')
 
@@ -841,4 +872,33 @@ def edit_address(request, pk):
         return redirect('account_address')
 
     return redirect('account_address')
+
+def faqs_view(request):
+   """
+    Fetches all active General FAQs, sorted by the 'order' field.
+    The template will display them in one long accordion.
+    """
+    
+    # Fetch only active FAQs, ordered simply by the 'order' field
+   active_faqs = GeneralFAQ.objects.filter(is_active=True)
+    
+    # The QuerySet ordering handles the sorting now: .order_by('order', '-created_at')
+    
+   context = {
+        'faqs_list': active_faqs, # Changed context variable name for clarity
+    }
+    
+   return render(request, 'landing_faq.html', context)
+
+def shipping_policy_view(request):
+    return render(request, 'shipping_policy.html')
+
+def track_order_view(request):
+    return render(request, 'track_order.html')
+
+def return_policy_view(request):
+    return render(request, 'return_policy.html')
+
+
+
 

@@ -1,0 +1,256 @@
+{% extends 'landing_base.html' %}
+{% load static %}
+
+{% block title %}FAQs - Frequently Asked Questions{% endblock %}
+
+{% block content %}
+
+<section class="page-header spad" style="background: linear-gradient(135deg, #ababab 0%, #fff0f0 100%);">
+    <div class="container">
+        <div class="row">
+            <div class="col-lg-12 text-center">
+                <div class="page-header__text">
+                    <h2 data-aos="fade-up" data-aos-duration="800">Frequently Asked Questions</h2>
+                    <p data-aos="fade-up" data-aos-duration="800" data-aos-delay="200">
+                        Find answers to common questions about shopping, shipping, returns, and more
+                    </p>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<section class="faqs-section spad">
+    <div class="container">
+        <div class="row">
+            <div class="col-lg-8 mx-auto">
+                <div class="faq-search mb-5" data-aos="fade-up" data-aos-duration="800">
+                    <div class="input-group">
+                        <input type="text" class="form-control faq-search-input" placeholder="Search for questions...">
+                        <div class="input-group-append">
+                            <button class="btn btn-primary" type="button">
+                                <i class="fa fa-search"></i>
+                            </button>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="accordion" id="faqAccordion">
+
+                    {% for faq in faqs_list %}
+                    <div class="card mb-2" data-aos="fade-up" data-aos-duration="800">
+                        <div class="card-header" id="heading{{ faq.pk }}">
+                            <h5 class="mb-0">
+                                <button class="btn btn-link collapsed" type="button" 
+                                        data-toggle="collapse" 
+                                        data-target="#collapse{{ faq.pk }}" 
+                                        aria-expanded="false" 
+                                        aria-controls="collapse{{ faq.pk }}">
+                                    {{ faq.question }}
+                                </button>
+                            </h5>
+                        </div>
+                        <div id="collapse{{ faq.pk }}" class="collapse" 
+                             aria-labelledby="heading{{ faq.pk }}" 
+                             data-parent="#faqAccordion">
+                            <div class="card-body">
+                                {{ faq.answer|safe }}
+                            </div>
+                        </div>
+                    </div>
+                    {% empty %}
+                        <div class="alert alert-info text-center" role="alert">
+                            <i class="fa fa-info-circle mr-2"></i>No active FAQs are currently available.
+                        </div>
+                    {% endfor %}
+                    
+                </div>
+                <div class="contact-support mt-5 text-center" data-aos="fade-up" data-aos-duration="800">
+                    <div class="support-card p-5 rounded" style="background: #f8f9fa;">
+                        <h3 class="mb-3">Still Have Questions?</h3>
+                        <p class="mb-4">Can't find the answer you're looking for? Please chat with our friendly team.</p>
+                        <div class="support-buttons">
+                            <a href="{% url 'landing_contact' %}" class="primary-btn mr-3">Contact Us</a>
+                            <a href="tel:+11234567890" class="secondary-btn">
+                                <i class="fa fa-phone mr-2"></i>Call Us
+                            </a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<style>
+/* FAQ Page Specific Styles */
+.page-header {
+    padding: 80px 0;
+    color: white;
+}
+
+.page-header__text h2 {
+    font-size: 3rem;
+    font-weight: 700;
+    margin-bottom: 1rem;
+}
+
+.page-header__text p {
+    font-size: 1.2rem;
+    opacity: 0.9;
+}
+
+.faqs-section {
+    padding: 80px 0;
+}
+
+.faq-search-input {
+    height: 60px;
+    border-radius: 30px 0 0 30px;
+    border: 2px solid #e9ecef;
+    padding: 0 25px;
+    font-size: 1rem;
+}
+
+.faq-search-input:focus {
+    border-color: #007bff;
+    box-shadow: none;
+}
+
+.faq-search .btn {
+    border-radius: 0 30px 30px 0;
+    padding: 0 30px;
+    background: #e53637;
+    border: 2px solid #e53637;
+}
+
+/* --- ACCORDION STYLES RESTORED --- */
+.accordion .card {
+    border: 1px solid #e9ecef;
+    border-radius: 10px;
+    margin-bottom: 10px;
+    box-shadow: 0 2px 10px rgba(0,0,0,0.05);
+}
+
+.accordion .card-header {
+    background: white;
+    border: none;
+    padding: 0;
+}
+
+.accordion .btn-link {
+    color: #2c3e50;
+    text-decoration: none;
+    font-weight: 500;
+    font-size: 1.1rem;
+    width: 100%;
+    text-align: left;
+    padding: 20px 25px;
+    position: relative;
+}
+
+.accordion .btn-link:after {
+    content: '+';
+    position: absolute;
+    right: 25px;
+    top: 50%;
+    transform: translateY(-50%);
+    font-size: 1.5rem;
+    font-weight: 300;
+}
+
+.accordion .btn-link:not(.collapsed):after {
+    content: '-';
+}
+
+.accordion .btn-link:hover {
+    color: #e53637;
+    text-decoration: none;
+}
+
+.accordion .card-body {
+    padding: 25px;
+    background: #f8f9fa;
+    border-radius: 0 0 10px 10px;
+}
+/* --- END ACCORDION STYLES RESTORED --- */
+
+
+.support-card {
+    border: 2px dashed #dee2e6;
+}
+
+.secondary-btn {
+    display: inline-block;
+    padding: 12px 30px;
+    background: white;
+    color: #e53637;
+    border: 2px solid #e53637;
+    border-radius: 30px;
+    text-decoration: none;
+    font-weight: 500;
+    transition: all 0.3s ease;
+}
+
+.secondary-btn:hover {
+    background: #e53637;
+    color: white;
+    text-decoration: none;
+}
+
+/* Responsive Design */
+@media (max-width: 768px) {
+    .page-header__text h2 {
+        font-size: 2rem;
+    }
+    
+    .page-header__text p {
+        font-size: 1rem;
+    }
+    
+    .accordion .btn-link {
+        font-size: 1rem;
+        padding: 15px 20px;
+    }
+    
+    .support-buttons .primary-btn,
+    .support-buttons .secondary-btn {
+        display: block;
+        margin: 10px auto;
+        width: 200px;
+    }
+}
+</style>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // FAQ Search Functionality (Works on the flat accordion list)
+    const faqSearch = document.querySelector('.faq-search-input');
+    const faqItems = document.querySelectorAll('.accordion .card'); 
+    
+    if (faqSearch) {
+        faqSearch.addEventListener('input', function(e) {
+            const searchTerm = e.target.value.toLowerCase();
+            
+            faqItems.forEach(item => {
+                const question = item.querySelector('.btn-link').textContent.toLowerCase();
+                const answer = item.querySelector('.card-body').textContent.toLowerCase();
+                const collapseElement = item.querySelector('.collapse');
+                
+                if (question.includes(searchTerm) || answer.includes(searchTerm)) {
+                    item.style.display = 'block';
+                    // Open matching item if it's currently closed
+                    if (searchTerm && !collapseElement.classList.contains('show')) {
+                        // Use jQuery or native element to trigger collapse if Bootstrap is included
+                        $(collapseElement).collapse('show'); 
+                    }
+                } else {
+                    item.style.display = 'none';
+                }
+            });
+        });
+    }
+});
+</script>
+
+{% endblock %}

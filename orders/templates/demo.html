@@ -1,729 +1,943 @@
-<!DOCTYPE html>
-<html lang="zxx">
+{% extends 'landing_base.html' %}
+{% load static %}
 
-<head>
-    <meta charset="UTF-8">
-    <meta name="description" content="Male_Fashion Template">
-    <meta name="keywords" content="Male_Fashion, unica, creative, html">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <meta http-equiv="X-UA-Compatible" content="ie=edge">
-    <title>Male-Fashion | Template</title>
 
-    <!-- Google Font -->
-    <link href="https://fonts.googleapis.com/css2?family=Nunito+Sans:wght@300;400;600;700;800;900&display=swap"
-    rel="stylesheet">
+{% block title %}{{ product.name }} Details{% endblock %}
 
-    <!-- Css Styles -->
-    <link rel="stylesheet" href="css/bootstrap.min.css" type="text/css">
-    <link rel="stylesheet" href="css/font-awesome.min.css" type="text/css">
-    <link rel="stylesheet" href="css/elegant-icons.css" type="text/css">
-    <link rel="stylesheet" href="css/magnific-popup.css" type="text/css">
-    <link rel="stylesheet" href="css/nice-select.css" type="text/css">
-    <link rel="stylesheet" href="css/owl.carousel.min.css" type="text/css">
-    <link rel="stylesheet" href="css/slicknav.min.css" type="text/css">
-    <link rel="stylesheet" href="css/style.css" type="text/css">
-</head>
+{% block content %}
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/toastify-js/src/toastify.min.css">
+<script src="https://cdn.jsdelivr.net/npm/toastify-js"></script>
 
-<body>
-    <!-- Page Preloder -->
-    <div id="preloder">
-        <div class="loader"></div>
+<style>
+/* ====== Styles ====== */
+.product-details-section {
+    padding: 60px 0;
+}
+
+.product-gallery {
+    display: flex;
+    gap: 15px;
+    border-radius: 10px;
+    padding: 25px;
+    align-items: flex-start;
+    justify-content: center;
+    height: 100%;
+}
+
+.thumbnail-list {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    padding-top: 0;
+}
+
+.thumbnail-list img {
+    width: 70px;
+    height: 90px;
+    object-fit: cover;
+    border-radius: 6px;
+    cursor: pointer;
+    border: 2px solid transparent;
+    background: #fff;
+    box-shadow: 0 1px 4px rgba(0, 0, 0, 0.1);
+}
+
+.thumbnail-list img.active {
+    border-color: #000;
+}
+
+.main-image-wrapper {
+    position: relative;
+    display: inline-block;
+}
+
+.main-image {
+    width: 420px;
+    height: 500px;
+    object-fit: cover;
+    border-radius: 8px;
+    background: #fff;
+    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.05);
+}
+
+.carousel-btn {
+    position: absolute;
+    top: 50%;
+    transform: translateY(-50%);
+    font-size: 18px;
+    background: #f0f0f0;
+    border: 1px solid #ccc;
+    border-radius: 50%;
+    width: 40px;
+    height: 40px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: #333;
+    cursor: pointer;
+    z-index: 10;
+    transition: all 0.2s ease;
+}
+
+.carousel-btn:hover {
+    background: #e0e0e0;
+    color: #000;
+    box-shadow: 0 2px 6px rgba(0, 0, 0, 0.2);
+}
+
+.carousel-btn.prev {
+    left: 12px;
+}
+
+.carousel-btn.next {
+    right: 12px;
+}
+
+.product-info {
+    padding-left: 40px;
+    padding-top: 0;
+}
+
+.product-info h2 {
+    font-size: 26px;
+    font-weight: 600;
+    margin-bottom: 10px;
+    margin-top: 0;
+}
+
+.product-info .price {
+    font-size: 22px;
+    color: #222;
+    font-weight: 600;
+    margin: 15px 0;
+}
+
+.product-info .price span {
+    text-decoration: line-through;
+    color: #999;
+    font-size: 18px;
+    margin-left: 10px;
+}
+
+.rating i {
+    color: #ffcc00;
+}
+
+.size-buttons label {
+    border: 1px solid #ccc;
+    padding: 6px 12px;
+    border-radius: 4px;
+    cursor: pointer;
+    margin-right: 5px;
+    transition: all 0.2s ease;
+    background: #fff;
+    color: #000;
+}
+
+.size-buttons label.selected {
+    background: #000;
+    color: #fff;
+    font-weight: 600;
+}
+
+.color-buttons label {
+    width: 25px;
+    height: 25px;
+    display: inline-block;
+    border-radius: 50%;
+    border: 1px solid #ccc;
+    cursor: pointer;
+    margin-right: 5px;
+    transition: all 0.2s ease;
+}
+
+
+
+.size-buttons input[type="radio"],
+.color-buttons input[type="radio"] {
+    display: none;
+}
+
+.primary-btn,
+.buy-now-btn {
+    background: #000;
+    color: #fff;
+    border: none;
+    padding: 12px 30px;
+    border-radius: 4px;
+    margin-right: 10px;
+    transition: 0.3s;
+}
+
+.primary-btn:hover,
+.buy-now-btn:hover {
+    background: #333;
+}
+
+.btn-small {
+    padding: 8px 20px;
+    font-size: 14px;
+    border-radius: 4px;
+}
+
+.quantity-input {
+    width: 70px;
+    padding: 5px 10px;
+    font-size: 14px;
+}
+
+.d-flex.gap-2>* {
+    margin-right: 8px;
+}
+
+/* ====== Accordion Styles ====== */
+.accordion-section {
+    margin-top: 40px;
+    border-top: 1px solid #e0e0e0;
+}
+
+.accordion-item {
+    border-bottom: 1px solid #e0e0e0;
+}
+
+.accordion-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 20px 0;
+    cursor: pointer;
+    user-select: none;
+    transition: all 0.3s ease;
+}
+
+.accordion-header:hover {
+    opacity: 0.7;
+}
+
+.accordion-title {
+    font-size: 16px;
+    font-weight: 600;
+    letter-spacing: 0.5px;
+    text-transform: uppercase;
+    margin: 0;
+}
+
+.accordion-icon {
+    font-size: 20px;
+    font-weight: 300;
+    transition: transform 0.3s ease;
+}
+
+.accordion-content {
+    max-height: 0;
+    overflow: hidden;
+    transition: max-height 0.3s ease;
+    padding: 0;
+}
+
+.accordion-content.active {
+    max-height: 1000px;
+    padding-bottom: 20px;
+}
+
+.accordion-body {
+    color: #666;
+    line-height: 1.8;
+    font-size: 14px;
+}
+
+.accordion-body h4 {
+    font-size: 15px;
+    font-weight: 600;
+    margin-top: 15px;
+    margin-bottom: 10px;
+    color: #333;
+}
+
+.accordion-body ul {
+    padding-left: 20px;
+    margin: 10px 0;
+}
+
+.accordion-body ul li {
+    margin-bottom: 8px;
+}
+
+.review-item {
+    border-bottom: 1px solid #f0f0f0;
+    padding: 15px 0;
+}
+
+.review-item:last-child {
+    border-bottom: none;
+}
+
+.review-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 8px;
+}
+
+.reviewer-name {
+    font-weight: 600;
+    color: #333;
+}
+
+.review-date {
+    color: #999;
+    font-size: 13px;
+}
+
+.review-stars {
+    color: #ffcc00;
+    margin-bottom: 5px;
+}
+
+.review-text {
+    color: #666;
+    font-size: 14px;
+    line-height: 1.6;
+}
+
+/* ====== You May Also Like Section ====== */
+.related-products-section {
+    padding: 60px 0;
+    background: #f8f8f8;
+}
+
+.section-title {
+    text-align: center;
+    font-size: 28px;
+    font-weight: 600;
+    margin-bottom: 40px;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+}
+
+.related-product-card {
+    background: #fff;
+    border-radius: 8px;
+    overflow: hidden;
+    transition: transform 0.3s ease, box-shadow 0.3s ease;
+    margin-bottom: 30px;
+    position: relative;
+}
+
+
+
+.related-product-image {
+    position: relative;
+    overflow: hidden;
+    height: 300px;
+}
+
+.related-product-image img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    transition: transform 0.3s ease;
+}
+
+
+
+.wishlist-btn-related {
+    position: absolute;
+    top: 15px;
+    right: 15px;
+    background: #fff;
+    border: none;
+    width: 35px;
+    height: 35px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    z-index: 10;
+}
+
+.wishlist-btn-related:hover {
+    background: #f0f0f0;
+}
+
+.wishlist-btn-related i {
+    font-size: 16px;
+    color: #666;
+}
+
+.wishlist-btn-related.active i {
+    color: #ff0000;
+}
+
+.related-product-info {
+    padding: 20px;
+}
+
+.related-product-title {
+    font-size: 16px;
+    font-weight: 600;
+    margin-bottom: 8px;
+    color: #333;
+    text-decoration: none;
+    display: block;
+}
+
+.related-product-title:hover {
+    color: #666;
+}
+
+.related-product-price {
+    font-size: 18px;
+    font-weight: 600;
+    color: #222;
+}
+
+.related-product-price .old-price {
+    text-decoration: line-through;
+    color: #999;
+    font-size: 14px;
+    margin-left: 8px;
+}
+
+.heart-outlined {
+    color: #ffffff;
+    text-shadow: 
+        -1px -1px 0 #000,
+        1px -1px 0 #000,
+        -1px 1px 0 #000,
+        1px 1px 0 #000;
+}
+</style>
+
+{% with selected_size=request.GET.size selected_color=request.GET.color %}
+<section class="product-details-section">
+    <div class="container">
+        <div class="row">
+            <!-- LEFT -->
+         <div class="col-lg-6 d-flex align-items-start">
+    <div class="product-gallery w-100">
+        <!-- Thumbnail List -->
+        <div class="thumbnail-list mb-3" id="thumbnail-list">
+            {% for img_url in gallery_images %}
+    <img src="{{ img_url }}" 
+         alt="{{ product.title }} - Image {{ forloop.counter }}"
+         class="thumb {% if forloop.first %}active{% endif %}">
+{% empty %}
+    <img src="{% static 'assets/img/product/placeholder.jpg' %}" alt="No image" class="thumb active">
+{% endfor %}
+        </div>
+
+        <!-- Main Image Wrapper -->
+        <div class="main-image-wrapper position-relative">
+            <button class="carousel-btn prev">&lt;</button>
+           <img id="main-product-img"
+     src="{% if gallery_images %}{{ gallery_images.0 }}{% else %}{% static 'assets/img/product/placeholder.jpg' %}{% endif %}"
+     class="main-image img-fluid"
+     alt="{{ product.title }}">
+            <button class="carousel-btn next">&gt;</button>
+        </div>
     </div>
+</div>
 
-    <!-- Offcanvas Menu Begin -->
-    <div class="offcanvas-menu-overlay"></div>
-    <div class="offcanvas-menu-wrapper">
-        <div class="offcanvas__option">
-            <div class="offcanvas__links">
-                <a href="#">Sign in</a>
-                <a href="#">FAQs</a>
-            </div>
-            <div class="offcanvas__top__hover">
-                <span>Usd <i class="arrow_carrot-down"></i></span>
-                <ul>
-                    <li>USD</li>
-                    <li>EUR</li>
-                    <li>USD</li>
-                </ul>
-            </div>
+            <!-- RIGHT -->
+            <div class="col-lg-6">
+                <div class="product-info">
+                    <h2>{{ product.title }}</h2>
+                    <div class="rating mb-2">
+                        <i class="fa fa-star"></i><i class="fa fa-star"></i>
+                        <i class="fa fa-star"></i><i class="fa fa-star"></i>
+                        <i class="fa fa-star"></i>
+                        <span> (5 Reviews)</span>
+                    </div>
+
+                    <div class="price">
+                        ₹{{ product.price|floatformat:2 }}
+                        {% if product.old_price %}<span>₹{{ product.old_price|floatformat:2 }}</span>{% endif %}
+                    </div>
+
+                 
+
+                    <form id="add-to-cart-form" action="{% url 'add_to_cart' product.pk %}" method="POST">
+                        {% csrf_token %}
+                        <input type="hidden" name="product_id" value="{{ product.pk }}">
+
+                        <div class="mb-3 size-buttons">
+                            <span class="fw-bold">Sizes:</span><br>
+                            {% for size_item in sizes %}
+                            <input type="radio" id="size-{{ forloop.counter }}" name="size" value="{{ size_item }}"
+                                {% if size_item == selected_size %}checked{% endif %}>
+                            <label for="size-{{ forloop.counter }}"
+                                class="{% if size_item == selected_size %}selected{% endif %}">{{ size_item }}</label>
+                            {% endfor %}
+                        </div>
+
+                     <div class="mb-4 color-buttons">
+    <span class="fw-bold d-block mb-2">Colors:</span>
+    <div class="d-flex flex-wrap gap-3">
+        {% for color in colors %}
+        <div class="text-center">
+            <input type="radio" 
+                   id="color-{{ forloop.counter }}" 
+                   name="color" 
+                   value="{{ color.name }}"
+                   {% if forloop.first %}checked{% endif %}>
+            
+            <label for="color-{{ forloop.counter }}"
+                   class="color-img-label {% if forloop.first %}selected{% endif %}" 
+                   data-color="{{ color.name }}"
+                   data-images="{{ color.images|safe }}">
+                <img src="{{ color.thumb }}" alt="{{ color.name }}" class="color-thumb">
+            </label>
         </div>
-        <div class="offcanvas__nav__option">
-            <a href="#" class="search-switch"><img src="img/icon/search.png" alt=""></a>
-            <a href="#"><img src="img/icon/heart.png" alt=""></a>
-            <a href="#"><img src="img/icon/cart.png" alt=""> <span>0</span></a>
-            <div class="price">$0.00</div>
-        </div>
-        <div id="mobile-menu-wrap"></div>
-        <div class="offcanvas__text">
-            <p>Free shipping, 30-day return or refund guarantee.</p>
+        {% endfor %}
+    </div>
+</div>
+
+
+                        <div class="d-flex align-items-center mb-3 gap-2">
+                            <input type="number" name="quantity" value="1" min="1" max="100"
+                                class="form-control quantity-input">
+                            <button type="submit" class="primary-btn btn-small">Add to Cart</button>
+                        <a href="javascript:void(0);" id="buy-now-btn" class="primary-btn btn-small">
+   Buy Now
+</a>
+
+                        </div>
+                    </form>
+
+                    <!-- ACCORDION SECTION -->
+                    <div class="accordion-section">
+                        <!-- DETAILS -->
+                        <div class="accordion-item">
+    <div class="accordion-header" onclick="toggleAccordion(this)">
+        <h3 class="accordion-title">DETAILS</h3>
+        <span class="accordion-icon">+</span>
+    </div>
+    <div class="accordion-content">
+        <div class="accordion-body">
+            <!-- Use product.description from database -->
+            {{ product.description|linebreaksbr }}
         </div>
     </div>
-    <!-- Offcanvas Menu End -->
+</div>
 
-    <!-- Header Section Begin -->
-    <header class="header">
-        <div class="header__top">
-            <div class="container">
-                <div class="row">
-                    <div class="col-lg-6 col-md-7">
-                        <div class="header__top__left">
-                            <p>Free shipping, 30-day return or refund guarantee.</p>
-                        </div>
-                    </div>
-                    <div class="col-lg-6 col-md-5">
-                        <div class="header__top__right">
-                            <div class="header__top__links">
-                                <a href="#">Sign in</a>
-                                <a href="#">FAQs</a>
+                        <!-- REVIEWS -->
+                        <div class="accordion-item">
+                            <div class="accordion-header" onclick="toggleAccordion(this)">
+                                <h3 class="accordion-title">REVIEWS</h3>
+                                <span class="accordion-icon">+</span>
                             </div>
-                            <div class="header__top__hover">
-                                <span>Usd <i class="arrow_carrot-down"></i></span>
-                                <ul>
-                                    <li>USD</li>
-                                    <li>EUR</li>
-                                    <li>USD</li>
-                                </ul>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </div>
-        <div class="container">
-            <div class="row">
-                <div class="col-lg-3 col-md-3">
-                    <div class="header__logo">
-                        <a href="./index.html"><img src="img/logo.png" alt=""></a>
-                    </div>
-                </div>
-                <div class="col-lg-6 col-md-6">
-                    <nav class="header__menu mobile-menu">
-                        <ul>
-                            <li class="active"><a href="./index.html">Home</a></li>
-                            <li><a href="./shop.html">Shop</a></li>
-                            <li><a href="#">Pages</a>
-                                <ul class="dropdown">
-                                    <li><a href="./about.html">About Us</a></li>
-                                    <li><a href="./shop-details.html">Shop Details</a></li>
-                                    <li><a href="./shopping-cart.html">Shopping Cart</a></li>
-                                    <li><a href="./checkout.html">Check Out</a></li>
-                                    <li><a href="./blog-details.html">Blog Details</a></li>
-                                </ul>
-                            </li>
-                            <li><a href="./blog.html">Blog</a></li>
-                            <li><a href="./contact.html">Contacts</a></li>
-                        </ul>
-                    </nav>
-                </div>
-                <div class="col-lg-3 col-md-3">
-                    <div class="header__nav__option">
-                        <a href="#" class="search-switch"><img src="img/icon/search.png" alt=""></a>
-                        <a href="#"><img src="img/icon/heart.png" alt=""></a>
-                        <a href="#"><img src="img/icon/cart.png" alt=""> <span>0</span></a>
-                        <div class="price">$0.00</div>
-                    </div>
-                </div>
-            </div>
-            <div class="canvas__open"><i class="fa fa-bars"></i></div>
-        </div>
-    </header>
-    <!-- Header Section End -->
+                            <div class="accordion-content">
+                                <div class="accordion-body">
+                                    <div class="review-item">
+                                        <div class="review-header">
+                                            <span class="reviewer-name">Rahul Sharma</span>
+                                            <span class="review-date">2 weeks ago</span>
+                                        </div>
+                                        <div class="review-stars">
+                                            <i class="fa fa-star"></i>
+                                            <i class="fa fa-star"></i>
+                                            <i class="fa fa-star"></i>
+                                            <i class="fa fa-star"></i>
+                                            <i class="fa fa-star"></i>
+                                        </div>
+                                        <p class="review-text">Excellent quality! The fabric is soft and breathable. Perfect fit and the color is exactly as shown in the pictures. Highly recommended!</p>
+                                    </div>
 
-    <!-- Hero Section Begin -->
-    <section class="hero">
-        <div class="hero__slider owl-carousel">
-            <div class="hero__items set-bg" data-setbg="img/hero/hero-1.jpg">
-                <div class="container">
-                    <div class="row">
-                        <div class="col-xl-5 col-lg-7 col-md-8">
-                            <div class="hero__text">
-                                <h6>Summer Collection</h6>
-                                <h2>Fall - Winter Collections 2030</h2>
-                                <p>A specialist label creating luxury essentials. Ethically crafted with an unwavering
-                                commitment to exceptional quality.</p>
-                                <a href="#" class="primary-btn">Shop now <span class="arrow_right"></span></a>
-                                <div class="hero__social">
-                                    <a href="#"><i class="fa fa-facebook"></i></a>
-                                    <a href="#"><i class="fa fa-twitter"></i></a>
-                                    <a href="#"><i class="fa fa-pinterest"></i></a>
-                                    <a href="#"><i class="fa fa-instagram"></i></a>
+                                    <div class="review-item">
+                                        <div class="review-header">
+                                            <span class="reviewer-name">Priya Patel</span>
+                                            <span class="review-date">3 weeks ago</span>
+                                        </div>
+                                        <div class="review-stars">
+                                            <i class="fa fa-star"></i>
+                                            <i class="fa fa-star"></i>
+                                            <i class="fa fa-star"></i>
+                                            <i class="fa fa-star"></i>
+                                            <i class="fa fa-star"></i>
+                                        </div>
+                                        <p class="review-text">Great purchase! My husband loves it. The material feels premium and it looks very stylish. Worth every penny.</p>
+                                    </div>
+
+                                    <div class="review-item">
+                                        <div class="review-header">
+                                            <span class="reviewer-name">Amit Kumar</span>
+                                            <span class="review-date">1 month ago</span>
+                                        </div>
+                                        <div class="review-stars">
+                                            <i class="fa fa-star"></i>
+                                            <i class="fa fa-star"></i>
+                                            <i class="fa fa-star"></i>
+                                            <i class="fa fa-star"></i>
+                                            <i class="fa fa-star-o"></i>
+                                        </div>
+                                        <p class="review-text">Good quality polo shirt. Comfortable to wear throughout the day. Only minor issue is it wrinkles easily, but overall a solid buy.</p>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                    
+
+                        <!-- RETURNS -->
+                        <div class="accordion-item">
+                            <div class="accordion-header" onclick="toggleAccordion(this)">
+                                <h3 class="accordion-title">RETURNS</h3>
+                                <span class="accordion-icon">+</span>
+                            </div>
+                            <div class="accordion-content">
+                                <div class="accordion-body">
+                                    <h4>30-Day Easy Returns</h4>
+                                    <p>We offer hassle-free returns within 30 days of delivery. If you're not completely satisfied with your purchase, you can return it for a full refund or exchange.</p>
+                                    
+                                    <h4>Return Conditions:</h4>
+                                    <ul>
+                                        <li>Product must be unused and in original condition</li>
+                                        <li>All tags must be intact</li>
+                                        <li>Original packaging should be retained</li>
+                                        <li>Return initiated within 30 days of delivery</li>
+                                    </ul>
+                                    
+                                    <h4>How to Return:</h4>
+                                    <ul>
+                                        <li>Log in to your account and go to 'My Orders'</li>
+                                        <li>Select the item you want to return</li>
+                                        <li>Choose reason for return and submit request</li>
+                                        <li>Our team will arrange for pickup</li>
+                                        <li>Refund will be processed within 7-10 business days after pickup</li>
+                                    </ul>
+                                    
+                                    <p><strong>Exchange:</strong> If you need a different size or color, we'll arrange a free exchange within 7 days of delivery.</p>
                                 </div>
                             </div>
                         </div>
                     </div>
                 </div>
             </div>
-            <div class="hero__items set-bg" data-setbg="img/hero/hero-2.jpg">
-                <div class="container">
-                    <div class="row">
-                        <div class="col-xl-5 col-lg-7 col-md-8">
-                            <div class="hero__text">
-                                <h6>Summer Collection</h6>
-                                <h2>Fall - Winter Collections 2030</h2>
-                                <p>A specialist label creating luxury essentials. Ethically crafted with an unwavering
-                                commitment to exceptional quality.</p>
-                                <a href="#" class="primary-btn">Shop now <span class="arrow_right"></span></a>
-                                <div class="hero__social">
-                                    <a href="#"><i class="fa fa-facebook"></i></a>
-                                    <a href="#"><i class="fa fa-twitter"></i></a>
-                                    <a href="#"><i class="fa fa-pinterest"></i></a>
-                                    <a href="#"><i class="fa fa-instagram"></i></a>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </div>
-    </section>
-    <!-- Hero Section End -->
-
-    <!-- Banner Section Begin -->
-    <section class="banner spad">
-        <div class="container">
-            <div class="row">
-                <div class="col-lg-7 offset-lg-4">
-                    <div class="banner__item">
-                        <div class="banner__item__pic">
-                            <img src="img/banner/banner-1.jpg" alt="">
-                        </div>
-                        <div class="banner__item__text">
-                            <h2>Clothing Collections 2030</h2>
-                            <a href="#">Shop now</a>
-                        </div>
-                    </div>
-                </div>
-                <div class="col-lg-5">
-                    <div class="banner__item banner__item--middle">
-                        <div class="banner__item__pic">
-                            <img src="img/banner/banner-2.jpg" alt="">
-                        </div>
-                        <div class="banner__item__text">
-                            <h2>Accessories</h2>
-                            <a href="#">Shop now</a>
-                        </div>
-                    </div>
-                </div>
-                <div class="col-lg-7">
-                    <div class="banner__item banner__item--last">
-                        <div class="banner__item__pic">
-                            <img src="img/banner/banner-3.jpg" alt="">
-                        </div>
-                        <div class="banner__item__text">
-                            <h2>Shoes Spring 2030</h2>
-                            <a href="#">Shop now</a>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </div>
-    </section>
-    <!-- Banner Section End -->
-
-    <!-- Product Section Begin -->
-    <section class="product spad">
-        <div class="container">
-            <div class="row">
-                <div class="col-lg-12">
-                    <ul class="filter__controls">
-                        <li class="active" data-filter="*">Best Sellers</li>
-                        <li data-filter=".new-arrivals">New Arrivals</li>
-                        <li data-filter=".hot-sales">Hot Sales</li>
-                    </ul>
-                </div>
-            </div>
-            <div class="row product__filter">
-                <div class="col-lg-3 col-md-6 col-sm-6 col-md-6 col-sm-6 mix new-arrivals">
-                    <div class="product__item">
-                        <div class="product__item__pic set-bg" data-setbg="img/product/product-1.jpg">
-                            <span class="label">New</span>
-                            <ul class="product__hover">
-                                <li><a href="#"><img src="img/icon/heart.png" alt=""></a></li>
-                                <li><a href="#"><img src="img/icon/compare.png" alt=""> <span>Compare</span></a></li>
-                                <li><a href="#"><img src="img/icon/search.png" alt=""></a></li>
-                            </ul>
-                        </div>
-                        <div class="product__item__text">
-                            <h6>Piqué Biker Jacket</h6>
-                            <a href="#" class="add-cart">+ Add To Cart</a>
-                            <div class="rating">
-                                <i class="fa fa-star-o"></i>
-                                <i class="fa fa-star-o"></i>
-                                <i class="fa fa-star-o"></i>
-                                <i class="fa fa-star-o"></i>
-                                <i class="fa fa-star-o"></i>
-                            </div>
-                            <h5>$67.24</h5>
-                            <div class="product__color__select">
-                                <label for="pc-1">
-                                    <input type="radio" id="pc-1">
-                                </label>
-                                <label class="active black" for="pc-2">
-                                    <input type="radio" id="pc-2">
-                                </label>
-                                <label class="grey" for="pc-3">
-                                    <input type="radio" id="pc-3">
-                                </label>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-                <div class="col-lg-3 col-md-6 col-sm-6 col-md-6 col-sm-6 mix hot-sales">
-                    <div class="product__item">
-                        <div class="product__item__pic set-bg" data-setbg="img/product/product-2.jpg">
-                            <ul class="product__hover">
-                                <li><a href="#"><img src="img/icon/heart.png" alt=""></a></li>
-                                <li><a href="#"><img src="img/icon/compare.png" alt=""> <span>Compare</span></a></li>
-                                <li><a href="#"><img src="img/icon/search.png" alt=""></a></li>
-                            </ul>
-                        </div>
-                        <div class="product__item__text">
-                            <h6>Piqué Biker Jacket</h6>
-                            <a href="#" class="add-cart">+ Add To Cart</a>
-                            <div class="rating">
-                                <i class="fa fa-star-o"></i>
-                                <i class="fa fa-star-o"></i>
-                                <i class="fa fa-star-o"></i>
-                                <i class="fa fa-star-o"></i>
-                                <i class="fa fa-star-o"></i>
-                            </div>
-                            <h5>$67.24</h5>
-                            <div class="product__color__select">
-                                <label for="pc-4">
-                                    <input type="radio" id="pc-4">
-                                </label>
-                                <label class="active black" for="pc-5">
-                                    <input type="radio" id="pc-5">
-                                </label>
-                                <label class="grey" for="pc-6">
-                                    <input type="radio" id="pc-6">
-                                </label>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-                <div class="col-lg-3 col-md-6 col-sm-6 col-md-6 col-sm-6 mix new-arrivals">
-                    <div class="product__item sale">
-                        <div class="product__item__pic set-bg" data-setbg="img/product/product-3.jpg">
-                            <span class="label">Sale</span>
-                            <ul class="product__hover">
-                                <li><a href="#"><img src="img/icon/heart.png" alt=""></a></li>
-                                <li><a href="#"><img src="img/icon/compare.png" alt=""> <span>Compare</span></a></li>
-                                <li><a href="#"><img src="img/icon/search.png" alt=""></a></li>
-                            </ul>
-                        </div>
-                        <div class="product__item__text">
-                            <h6>Multi-pocket Chest Bag</h6>
-                            <a href="#" class="add-cart">+ Add To Cart</a>
-                            <div class="rating">
-                                <i class="fa fa-star"></i>
-                                <i class="fa fa-star"></i>
-                                <i class="fa fa-star"></i>
-                                <i class="fa fa-star"></i>
-                                <i class="fa fa-star-o"></i>
-                            </div>
-                            <h5>$43.48</h5>
-                            <div class="product__color__select">
-                                <label for="pc-7">
-                                    <input type="radio" id="pc-7">
-                                </label>
-                                <label class="active black" for="pc-8">
-                                    <input type="radio" id="pc-8">
-                                </label>
-                                <label class="grey" for="pc-9">
-                                    <input type="radio" id="pc-9">
-                                </label>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-                <div class="col-lg-3 col-md-6 col-sm-6 col-md-6 col-sm-6 mix hot-sales">
-                    <div class="product__item">
-                        <div class="product__item__pic set-bg" data-setbg="img/product/product-4.jpg">
-                            <ul class="product__hover">
-                                <li><a href="#"><img src="img/icon/heart.png" alt=""></a></li>
-                                <li><a href="#"><img src="img/icon/compare.png" alt=""> <span>Compare</span></a></li>
-                                <li><a href="#"><img src="img/icon/search.png" alt=""></a></li>
-                            </ul>
-                        </div>
-                        <div class="product__item__text">
-                            <h6>Diagonal Textured Cap</h6>
-                            <a href="#" class="add-cart">+ Add To Cart</a>
-                            <div class="rating">
-                                <i class="fa fa-star-o"></i>
-                                <i class="fa fa-star-o"></i>
-                                <i class="fa fa-star-o"></i>
-                                <i class="fa fa-star-o"></i>
-                                <i class="fa fa-star-o"></i>
-                            </div>
-                            <h5>$60.9</h5>
-                            <div class="product__color__select">
-                                <label for="pc-10">
-                                    <input type="radio" id="pc-10">
-                                </label>
-                                <label class="active black" for="pc-11">
-                                    <input type="radio" id="pc-11">
-                                </label>
-                                <label class="grey" for="pc-12">
-                                    <input type="radio" id="pc-12">
-                                </label>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-                <div class="col-lg-3 col-md-6 col-sm-6 col-md-6 col-sm-6 mix new-arrivals">
-                    <div class="product__item">
-                        <div class="product__item__pic set-bg" data-setbg="img/product/product-5.jpg">
-                            <ul class="product__hover">
-                                <li><a href="#"><img src="img/icon/heart.png" alt=""></a></li>
-                                <li><a href="#"><img src="img/icon/compare.png" alt=""> <span>Compare</span></a></li>
-                                <li><a href="#"><img src="img/icon/search.png" alt=""></a></li>
-                            </ul>
-                        </div>
-                        <div class="product__item__text">
-                            <h6>Lether Backpack</h6>
-                            <a href="#" class="add-cart">+ Add To Cart</a>
-                            <div class="rating">
-                                <i class="fa fa-star-o"></i>
-                                <i class="fa fa-star-o"></i>
-                                <i class="fa fa-star-o"></i>
-                                <i class="fa fa-star-o"></i>
-                                <i class="fa fa-star-o"></i>
-                            </div>
-                            <h5>$31.37</h5>
-                            <div class="product__color__select">
-                                <label for="pc-13">
-                                    <input type="radio" id="pc-13">
-                                </label>
-                                <label class="active black" for="pc-14">
-                                    <input type="radio" id="pc-14">
-                                </label>
-                                <label class="grey" for="pc-15">
-                                    <input type="radio" id="pc-15">
-                                </label>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-                <div class="col-lg-3 col-md-6 col-sm-6 col-md-6 col-sm-6 mix hot-sales">
-                    <div class="product__item sale">
-                        <div class="product__item__pic set-bg" data-setbg="img/product/product-6.jpg">
-                            <span class="label">Sale</span>
-                            <ul class="product__hover">
-                                <li><a href="#"><img src="img/icon/heart.png" alt=""></a></li>
-                                <li><a href="#"><img src="img/icon/compare.png" alt=""> <span>Compare</span></a></li>
-                                <li><a href="#"><img src="img/icon/search.png" alt=""></a></li>
-                            </ul>
-                        </div>
-                        <div class="product__item__text">
-                            <h6>Ankle Boots</h6>
-                            <a href="#" class="add-cart">+ Add To Cart</a>
-                            <div class="rating">
-                                <i class="fa fa-star"></i>
-                                <i class="fa fa-star"></i>
-                                <i class="fa fa-star"></i>
-                                <i class="fa fa-star"></i>
-                                <i class="fa fa-star-o"></i>
-                            </div>
-                            <h5>$98.49</h5>
-                            <div class="product__color__select">
-                                <label for="pc-16">
-                                    <input type="radio" id="pc-16">
-                                </label>
-                                <label class="active black" for="pc-17">
-                                    <input type="radio" id="pc-17">
-                                </label>
-                                <label class="grey" for="pc-18">
-                                    <input type="radio" id="pc-18">
-                                </label>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-                <div class="col-lg-3 col-md-6 col-sm-6 col-md-6 col-sm-6 mix new-arrivals">
-                    <div class="product__item">
-                        <div class="product__item__pic set-bg" data-setbg="img/product/product-7.jpg">
-                            <ul class="product__hover">
-                                <li><a href="#"><img src="img/icon/heart.png" alt=""></a></li>
-                                <li><a href="#"><img src="img/icon/compare.png" alt=""> <span>Compare</span></a></li>
-                                <li><a href="#"><img src="img/icon/search.png" alt=""></a></li>
-                            </ul>
-                        </div>
-                        <div class="product__item__text">
-                            <h6>T-shirt Contrast Pocket</h6>
-                            <a href="#" class="add-cart">+ Add To Cart</a>
-                            <div class="rating">
-                                <i class="fa fa-star-o"></i>
-                                <i class="fa fa-star-o"></i>
-                                <i class="fa fa-star-o"></i>
-                                <i class="fa fa-star-o"></i>
-                                <i class="fa fa-star-o"></i>
-                            </div>
-                            <h5>$49.66</h5>
-                            <div class="product__color__select">
-                                <label for="pc-19">
-                                    <input type="radio" id="pc-19">
-                                </label>
-                                <label class="active black" for="pc-20">
-                                    <input type="radio" id="pc-20">
-                                </label>
-                                <label class="grey" for="pc-21">
-                                    <input type="radio" id="pc-21">
-                                </label>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-                <div class="col-lg-3 col-md-6 col-sm-6 col-md-6 col-sm-6 mix hot-sales">
-                    <div class="product__item">
-                        <div class="product__item__pic set-bg" data-setbg="img/product/product-8.jpg">
-                            <ul class="product__hover">
-                                <li><a href="#"><img src="img/icon/heart.png" alt=""></a></li>
-                                <li><a href="#"><img src="img/icon/compare.png" alt=""> <span>Compare</span></a></li>
-                                <li><a href="#"><img src="img/icon/search.png" alt=""></a></li>
-                            </ul>
-                        </div>
-                        <div class="product__item__text">
-                            <h6>Basic Flowing Scarf</h6>
-                            <a href="#" class="add-cart">+ Add To Cart</a>
-                            <div class="rating">
-                                <i class="fa fa-star-o"></i>
-                                <i class="fa fa-star-o"></i>
-                                <i class="fa fa-star-o"></i>
-                                <i class="fa fa-star-o"></i>
-                                <i class="fa fa-star-o"></i>
-                            </div>
-                            <h5>$26.28</h5>
-                            <div class="product__color__select">
-                                <label for="pc-22">
-                                    <input type="radio" id="pc-22">
-                                </label>
-                                <label class="active black" for="pc-23">
-                                    <input type="radio" id="pc-23">
-                                </label>
-                                <label class="grey" for="pc-24">
-                                    <input type="radio" id="pc-24">
-                                </label>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </div>
-    </section>
-    <!-- Product Section End -->
-
-    <!-- Categories Section Begin -->
-    <section class="categories spad">
-        <div class="container">
-            <div class="row">
-                <div class="col-lg-3">
-                    <div class="categories__text">
-                        <h2>Clothings Hot <br /> <span>Shoe Collection</span> <br /> Accessories</h2>
-                    </div>
-                </div>
-                <div class="col-lg-4">
-                    <div class="categories__hot__deal">
-                        <img src="img/product-sale.png" alt="">
-                        <div class="hot__deal__sticker">
-                            <span>Sale Of</span>
-                            <h5>$29.99</h5>
-                        </div>
-                    </div>
-                </div>
-                <div class="col-lg-4 offset-lg-1">
-                    <div class="categories__deal__countdown">
-                        <span>Deal Of The Week</span>
-                        <h2>Multi-pocket Chest Bag Black</h2>
-                        <div class="categories__deal__countdown__timer" id="countdown">
-                            <div class="cd-item">
-                                <span>3</span>
-                                <p>Days</p>
-                            </div>
-                            <div class="cd-item">
-                                <span>1</span>
-                                <p>Hours</p>
-                            </div>
-                            <div class="cd-item">
-                                <span>50</span>
-                                <p>Minutes</p>
-                            </div>
-                            <div class="cd-item">
-                                <span>18</span>
-                                <p>Seconds</p>
-                            </div>
-                        </div>
-                        <a href="#" class="primary-btn">Shop now</a>
-                    </div>
-                </div>
-            </div>
-        </div>
-    </section>
-    <!-- Categories Section End -->
-
-    <!-- Instagram Section Begin -->
-    <section class="instagram spad">
-        <div class="container">
-            <div class="row">
-                <div class="col-lg-8">
-                    <div class="instagram__pic">
-                        <div class="instagram__pic__item set-bg" data-setbg="img/instagram/instagram-1.jpg"></div>
-                        <div class="instagram__pic__item set-bg" data-setbg="img/instagram/instagram-2.jpg"></div>
-                        <div class="instagram__pic__item set-bg" data-setbg="img/instagram/instagram-3.jpg"></div>
-                        <div class="instagram__pic__item set-bg" data-setbg="img/instagram/instagram-4.jpg"></div>
-                        <div class="instagram__pic__item set-bg" data-setbg="img/instagram/instagram-5.jpg"></div>
-                        <div class="instagram__pic__item set-bg" data-setbg="img/instagram/instagram-6.jpg"></div>
-                    </div>
-                </div>
-                <div class="col-lg-4">
-                    <div class="instagram__text">
-                        <h2>Instagram</h2>
-                        <p>Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut
-                        labore et dolore magna aliqua.</p>
-                        <h3>#Male_Fashion</h3>
-                    </div>
-                </div>
-            </div>
-        </div>
-    </section>
-    <!-- Instagram Section End -->
-
-    <!-- Latest Blog Section Begin -->
-    <section class="latest spad">
-        <div class="container">
-            <div class="row">
-                <div class="col-lg-12">
-                    <div class="section-title">
-                        <span>Latest News</span>
-                        <h2>Fashion New Trends</h2>
-                    </div>
-                </div>
-            </div>
-            <div class="row">
-                <div class="col-lg-4 col-md-6 col-sm-6">
-                    <div class="blog__item">
-                        <div class="blog__item__pic set-bg" data-setbg="img/blog/blog-1.jpg"></div>
-                        <div class="blog__item__text">
-                            <span><img src="img/icon/calendar.png" alt=""> 16 February 2020</span>
-                            <h5>What Curling Irons Are The Best Ones</h5>
-                            <a href="#">Read More</a>
-                        </div>
-                    </div>
-                </div>
-                <div class="col-lg-4 col-md-6 col-sm-6">
-                    <div class="blog__item">
-                        <div class="blog__item__pic set-bg" data-setbg="img/blog/blog-2.jpg"></div>
-                        <div class="blog__item__text">
-                            <span><img src="img/icon/calendar.png" alt=""> 21 February 2020</span>
-                            <h5>Eternity Bands Do Last Forever</h5>
-                            <a href="#">Read More</a>
-                        </div>
-                    </div>
-                </div>
-                <div class="col-lg-4 col-md-6 col-sm-6">
-                    <div class="blog__item">
-                        <div class="blog__item__pic set-bg" data-setbg="img/blog/blog-3.jpg"></div>
-                        <div class="blog__item__text">
-                            <span><img src="img/icon/calendar.png" alt=""> 28 February 2020</span>
-                            <h5>The Health Benefits Of Sunglasses</h5>
-                            <a href="#">Read More</a>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </div>
-    </section>
-    <!-- Latest Blog Section End -->
-
-    <!-- Footer Section Begin -->
-    <footer class="footer">
-        <div class="container">
-            <div class="row">
-                <div class="col-lg-3 col-md-6 col-sm-6">
-                    <div class="footer__about">
-                        <div class="footer__logo">
-                            <a href="#"><img src="img/footer-logo.png" alt=""></a>
-                        </div>
-                        <p>The customer is at the heart of our unique business model, which includes design.</p>
-                        <a href="#"><img src="img/payment.png" alt=""></a>
-                    </div>
-                </div>
-                <div class="col-lg-2 offset-lg-1 col-md-3 col-sm-6">
-                    <div class="footer__widget">
-                        <h6>Shopping</h6>
-                        <ul>
-                            <li><a href="#">Clothing Store</a></li>
-                            <li><a href="#">Trending Shoes</a></li>
-                            <li><a href="#">Accessories</a></li>
-                            <li><a href="#">Sale</a></li>
-                        </ul>
-                    </div>
-                </div>
-                <div class="col-lg-2 col-md-3 col-sm-6">
-                    <div class="footer__widget">
-                        <h6>Shopping</h6>
-                        <ul>
-                            <li><a href="#">Contact Us</a></li>
-                            <li><a href="#">Payment Methods</a></li>
-                            <li><a href="#">Delivary</a></li>
-                            <li><a href="#">Return & Exchanges</a></li>
-                        </ul>
-                    </div>
-                </div>
-                <div class="col-lg-3 offset-lg-1 col-md-6 col-sm-6">
-                    <div class="footer__widget">
-                        <h6>NewLetter</h6>
-                        <div class="footer__newslatter">
-                            <p>Be the first to know about new arrivals, look books, sales & promos!</p>
-                            <form action="#">
-                                <input type="text" placeholder="Your email">
-                                <button type="submit"><span class="icon_mail_alt"></span></button>
-                            </form>
-                        </div>
-                    </div>
-                </div>
-            </div>
-            <div class="row">
-                <div class="col-lg-12 text-center">
-                    <div class="footer__copyright__text">
-                        <!-- Link back to Colorlib can't be removed. Template is licensed under CC BY 3.0. -->
-                        <p>Copyright ©
-                            <script>
-                                document.write(new Date().getFullYear());
-                            </script>2020
-                            All rights reserved | This template is made with <i class="fa fa-heart-o"
-                            aria-hidden="true"></i> by <a href="https://colorlib.com" target="_blank">Colorlib</a>
-                        </p>
-                        <!-- Link back to Colorlib can't be removed. Template is licensed under CC BY 3.0. -->
-                    </div>
-                </div>
-            </div>
-        </div>
-    </footer>
-    <!-- Footer Section End -->
-
-    <!-- Search Begin -->
-    <div class="search-model">
-        <div class="h-100 d-flex align-items-center justify-content-center">
-            <div class="search-close-switch">+</div>
-            <form class="search-model-form">
-                <input type="text" id="search-input" placeholder="Search here.....">
-            </form>
         </div>
     </div>
-    <!-- Search End -->
+</section>
 
-    <!-- Js Plugins -->
-    <script src="js/jquery-3.3.1.min.js"></script>
-    <script src="js/bootstrap.min.js"></script>
-    <script src="js/jquery.nice-select.min.js"></script>
-    <script src="js/jquery.nicescroll.min.js"></script>
-    <script src="js/jquery.magnific-popup.min.js"></script>
-    <script src="js/jquery.countdown.min.js"></script>
-    <script src="js/jquery.slicknav.js"></script>
-    <script src="js/mixitup.min.js"></script>
-    <script src="js/owl.carousel.min.js"></script>
-    <script src="js/main.js"></script>
-</body>
+<!-- You May Also Like Section -->
+<section class="related-products-section">
+    <div class="container">
+        <h2 class="section-title">You May Also Like</h2>
+        <div class="row">
+            {% for rel_product in related_products %}
+            <div class="col-lg-3 col-md-6 col-sm-6">
+                <div class="related-product-card">
+                    <div class="related-product-image" style="position: relative;">
+    <a href="{% url 'product_detail' rel_product.pk %}">
+        <img src="{% if rel_product.photo %}{{ rel_product.photo.url }}{% else %}{% static 'frontend/img/product/placeholder.jpg' %}{% endif %}" 
+             alt="{{ rel_product.title }}" style="width:100%; height:100%; object-fit:cover;">
+    </a>
 
-</html>
+    <!-- Wishlist Button (kept on top right) -->
+    <div class="product__hover">
+        {% if user.is_authenticated %}
+        <a href="#" class="wishlist-btn-related" data-product-id="{{ rel_product.pk }}">
+            {% if rel_product.pk in wishlisted_ids %}
+                <i class="fa fa-heart" style="color: #ff0000; font-size: 16px;"></i>
+            {% else %}
+                <i class="fa fa-heart heart-outlined" style="font-size: 16px;"></i>
+            {% endif %}
+        </a>
+        {% else %}
+        <a href="{% url 'login' %}">
+            <i class="fa fa-heart heart-outlined" style="font-size: 16px;"></i>
+        </a>
+        {% endif %}
+    </div>
+</div>
+
+                    <div class="related-product-info">
+                        <a href="{% url 'product_detail' rel_product.pk %}" class="related-product-title">{{ rel_product.title }}</a>
+                        <div class="related-product-price">
+                            ₹{{ rel_product.price|floatformat:2 }}
+                            {% if rel_product.old_price %}<span class="old-price">₹{{ rel_product.old_price|floatformat:2 }}</span>{% endif %}
+                        </div>
+                    </div>
+                </div>
+            </div>
+            {% empty %}
+            <div class="col-12">
+                <p class="text-center">No related products found.</p>
+            </div>
+            {% endfor %}
+        </div>
+    </div>
+</section>
+{% endwith %}
+
+<script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+<script>
+// ===== Image Gallery & Carousel Logic =====
+let thumbs = document.querySelectorAll('.thumb');
+let mainImg = document.getElementById('main-product-img');
+let currentIndex = 0;
+let imageList = Array.from(thumbs).map(img => img.src);
+
+const prevButton = document.querySelector('.carousel-btn.prev');
+const nextButton = document.querySelector('.carousel-btn.next');
+const thumbnailList = document.getElementById('thumbnail-list');
+
+function updateImage() {
+    if (imageList.length === 0) return;
+
+    mainImg.src = imageList[currentIndex];
+    
+    // Update active class on current thumbnails
+    thumbs.forEach(t => t.classList.remove('active'));
+    if (thumbs[currentIndex]) {
+        thumbs[currentIndex].classList.add('active');
+    }
+}
+
+function handleThumbnailClick(index) {
+    currentIndex = index;
+    updateImage();
+}
+
+function bindThumbnailEvents() {
+    thumbs = document.querySelectorAll('.thumb');
+    imageList = Array.from(thumbs).map(img => img.src);
+
+    thumbs.forEach((thumb, index) => {
+        // Remove previous listeners to prevent duplicates
+        const newThumb = thumb.cloneNode(true);
+        thumb.parentNode.replaceChild(newThumb, thumb);
+        newThumb.addEventListener('click', () => handleThumbnailClick(index));
+    });
+    // Re-select thumbs after replacement
+    thumbs = document.querySelectorAll('.thumb');
+}
+
+function bindCarouselControls() {
+    // Rebind Prev/Next button logic using the current imageList
+    prevButton.onclick = () => {
+        currentIndex = (currentIndex - 1 + imageList.length) % imageList.length;
+        updateImage();
+    };
+    nextButton.onclick = () => {
+        currentIndex = (currentIndex + 1) % imageList.length;
+        updateImage();
+    };
+}
+
+function initializeGallery() {
+    bindThumbnailEvents(); // Initialize thumbnails and imageList
+    bindCarouselControls(); // Initialize carousel buttons
+    // Set initial active state for the first image
+    if (thumbs.length > 0) {
+        thumbs[0].classList.add('active');
+    }
+}
+
+// Initial setup on page load
+initializeGallery(); 
+
+// ===== Dynamic size selection =====
+const sizeLabels = document.querySelectorAll('.size-buttons label');
+sizeLabels.forEach(label => {
+    label.addEventListener('click', () => {
+        sizeLabels.forEach(l => l.classList.remove('selected'));
+        label.classList.add('selected');
+    });
+});
+
+// ===== Dynamic color selection + gallery update =====
+const colorLabels = document.querySelectorAll('.color-buttons label');
+
+colorLabels.forEach(label => {
+    label.addEventListener('click', () => {
+        // Visually select color
+        colorLabels.forEach(l => l.classList.remove('selected'));
+        label.classList.add('selected');
+
+        // Get images from data attribute
+        const imagesData = label.getAttribute('data-images');
+        let images = [];
+        
+        try {
+            // Parse the JSON string
+            images = JSON.parse(imagesData.replace(/'/g, '"'));
+        } catch (e) {
+            console.error('Error parsing images:', e);
+            return;
+        }
+
+        // Clear existing thumbnails
+        thumbnailList.innerHTML = '';
+
+        // Populate thumbnails with new images
+        images.forEach((imgUrl, index) => {
+            const thumb = document.createElement('img');
+            thumb.src = imgUrl;
+            thumb.alt = `Image ${index + 1}`;
+            thumb.className = 'thumb';
+            if (index === 0) thumb.classList.add('active');
+            
+            thumbnailList.appendChild(thumb);
+        });
+
+        // Update main image and reset index
+        if (images.length > 0) {
+            mainImg.src = images[0];
+            currentIndex = 0;
+        }
+        
+        // Rebind events for the new set of images
+        initializeGallery();
+    });
+});
+
+// ===== Accordion Toggle Function =====
+function toggleAccordion(header) {
+    const content = header.nextElementSibling;
+    const icon = header.querySelector('.accordion-icon');
+    const isActive = content.classList.contains('active');
+    
+    // Close all other open accordions
+    document.querySelectorAll('.accordion-content.active').forEach(item => {
+        item.classList.remove('active');
+        item.previousElementSibling.querySelector('.accordion-icon').textContent = '+';
+    });
+    
+    if (!isActive) {
+        content.classList.add('active');
+        icon.textContent = '−';
+    }
+}
+
+// Bind accordion click events
+document.querySelectorAll('.accordion-header').forEach(header => {
+    header.addEventListener('click', () => toggleAccordion(header));
+});
+
+
+// ===== Form Validation and Toastify messages =====
+document.getElementById('add-to-cart-form').addEventListener('submit', function (e) {
+    const selectedSize = document.querySelector('input[name="size"]:checked');
+    const selectedColor = document.querySelector('input[name="color"]:checked');
+    if (!selectedSize || !selectedColor) {
+        e.preventDefault();
+        Toastify({
+            text: "Please select a size and color before adding to cart!",
+            duration: 3000,
+            close: true,
+            gravity: "top",
+            position: "right",
+            backgroundColor: "#ff9800",
+        }).showToast();
+    }
+});
+
+document.getElementById('buy-now-btn').addEventListener('click', function(e) {
+    const size = document.querySelector('input[name="size"]:checked')?.value;
+    const color = document.querySelector('input[name="color"]:checked')?.value;
+    const quantity = document.querySelector('input[name="quantity"]').value || 1;
+
+    if (!size || !color) {
+        e.preventDefault();
+        Toastify({
+            text: "Please select a size and color!",
+            duration: 3000,
+            close: true,
+            gravity: "top",
+            position: "right",
+            backgroundColor: "#ff9800",
+        }).showToast();
+        return;
+    }
+
+    // Assuming a buy_now URL exists as per your original logic
+    window.location.href = `{% url 'buy_now' product.id %}?size=${size}&color=${color}&quantity=${quantity}`;
+});
+
+// ===== Toastify messages from GET params and URL cleanup =====
+{% if request.GET.cart_added %}
+Toastify({
+    text: "Product added to cart!",
+    duration: 3000,
+    close: true,
+    gravity: "top",
+    position: "right",
+    backgroundColor: "#4caf50",
+}).showToast();
+{% endif %}
+
+{% if request.GET.cart_exists %}
+Toastify({
+    text: "This product with selected size & color is already in cart!",
+    duration: 3000,
+    close: true,
+    gravity: "top",
+    position: "right",
+    backgroundColor: "#f44336",
+}).showToast();
+{% endif %}
+
+// Remove GET params so toast doesn't repeat
+if (window.history.replaceState) {
+    const cleanUrl = window.location.protocol + "//" + window.location.host + window.location.pathname;
+    window.history.replaceState({}, document.title, cleanUrl);
+}
+
+// ===== Wishlist Toggle for Related Products =====
+$(document).ready(function() {
+    // Add logic to handle the initial state/display of color-thumbs as well
+    // ... your existing color-buttons logic
+    
+    // Add logic to select the primary color label if none is selected on load
+    const initiallySelectedColor = document.querySelector('input[name="color"]:checked');
+    if (initiallySelectedColor) {
+        const correspondingLabel = document.querySelector(`label[for="${initiallySelectedColor.id}"]`);
+        if(correspondingLabel) {
+            correspondingLabel.classList.add('selected');
+        }
+    } else {
+        // If no color is pre-selected (e.g., from URL), select the first one visually
+        const firstColorLabel = document.querySelector('.color-buttons label:first-of-type');
+        if(firstColorLabel) {
+            firstColorLabel.classList.add('selected');
+        }
+    }
+    
+    $('.wishlist-btn-related').on('click', function(e) {
+        e.preventDefault();
+        var btn = $(this);
+        var productId = btn.data('product-id');
+        var csrftoken = $('[name=csrfmiddlewaretoken]').val();
+
+        $.ajax({
+            // NOTE: Ensure your Django URL for toggle-wishlist is correctly configured.
+            url: '/toggle-wishlist/' + productId + '/', 
+            type: 'POST',
+            data: { 'csrfmiddlewaretoken': csrftoken },
+            dataType: 'json',
+            success: function(response) {
+                if (response.status === 'ok') {
+                    var heartIcon = btn.find('i');
+                    if (response.is_added) {
+                        // Change to solid red heart
+                        heartIcon.removeClass('heart-outlined fa-heart-o').addClass('fa fa-heart').css('color', '#ff0000');
+                    } else {
+                        // Change to outlined heart
+                        heartIcon.removeClass('fa-heart').addClass('heart-outlined fa-heart-o').css('color', '');
+                    }
+                    // A full page reload might be unnecessary for just a change in a related product list, 
+                    // but keeping it if your Django template/context relies on it.
+                    // window.location.reload(); 
+                }
+            },
+            error: function(xhr) {
+                alert('Something went wrong. Please try again.');
+            }
+        });
+    });
+});
+</script>
+
+{% endblock %}

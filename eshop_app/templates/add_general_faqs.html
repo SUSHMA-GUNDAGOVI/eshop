@@ -1,0 +1,166 @@
+{% extends 'admin_base.html' %}
+
+{% block title %}Add General FAQs{% endblock %}
+
+{% block content %}
+<link rel="stylesheet" type="text/css" href="https://cdn.jsdelivr.net/npm/toastify-js/src/toastify.min.css">
+<style>
+/* Simplified CSS for the FAQ item */
+.faq-item {
+    border: 1px solid #e3e6f0;
+    padding: 15px;
+    border-radius: 6px;
+    margin-bottom: 10px;
+    background-color: #fcfcfd;
+    box-shadow: 0 0 5px rgba(0,0,0,0.05);
+}
+.remove-faq-btn {
+    cursor: pointer;
+    font-size: 0.9rem;
+    padding: 2px 8px;
+    border-radius: 4px;
+    background-color: #ffebeb;
+    color: #c0392b;
+}
+</style>
+<div class="container-fluid">
+
+    <div class="d-sm-flex align-items-center justify-content-between mb-4">
+        <h1 class="h3 text-gray-800">General FAQ Management</h1>
+        <a href="{% url 'faqs_list' %}" class="d-none d-sm-inline-block btn btn-sm btn-secondary shadow-sm">
+            <i class="fas fa-list fa-sm text-white-50"></i> View All FAQs
+        </a>
+    </div>
+
+    <div class="card shadow mb-4">
+        <div class="card-header py-3">
+            <h6 class="m-0 font-weight-bold text-primary">Add New General FAQs</h6>
+        </div>
+        <div class="card-body">
+            <form method="post">
+                {% csrf_token %}
+
+                <h6 class="mt-4 mb-3 font-weight-bold text-secondary">Questions & Answers</h6>
+                <div id="faqContainer">
+                    <div class="faq-item" id="faq-item-1">
+                        <div class="d-flex justify-content-between align-items-center mb-2">
+                            <span class="font-weight-bold text-sm text-gray-700">FAQ #1</span>
+                            <span class="remove-faq-btn" onclick="removeFaq(1)">
+                                <i class="fas fa-times"></i> Remove
+                            </span>
+                        </div>
+                        <div class="mb-3">
+                            <label for="faq_question_1" class="form-label">Question <span class="text-danger">*</span></label>
+                            <input type="text" class="form-control" name="faq_question[]" id="faq_question_1" placeholder="Enter question">
+                        </div>
+                        <div class="mb-2">
+                            <label for="faq_answer_1" class="form-label">Answer <span class="text-danger">*</span></label>
+                            <textarea class="form-control" name="faq_answer[]" id="faq_answer_1" rows="2" placeholder="Enter answer"></textarea>
+                        </div>
+                    </div>
+                </div>
+
+                <button type="button" class="btn btn-sm btn-info mt-2" onclick="addFaq()">
+                    <i class="fas fa-plus"></i> Add Another FAQ Field
+                </button>
+                
+                <hr class="mt-4 mb-4">
+                
+                <button type="submit" class="btn btn-primary mt-3">💾 Save General FAQs</button>
+            </form>
+        </div>
+    </div>
+</div>
+
+<script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+<script type="text/javascript" src="https://cdn.jsdelivr.net/npm/toastify-js"></script>
+
+<script>
+let faqCounter = 1; 
+
+function addFaq() {
+    faqCounter++;
+    const newFaqId = `faq-item-${faqCounter}`;
+    
+    const newFaqHtml = `
+        <div class="faq-item" id="${newFaqId}">
+            <div class="d-flex justify-content-between align-items-center mb-2">
+                <span class="font-weight-bold text-sm text-gray-700">FAQ #${faqCounter}</span>
+                <span class="remove-faq-btn" onclick="removeFaq(${faqCounter})">
+                    <i class="fas fa-times"></i> Remove
+                </span>
+            </div>
+            <div class="mb-3">
+                <label for="faq_question_${faqCounter}" class="form-label">Question <span class="text-danger">*</span></label>
+                <input type="text" class="form-control" name="faq_question[]" id="faq_question_${faqCounter}" placeholder="Enter question">
+            </div>
+            <div class="mb-2">
+                <label for="faq_answer_${faqCounter}" class="form-label">Answer <span class="text-danger">*</span></label>
+                <textarea class="form-control" name="faq_answer[]" id="faq_answer_${faqCounter}" rows="2" placeholder="Enter answer"></textarea>
+            </div>
+        </div>
+    `;
+
+    $('#faqContainer').append(newFaqHtml);
+}
+
+function removeFaq(id) {
+    const itemToRemove = $(`#faq-item-${id}`);
+    
+    if ($('.faq-item').length > 1) {
+        itemToRemove.remove();
+        $('.faq-item').each(function(index) {
+            $(this).find('.font-weight-bold').text(`FAQ #${index + 1}`);
+        });
+        
+        Toastify({
+            text: "FAQ field removed.", duration: 1500, style: { background: "#f39c12" }
+        }).showToast();
+        
+    } else {
+        itemToRemove.find('input[type="text"]').val('');
+        itemToRemove.find('textarea').val('');
+        Toastify({
+            text: "Cleared the last FAQ fields. Cannot remove final field.", duration: 3000, style: { background: "#3498db" }
+        }).showToast();
+    }
+}
+
+$('form').on('submit', function() {
+    let validCount = 0;
+    $('.faq-item').each(function() {
+        const question = $(this).find('input[name="faq_question[]"]').val().trim();
+        const answer = $(this).find('textarea[name="faq_answer[]"]').val().trim();
+        if (question && answer) {
+            validCount++;
+        }
+    });
+
+    if (validCount === 0) {
+        Toastify({
+            text: "Please fill in at least one Question and Answer pair.", duration: 3000, style: { background: "#e74c3c" }
+        }).showToast();
+        return false;
+    }
+});
+
+// Toastify for Django Messages (Error/Success)
+$(document).ready(function() {
+    {% if messages %}
+        {% for message in messages %}
+            let bgColor = "{% if message.tags == 'error' %}#e74c3c{% elif message.tags == 'warning' %}#f39c12{% elif message.tags == 'info' %}#3498db{% else %}#2ecc71{% endif %}";
+            let icon = "{% if message.tags == 'error' %}❌{% elif message.tags == 'warning' %}⚠️{% elif message.tags == 'info' %}ℹ️{% else %}✔{% endif %}";
+            
+            Toastify({
+                text: `${icon} {{ message|escapejs }}`,
+                duration: 5000,
+                close: true,
+                gravity: "top", 
+                position: "right", 
+                style: { background: bgColor, 'font-weight': 'bold', 'border-radius': '5px' }
+            }).showToast();
+        {% endfor %}
+    {% endif %}
+});
+</script>
+{% endblock %}

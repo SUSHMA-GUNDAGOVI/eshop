@@ -1,0 +1,587 @@
+{% extends 'landing_base.html' %}
+{% load static %}
+
+{% block title %}Track Your Order{% endblock %}
+
+{% block content %}
+
+<!-- Page Header Section -->
+<section class="page-header spad" style="background: linear-gradient(135deg, #ababab 0%, #fff0f0 100%);">
+    <div class="container">
+        <div class="row">
+            <div class="col-lg-12 text-center">
+                <div class="page-header__text">
+                    <h2 data-aos="fade-up" data-aos-duration="800">Track Your Order</h2>
+                    <p data-aos="fade-up" data-aos-duration="800" data-aos-delay="200">
+                        Get real-time updates on your package delivery status
+                    </p>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- Track Order Section -->
+<section class="track-order-section spad">
+    <div class="container">
+        <div class="row">
+            <div class="col-lg-8 mx-auto">
+                <!-- Track Order Form -->
+                <div class="track-order-form mb-5" data-aos="fade-up" data-aos-duration="800">
+                    <div class="form-card p-5 rounded">
+                        <h3 class="text-center mb-4">Enter Your Tracking Information</h3>
+                        <form id="trackOrderForm">
+                            <div class="form-group">
+                                <label for="orderNumber"><strong>Order Number *</strong></label>
+                                <input type="text" class="form-control form-control-lg" id="orderNumber" 
+                                       placeholder="e.g., ORD-123456" required>
+                                <small class="form-text text-muted">You can find this in your order confirmation email</small>
+                            </div>
+                            
+                            <div class="form-group">
+                                <label for="email"><strong>Email Address *</strong></label>
+                                <input type="email" class="form-control form-control-lg" id="email" 
+                                       placeholder="your.email@example.com" required>
+                                <small class="form-text text-muted">The email address used to place the order</small>
+                            </div>
+                            
+                            <div class="text-center mt-4">
+                                <button type="submit" class="primary-btn btn-lg">
+                                    <i class="fa fa-search mr-2"></i>Track Order
+                                </button>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+
+                <!-- Tracking Result (Initially Hidden) -->
+                <div class="tracking-result mb-5" id="trackingResult" style="display: none;" data-aos="fade-up" data-aos-duration="800">
+                    <div class="result-card p-4 rounded">
+                        <div class="result-header d-flex justify-content-between align-items-center mb-4">
+                            <h4 class="mb-0">Order Status</h4>
+                            <span class="badge badge-success status-badge">Delivered</span>
+                        </div>
+                        
+                        <!-- Order Summary -->
+                        <div class="order-summary mb-4">
+                            <div class="row">
+                                <div class="col-md-6">
+                                    <p><strong>Order Number:</strong> <span id="resultOrderNumber">ORD-123456</span></p>
+                                    <p><strong>Order Date:</strong> <span id="resultOrderDate">January 15, 2024</span></p>
+                                </div>
+                                <div class="col-md-6">
+                                    <p><strong>Shipping Method:</strong> <span id="resultShippingMethod">Standard Shipping</span></p>
+                                    <p><strong>Estimated Delivery:</strong> <span id="resultEstDelivery">January 20, 2024</span></p>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Tracking Timeline -->
+                        <div class="tracking-timeline">
+                            <h5 class="mb-4">Tracking History</h5>
+                            <div class="timeline">
+                                <div class="timeline-item completed">
+                                    <div class="timeline-marker"></div>
+                                    <div class="timeline-content">
+                                        <h6>Order Delivered</h6>
+                                        <p class="text-muted mb-1">Delivered to recipient</p>
+                                        <small class="text-muted">January 20, 2024 - 2:30 PM</small>
+                                        <p class="mt-1"><i class="fa fa-map-marker-alt mr-2"></i>Front Door</p>
+                                    </div>
+                                </div>
+                                
+                                <div class="timeline-item completed">
+                                    <div class="timeline-marker"></div>
+                                    <div class="timeline-content">
+                                        <h6>Out for Delivery</h6>
+                                        <p class="text-muted mb-1">Package is out for delivery</p>
+                                        <small class="text-muted">January 20, 2024 - 8:15 AM</small>
+                                    </div>
+                                </div>
+                                
+                                <div class="timeline-item completed">
+                                    <div class="timeline-marker"></div>
+                                    <div class="timeline-content">
+                                        <h6>At Local Facility</h6>
+                                        <p class="text-muted mb-1">Arrived at local distribution center</p>
+                                        <small class="text-muted">January 19, 2024 - 6:45 PM</small>
+                                        <p class="mt-1"><i class="fa fa-building mr-2"></i>New York Distribution Center</p>
+                                    </div>
+                                </div>
+                                
+                                <div class="timeline-item completed">
+                                    <div class="timeline-marker"></div>
+                                    <div class="timeline-content">
+                                        <h6>In Transit</h6>
+                                        <p class="text-muted mb-1">Package is moving through network</p>
+                                        <small class="text-muted">January 18, 2024 - 11:20 AM</small>
+                                    </div>
+                                </div>
+                                
+                                <div class="timeline-item completed">
+                                    <div class="timeline-marker"></div>
+                                    <div class="timeline-content">
+                                        <h6>Shipped</h6>
+                                        <p class="text-muted mb-1">Package has left our facility</p>
+                                        <small class="text-muted">January 17, 2024 - 3:15 PM</small>
+                                        <p class="mt-1"><i class="fa fa-truck mr-2"></i>Tracking #: 1234567890</p>
+                                    </div>
+                                </div>
+                                
+                                <div class="timeline-item completed">
+                                    <div class="timeline-marker"></div>
+                                    <div class="timeline-content">
+                                        <h6>Order Processed</h6>
+                                        <p class="text-muted mb-1">We've received your order</p>
+                                        <small class="text-muted">January 15, 2024 - 10:30 AM</small>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Package Details -->
+                        <div class="package-details mt-4">
+                            <h5 class="mb-3">Package Information</h5>
+                            <div class="row">
+                                <div class="col-md-6">
+                                    <p><strong>Carrier:</strong> UPS</p>
+                                    <p><strong>Tracking Number:</strong> 1Z1234567890123456</p>
+                                </div>
+                                <div class="col-md-6">
+                                    <p><strong>Service:</strong> UPS Ground</p>
+                                    <p><strong>Weight:</strong> 2.5 lbs</p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Help Section -->
+                <div class="help-section" data-aos="fade-up" data-aos-duration="800" data-aos-delay="200">
+                    <div class="row">
+                        <div class="col-md-6 mb-4">
+                            <div class="help-card text-center p-4 rounded h-100">
+                                <div class="help-icon mb-3">
+                                    <i class="fa fa-question-circle"></i>
+                                </div>
+                                <h5>Can't Find Your Order?</h5>
+                                <p>If you're having trouble tracking your order, check your email for the order confirmation or contact our support team.</p>
+                                <a href="{% url 'landing_contact' %}" class="secondary-btn">Contact Support</a>
+                            </div>
+                        </div>
+                        
+                        <div class="col-md-6 mb-4">
+                            <div class="help-card text-center p-4 rounded h-100">
+                                <div class="help-icon mb-3">
+                                    <i class="fa fa-clock"></i>
+                                </div>
+                                <h5>Delivery Times</h5>
+                                <p>Standard shipping takes 5-7 business days. Express and overnight options are also available.</p>
+                                <a href="{% url 'shipping_policy' %}" class="secondary-btn">View Shipping Policy</a>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Common Questions -->
+                <div class="common-questions mt-5" data-aos="fade-up" data-aos-duration="800" data-aos-delay="400">
+                    <h4 class="text-center mb-4">Frequently Asked Questions</h4>
+                    <div class="accordion" id="trackingFAQ">
+                        <div class="card mb-2">
+                            <div class="card-header" id="faqOne">
+                                <h5 class="mb-0">
+                                    <button class="btn btn-link" type="button" data-toggle="collapse" data-target="#collapseOne" aria-expanded="true" aria-controls="collapseOne">
+                                        How long does it take for tracking information to update?
+                                    </button>
+                                </h5>
+                            </div>
+                            <div id="collapseOne" class="collapse show" aria-labelledby="faqOne" data-parent="#trackingFAQ">
+                                <div class="card-body">
+                                    Tracking information typically updates within 24 hours after your order ships. During peak seasons, it may take slightly longer.
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="card mb-2">
+                            <div class="card-header" id="faqTwo">
+                                <h5 class="mb-0">
+                                    <button class="btn btn-link collapsed" type="button" data-toggle="collapse" data-target="#collapseTwo" aria-expanded="false" aria-controls="collapseTwo">
+                                        My tracking hasn't updated in several days. What should I do?
+                                    </button>
+                                </h5>
+                            </div>
+                            <div id="collapseTwo" class="collapse" aria-labelledby="faqTwo" data-parent="#trackingFAQ">
+                                <div class="card-body">
+                                    If your tracking hasn't updated for more than 3 business days, please contact our customer service team with your order number for assistance.
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="card mb-2">
+                            <div class="card-header" id="faqThree">
+                                <h5 class="mb-0">
+                                    <button class="btn btn-link collapsed" type="button" data-toggle="collapse" data-target="#collapseThree" aria-expanded="false" aria-controls="collapseThree">
+                                        Can I change the delivery address after my order has shipped?
+                                    </button>
+                                </h5>
+                            </div>
+                            <div id="collapseThree" class="collapse" aria-labelledby="faqThree" data-parent="#trackingFAQ">
+                                <div class="card-body">
+                                    Once an order has shipped, we cannot change the delivery address. You may be able to contact the carrier directly to request a delivery intercept or address correction, which may incur additional fees.
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<style>
+/* Track Order Specific Styles */
+.page-header {
+    padding: 80px 0;
+    color: white;
+}
+
+.page-header__text h2 {
+    font-size: 3rem;
+    font-weight: 700;
+    margin-bottom: 1rem;
+}
+
+.page-header__text p {
+    font-size: 1.2rem;
+    opacity: 0.9;
+}
+
+.track-order-section {
+    padding: 80px 0;
+}
+
+.form-card {
+    background: white;
+    box-shadow: 0 10px 40px rgba(0,0,0,0.1);
+    border: 1px solid #e9ecef;
+}
+
+.form-control {
+    border-radius: 10px;
+    border: 2px solid #e9ecef;
+    padding: 15px 20px;
+    font-size: 1rem;
+    transition: all 0.3s ease;
+}
+
+.form-control:focus {
+    border-color: #e53637;
+    box-shadow: 0 0 0 0.2rem rgba(0,123,255,0.25);
+}
+
+.result-card {
+    background: white;
+    box-shadow: 0 10px 40px rgba(0,0,0,0.1);
+    border: 1px solid #e9ecef;
+    border-radius: 15px;
+}
+
+.status-badge {
+    font-size: 0.9rem;
+    padding: 8px 16px;
+    border-radius: 20px;
+}
+
+/* Timeline Styles */
+.timeline {
+    position: relative;
+    padding-left: 30px;
+}
+
+.timeline-item {
+    position: relative;
+    padding-bottom: 30px;
+}
+
+.timeline-item:last-child {
+    padding-bottom: 0;
+}
+
+.timeline-marker {
+    position: absolute;
+    left: -30px;
+    top: 0;
+    width: 20px;
+    height: 20px;
+    border-radius: 50%;
+    background: #28a745;
+    border: 3px solid white;
+    box-shadow: 0 0 0 3px #28a745;
+}
+
+.timeline-item.completed .timeline-marker {
+    background: #28a745;
+    box-shadow: 0 0 0 3px #28a745;
+}
+
+.timeline-item.current .timeline-marker {
+    background: #e53637;
+    box-shadow: 0 0 0 3px #e53637;
+    animation: pulse 2s infinite;
+}
+
+.timeline-item.pending .timeline-marker {
+    background: #6c757d;
+    box-shadow: 0 0 0 3px #6c757d;
+}
+
+.timeline-content {
+    background: #f8f9fa;
+    padding: 20px;
+    border-radius: 10px;
+    border-left: 4px solid #e53637;
+}
+
+.timeline-content h6 {
+    color: #2c3e50;
+    font-weight: 600;
+    margin-bottom: 5px;
+}
+
+/* Help Cards */
+.help-card {
+    background: white;
+    border: 2px solid #e9ecef;
+    transition: all 0.3s ease;
+}
+
+.help-card:hover {
+    border-color: #e53637;
+    transform: translateY(-5px);
+    box-shadow: 0 10px 30px rgba(0,0,0,0.1);
+}
+
+.help-icon {
+    width: 70px;
+    height: 70px;
+    background: linear-gradient(135deg, #ababab 0%, #fff0f0 100%);
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin: 0 auto;
+    color: white;
+    font-size: 1.8rem;
+}
+
+.secondary-btn {
+    display: inline-block;
+    padding: 10px 25px;
+    background: white;
+    color: #e53637;
+    border: 2px solid #e53637;
+    border-radius: 25px;
+    text-decoration: none;
+    font-weight: 500;
+    transition: all 0.3s ease;
+    margin-top: 10px;
+}
+
+.secondary-btn:hover {
+    background: #e53637;
+    color: white;
+    text-decoration: none;
+}
+
+/* FAQ Accordion */
+.accordion .card {
+    border: 1px solid #e9ecef;
+    border-radius: 10px;
+    margin-bottom: 10px;
+    box-shadow: 0 2px 10px rgba(0,0,0,0.05);
+}
+
+.accordion .card-header {
+    background: white;
+    border: none;
+    padding: 0;
+}
+
+.accordion .btn-link {
+    color: #2c3e50;
+    text-decoration: none;
+    font-weight: 500;
+    font-size: 1rem;
+    width: 100%;
+    text-align: left;
+    padding: 20px 25px;
+    position: relative;
+}
+
+.accordion .btn-link:after {
+    content: '+';
+    position: absolute;
+    right: 25px;
+    top: 50%;
+    transform: translateY(-50%);
+    font-size: 1.5rem;
+    font-weight: 300;
+}
+
+.accordion .btn-link.collapsed:after {
+    content: '+';
+}
+
+.accordion .btn-link:not(.collapsed):after {
+    content: '-';
+}
+
+.accordion .btn-link:hover {
+    color: #e53637;
+    text-decoration: none;
+}
+
+.accordion .card-body {
+    padding: 20px 25px;
+    background: #f8f9fa;
+    border-radius: 0 0 10px 10px;
+}
+
+/* Animations */
+@keyframes pulse {
+    0% {
+        box-shadow: 0 0 0 0 rgba(0, 123, 255, 0.7);
+    }
+    70% {
+        box-shadow: 0 0 0 10px rgba(0, 123, 255, 0);
+    }
+    100% {
+        box-shadow: 0 0 0 0 rgba(0, 123, 255, 0);
+    }
+}
+
+/* Responsive Design */
+@media (max-width: 768px) {
+    .page-header__text h2 {
+        font-size: 2rem;
+    }
+    
+    .page-header__text p {
+        font-size: 1rem;
+    }
+    
+    .form-card {
+        padding: 20px;
+    }
+    
+    .timeline {
+        padding-left: 20px;
+    }
+    
+    .timeline-marker {
+        left: -20px;
+        width: 16px;
+        height: 16px;
+    }
+    
+    .help-card {
+        margin-bottom: 20px;
+    }
+}
+
+@media (max-width: 576px) {
+    .result-header {
+        flex-direction: column;
+        text-align: center;
+    }
+    
+    .status-badge {
+        margin-top: 10px;
+    }
+    
+    .order-summary .row > div {
+        margin-bottom: 15px;
+    }
+}
+</style>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // Track Order Form Submission
+    const trackOrderForm = document.getElementById('trackOrderForm');
+    const trackingResult = document.getElementById('trackingResult');
+    
+    if (trackOrderForm) {
+        trackOrderForm.addEventListener('submit', function(e) {
+            e.preventDefault();
+            
+            // Get form values
+            const orderNumber = document.getElementById('orderNumber').value;
+            const email = document.getElementById('email').value;
+            
+            // Simple validation
+            if (!orderNumber || !email) {
+                alert('Please fill in all required fields.');
+                return;
+            }
+            
+            // Simulate API call delay
+            const submitBtn = trackOrderForm.querySelector('button[type="submit"]');
+            const originalText = submitBtn.innerHTML;
+            submitBtn.innerHTML = '<i class="fa fa-spinner fa-spin mr-2"></i>Tracking...';
+            submitBtn.disabled = true;
+            
+            setTimeout(function() {
+                // Show tracking result
+                trackingResult.style.display = 'block';
+                
+                // Update result with form data
+                document.getElementById('resultOrderNumber').textContent = orderNumber;
+                
+                // Reset button
+                submitBtn.innerHTML = originalText;
+                submitBtn.disabled = false;
+                
+                // Scroll to results
+                trackingResult.scrollIntoView({ behavior: 'smooth' });
+            }, 1500);
+        });
+    }
+    
+    // Add animation to timeline items
+    const timelineItems = document.querySelectorAll('.timeline-item');
+    timelineItems.forEach((item, index) => {
+        item.style.opacity = '0';
+        item.style.transform = 'translateX(-20px)';
+        item.style.transition = `opacity 0.5s ease ${index * 0.2}s, transform 0.5s ease ${index * 0.2}s`;
+        
+        setTimeout(() => {
+            item.style.opacity = '1';
+            item.style.transform = 'translateX(0)';
+        }, 100 + index * 200);
+    });
+    
+    // Sample tracking numbers for demo
+    const sampleTrackingNumbers = [
+        'ORD-123456',
+        'ORD-789012', 
+        'ORD-345678',
+        'ORD-901234'
+    ];
+    
+    // Pre-fill with sample data for demo
+    const orderNumberInput = document.getElementById('orderNumber');
+    if (orderNumberInput) {
+        orderNumberInput.placeholder = `e.g., ${sampleTrackingNumbers[0]}`;
+        
+        // Add click to fill sample data (for demo purposes)
+        orderNumberInput.addEventListener('click', function() {
+            if (!this.value) {
+                this.value = sampleTrackingNumbers[Math.floor(Math.random() * sampleTrackingNumbers.length)];
+            }
+        });
+    }
+});
+</script>
+
+{% endblock %}

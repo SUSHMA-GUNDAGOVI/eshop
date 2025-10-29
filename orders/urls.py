@@ -32,5 +32,9 @@ urlpatterns = [
     path('addresses/<int:pk>/delete/', views.delete_address, name='delete_address'),
     path('addresses/<int:pk>/edit/', views.edit_address, name='edit_address'),
     path('profile/', views.account_profile, name='account_profile'),
-    
+    path('faqs/', views.faqs_view, name='faqs'),
+    path('shipping-policy/', views.shipping_policy_view, name='shipping_policy'),
+    path('track-order/', views.track_order_view, name='track_order'),
+    path('return_policy/', views.return_policy_view, name='return_policy'),
+
 ]

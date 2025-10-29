@@ -232,10 +232,11 @@
                         <h6>Customer Service</h6>
                         <ul>
                             <li><a href="{% url 'landing_contact' %}">Contact Us</a></li>
-                            <li><a href="#">FAQs</a></li>
-                            <li><a href="#">Order Tracking</a></li>
-                            <li><a href="#">Return / Refund Policy</a></li>
-                        </ul>
+                            <li><a href="{% url 'faqs' %}">FAQs</a></li>
+                            <li><a href="{% url 'shipping_policy' %}">Shipping Policy</a></li>
+                            <li><a href="{% url 'track_order' %}">Orders Tracking</a></li>
+                            <li><a href="{% url 'return_policy' %}">Return / Refund Policy</a></li>
+             </ul>
                     </div>
                 </div>
                 <div class="col-lg-3 offset-lg-1 col-md-6 col-sm-6">

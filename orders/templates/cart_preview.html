@@ -1,9 +1,17 @@
 {% if cart_items %}
     {% for item in cart_items %}
         <div class="d-flex align-items-center mb-3">
-            <img src="{{ item.product.photo.url }}" alt="{{ item.product.title }}"
-                 class="me-3 shadow-sm"
-                 style="width:45px; height:45px; object-fit:cover; border-radius:6px;">
+            <!-- ✅ Use selected_image if available, else fallback -->
+            {% if item.selected_image %}
+                <img src="{{ item.selected_image }}" alt="{{ item.product.title }}"
+                     class="me-3 shadow-sm"
+                     style="width:45px; height:45px; object-fit:cover; border-radius:6px;">
+            {% else %}
+                <img src="{{ item.product.photo.url }}" alt="{{ item.product.title }}"
+                     class="me-3 shadow-sm"
+                     style="width:45px; height:45px; object-fit:cover; border-radius:6px;">
+            {% endif %}
+
             <div class="flex-grow-1">
                 <p class="mb-0 small fw-semibold text-truncate" title="{{ item.product.title }}">
                     {{ item.product.title }}

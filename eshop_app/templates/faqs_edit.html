@@ -1,0 +1,77 @@
+{% extends 'admin_base.html' %}
+
+{% block title %}Edit FAQ: {{ faq.question|truncatechars:30 }}{% endblock %}
+
+{% block content %}
+<link rel="stylesheet" type="text/css" href="https://cdn.jsdelivr.net/npm/toastify-js/src/toastify.min.css">
+
+<div class="container-fluid">
+
+    <div class="d-sm-flex align-items-center justify-content-between mb-4">
+        <h1 class="h3 text-gray-800">Edit FAQ</h1>
+    </div>
+
+    <div class="card shadow mb-4">
+        <div class="card-header py-3">
+            <h6 class="m-0 font-weight-bold text-primary">Editing: {{ faq.question|truncatechars:60 }}</h6>
+        </div>
+        <div class="card-body">
+            
+            <form method="post">
+                {% csrf_token %}
+
+                <div class="form-group mb-3">
+                    <label for="question">Question <span class="text-danger">*</span></label>
+                    <input type="text" class="form-control" name="question" id="question" value="{{ faq.question }}" required>
+                </div>
+                
+                <div class="form-group mb-3">
+                    <label for="answer">Answer <span class="text-danger">*</span></label>
+                    <textarea class="form-control" name="answer" id="answer" rows="4" required>{{ faq.answer }}</textarea>
+                </div>
+
+                <div class="row">
+                    <div class="col-md-6 form-group">
+                        <label for="order">Display Order</label>
+                        <input type="number" class="form-control" name="order" id="order" value="{{ faq.order }}" min="0">
+                    </div>
+                    <div class="col-md-6 form-group d-flex align-items-end">
+                         <div class="custom-control custom-checkbox">
+                            <input type="checkbox" class="custom-control-input" id="is_active" name="is_active" {% if faq.is_active %}checked{% endif %}>
+                            <label class="custom-control-label" for="is_active">Is Active (Show on Site)</label>
+                        </div>
+                    </div>
+                </div>
+                
+                <hr class="my-4">
+                
+                <button type="submit" class="btn btn-success mt-3">💾 Save Changes</button>
+                <a href="{% url 'faqs_list' %}" class="btn btn-secondary mt-3">Cancel</a>
+            </form>
+        </div>
+    </div>
+</div>
+
+<script type="text/javascript" src="https://cdn.jsdelivr.net/npm/toastify-js"></script>
+
+<script>
+// Reuse the Toastify logic from the previous template for displaying Django messages
+$(document).ready(function() {
+    {% if messages %}
+        {% for message in messages %}
+            let bgColor = "{% if message.tags == 'error' %}#e74c3c{% elif message.tags == 'warning' %}#f39c12{% elif message.tags == 'info' %}#3498db{% else %}#2ecc71{% endif %}";
+            let icon = "{% if message.tags == 'error' %}❌{% elif message.tags == 'warning' %}⚠️{% elif message.tags == 'info' %}ℹ️{% else %}✔{% endif %}";
+            
+            Toastify({
+                text: `${icon} {{ message|escapejs }}`,
+                duration: 5000,
+                close: true,
+                gravity: "top", 
+                position: "right", 
+                style: { background: bgColor, 'font-weight': 'bold', 'border-radius': '5px' }
+            }).showToast();
+        {% endfor %}
+    {% endif %}
+});
+</script>
+{% endblock %}

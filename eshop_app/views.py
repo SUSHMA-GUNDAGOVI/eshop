@@ -20,6 +20,9 @@ from django.contrib.auth import update_session_auth_hash
 from django.contrib.auth import logout
 from django.core.exceptions import PermissionDenied
 from decimal import Decimal
+from django.db import transaction
+from django.db.models import Max 
+from .models import GeneralFAQ
 
 
 
@@ -528,118 +531,154 @@ def brand_list(request):
         "search_query": search_query,
         "success_message": success_message
     })
+from decimal import Decimal
+from django.shortcuts import render, redirect
+from django.urls import reverse
+from django.contrib import messages
+from .models import Product, ProductMedia, Category, Brand
+
 def product_add(request):
     categories = Category.objects.filter(parent__isnull=True, status="active")
     brands = Brand.objects.filter(status="active")
     STATUS_CHOICES = ['active', 'inactive', 'pending']
 
     if request.method == "POST":
-        # --- Basic product data ---
-        title = request.POST.get("title")
-        summary = request.POST.get("summary")
-        description = request.POST.get("description")
-        is_featured = bool(request.POST.get("is_featured"))
-        cat_id = request.POST.get("cat_id")
-        child_cat_id = request.POST.get("child_cat_id")
-        price = request.POST.get("price")
-        discount = request.POST.get("discount") or 0
+        try:
+            # --- Basic product info ---
+            title = request.POST.get("title")
+            summary = request.POST.get("summary")
+            description = request.POST.get("description")
+            is_featured = bool(request.POST.get("is_featured"))
+            cat_id = request.POST.get("cat_id")
+            child_cat_id = request.POST.get("child_cat_id")
+            price = request.POST.get("price") or 0
+            discount = request.POST.get("discount") or 0
+            brand_id = request.POST.get("brand_id")
+            condition = request.POST.get("condition")
+            stock = request.POST.get("stock") or 0
 
-        sizes = request.POST.getlist("size")
-        size_string = ",".join(sizes) if sizes else ""
+            # --- Sizes ---
+            sizes = request.POST.getlist("size")
+            size_string = ",".join(sizes) if sizes else ""
 
-        # --- Handle color data (JSON structure) ---
-        color_data = []
-        color_names = request.POST.getlist("color_name")
-        color_codes = request.POST.getlist("color_code")
-        for name, code in zip(color_names, color_codes):
-            if name and code:
-                color_data.append({
-                    'name': name,
-                    'code': code
-                })
+            # --- Colors ---
+            color_data = []
+            color_names = request.POST.getlist("color_name")
+            color_codes = request.POST.getlist("color_code")
 
-        brand_id = request.POST.get("brand_id")
-        condition = request.POST.get("condition")
-        stock = request.POST.get("stock")
+            for name, code in zip(color_names, color_codes):
+                if name and code:
+                    color_data.append({'name': name, 'code': code})
 
-        # --- Handle product status ---
-        status_from_post = request.POST.get("status")
-        final_status = status_from_post if status_from_post in STATUS_CHOICES else 'inactive'
+            # ✅ Default fallback color
+            if not color_data:
+                color_data = [{'name': 'Black', 'code': '#000000'}]
+                color_names = ['Black']
 
-        # --- Handle shipping logic ---
-        shipping_option = request.POST.get("shipping_option")
-        shipping_charge_value = request.POST.get("shipping_charge")
+            # --- Status ---
+            status_from_post = request.POST.get("status")
+            final_status = status_from_post if status_from_post in STATUS_CHOICES else 'inactive'
 
-        if shipping_option == "free":
-            is_free_shipping = True
-            shipping_charge = Decimal('0.00')
-        else:
-            is_free_shipping = False
-            shipping_charge = Decimal(shipping_charge_value or '0.00')
+            # --- Shipping ---
+            shipping_option = request.POST.get("shipping_option")
+            shipping_charge_value = request.POST.get("shipping_charge")
 
-        # --- Handle media files ---
-        media_files = request.FILES.getlist("media_files")
+            if shipping_option == "free":
+                is_free_shipping = True
+                shipping_charge = Decimal('0.00')
+            else:
+                is_free_shipping = False
+                shipping_charge = Decimal(shipping_charge_value or '0.00')
 
-        # Validate at least one file
-        if not media_files:
-            return render(request, "product_add.html", {
-                "categories": categories,
-                "brands": brands,
-                "error_message": "Please upload at least one image or video."
-            })
-
-        # Validate file types
-        for file in media_files:
-            if not file.content_type.startswith(("image", "video")):
-                return render(request, "product_add.html", {
-                    "categories": categories,
-                    "brands": brands,
-                    "error_message": f"Invalid file type: {file.name}. Only images or videos are allowed."
-                })
-
-        # --- Fetch related objects ---
-        category = Category.objects.get(id=cat_id) if cat_id else None
-        child_category = Category.objects.get(id=child_cat_id) if child_cat_id else None
-        brand = Brand.objects.get(id=brand_id) if brand_id else None
-
-        # --- Create the Product ---
-        product = Product.objects.create(
-            title=title,
-            summary=summary,
-            description=description,
-            is_featured=is_featured,
-            category=category,
-            child_category=child_category,
-            price=price,
-            discount=discount,
-            size=size_string,
-            color_data=color_data,
-            brand=brand,
-            condition=condition,
-            stock=stock,
-            status=final_status,
-            shipping_charge=shipping_charge,
-            is_free_shipping=is_free_shipping,  # ✅ NEW FIELD
-            photo=media_files[0],  # First file as main photo
-            user=request.user,
-        )
-
-        # --- Create ProductMedia entries ---
-        for i, file in enumerate(media_files):
-            ProductMedia.objects.create(
-                product=product,
-                file=file,
-                is_primary=(i == 0)
+            # --- Create Product ---
+            product = Product.objects.create(
+                title=title,
+                summary=summary,
+                description=description,
+                is_featured=is_featured,
+                category_id=cat_id if cat_id else None,
+                child_category_id=child_cat_id if child_cat_id else None,
+                price=price,
+                discount=discount,
+                size=size_string,
+                color_data=color_data,
+                brand_id=brand_id if brand_id else None,
+                condition=condition,
+                stock=stock,
+                status=final_status,
+                shipping_charge=shipping_charge,
+                is_free_shipping=is_free_shipping,
+                user=request.user,
             )
 
-        # --- Redirect after success ---
-        return redirect(f"{reverse('product_list')}?success=1")
+            # --- Handle all uploaded media files ---
+            all_media = []
 
-    # --- GET request (Render form) ---
+            # 1️⃣ Color-based uploads
+            for color_name in color_names:
+                key = f"media_files_{color_name}"
+                files = request.FILES.getlist(key)
+                for file in files:
+                    all_media.append({
+                        "file": file,
+                        "color_name": color_name
+                    })
+
+            # 2️⃣ Default uploads (non-color)
+            default_media = request.FILES.getlist("media_files")
+            for file in default_media:
+                all_media.append({
+                    "file": file,
+                    "color_name": ""
+                })
+
+            # --- Validate uploads ---
+            if not all_media:
+                messages.error(request, "Please upload at least one image or video.")
+                return render(request, "admin/product_add.html", {
+                    "categories": categories,
+                    "brands": brands,
+                })
+
+            # --- Save all media ---
+            uploaded_images = []
+            for i, media in enumerate(all_media):
+                file = media["file"]
+                color_name = media["color_name"]
+
+                # Detect file type
+                file_type = "video" if file.content_type.startswith("video") else "image"
+
+                ProductMedia.objects.create(
+                    product=product,
+                    file=file,
+                    color_name=color_name,
+                    file_type=file_type,
+                    is_primary=(i == 0)
+                )
+
+                if file_type == "image":
+                    uploaded_images.append(file)
+
+            # ✅ Set first image as product main photo
+            if uploaded_images:
+                product.photo = uploaded_images[0]
+                product.save()
+
+            messages.success(request, f"✅ Product '{product.title}' added successfully!")
+            return redirect(f"{reverse('product_list')}?success=1")
+
+        except Exception as e:
+            print("Error adding product:", e)
+            messages.error(request, f"❌ Error adding product: {str(e)}")
+
+    # --- GET request ---
     return render(request, "product_add.html", {
         "categories": categories,
         "brands": brands,
     })
+
+
 def product_edit(request, pk):
     product = get_object_or_404(Product, pk=pk)
     categories = Category.objects.filter(parent__isnull=True, status="active")
@@ -1772,3 +1811,89 @@ def client_list(request):
         "search_query": search_query,
         "success_message": success_message
     })
+
+def faqs_list_view(request):
+    faqs = GeneralFAQ.objects.all().order_by('order')
+    return render(request, 'faqs_list.html', {'faqs': faqs})
+
+# --- 2. ADD FAQ VIEW ---
+def add_general_faqs_view(request):
+    
+    if request.method == 'POST':
+        faq_questions = request.POST.getlist('faq_question[]')
+        faq_answers = request.POST.getlist('faq_answer[]')
+        
+        valid_faqs = [(q.strip(), a.strip()) for q, a in zip(faq_questions, faq_answers) if q.strip() and a.strip()]
+
+        try:
+            with transaction.atomic():
+                
+                if not valid_faqs:
+                    messages.info(request, 'No valid Question and Answer pairs were provided.')
+                    return render(request, 'add_general_faqs.html', {'request': request})
+
+                # Determine the starting order number for new FAQs
+                max_order_result = GeneralFAQ.objects.aggregate(Max('order'))
+                current_max_order = max_order_result.get('order__max') or 0
+                
+                for i, (q, a) in enumerate(valid_faqs):
+                    GeneralFAQ.objects.create(
+                        question=q,
+                        answer=a,
+                        order=current_max_order + i + 1  
+                    )
+                
+                messages.success(request, f'{len(valid_faqs)} new general FAQ(s) added successfully!')
+                return redirect('faqs_list') 
+
+        except Exception as e:
+            messages.error(request, f"An error occurred: {e}")
+            return render(request, 'add_general_faqs.html', {'request': request})
+
+    return render(request, 'add_general_faqs.html', {'request': request})
+
+
+def faqs_edit_view(request, pk):
+    faq = get_object_or_404(GeneralFAQ, pk=pk)
+    
+    if request.method == 'POST':
+        # Get data from the simple form (only one Q and A pair expected)
+        question = request.POST.get('question', '').strip()
+        answer = request.POST.get('answer', '').strip()
+        order = request.POST.get('order', 0)
+        is_active = request.POST.get('is_active') == 'on' # Checkbox value
+
+        if not question or not answer:
+            messages.error(request, 'Question and Answer fields cannot be empty.')
+            return render(request, 'faqs_edit.html', {'faq': faq})
+
+        try:
+            # Update the object fields
+            faq.question = question
+            faq.answer = answer
+            faq.order = int(order)
+            faq.is_active = is_active
+            faq.save()
+            
+            messages.success(request, f'FAQ "{faq.question[:30]}..." updated successfully!')
+            return redirect('faqs_list')
+            
+        except ValueError:
+             messages.error(request, 'Display Order must be a valid number.')
+        except Exception as e:
+            messages.error(request, f"An error occurred during update: {e}")
+            
+    # For GET request or error during POST, render the form with the current object
+    return render(request, 'faqs_edit.html', {'faq': faq})
+
+# --- 4. DELETE FAQ VIEW ---
+def faqs_delete_view(request, pk):
+    faq = get_object_or_404(GeneralFAQ, pk=pk)
+    
+    try:
+        faq.delete()
+        messages.success(request, f'FAQ deleted: "{faq.question[:30]}..."')
+    except Exception as e:
+        messages.error(request, f"Error deleting FAQ: {e}")
+        
+    return redirect('faqs_list')
