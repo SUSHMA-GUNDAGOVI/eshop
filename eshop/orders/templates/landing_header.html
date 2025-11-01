@@ -1,0 +1,95 @@
+<div class="topbar">
+    <div class="container">
+        <div>
+            <i class="fas fa-phone"></i>+060 (800) 801-582
+            <i class="fas fa-envelope" style="margin-left: 20px;"></i>eshop@gmail.com
+        </div>
+        <div>
+            <a href=""><i class="fas fa-map-marker-alt"></i>Track Order</a>
+
+            {% if user.is_authenticated %}
+                {% if user.role == 'admin' %}
+                    <a href="{% url 'admin_dashboard' %}"><i class="fas fa-user"></i>Dashboard</a>
+                {% else %}
+                    <a href="{% url 'index' %}"><i class="fas fa-user"></i>Dashboard</a>
+                {% endif %}
+                <a href="{% url 'logout' %}"><i class="fas fa-power-off"></i> Logout</a>
+            {% else %}
+                <!-- Separate Login and Register buttons -->
+                <a href="{% url 'login' %}" class="login-btn"><i class="fas fa-sign-in-alt"></i> Login</a>
+                <a href="{% url 'register' %}" class="register-btn"><i class="fas fa-user-plus"></i> Register</a>
+            {% endif %}
+        </div>
+    </div>
+</div>
+
+
+<header>
+    <div class="header-main">
+        <div class="logo">Eshop<span>.</span></div>
+        <div class="search-bar">
+            <select id="categorySelect">
+                <option value="">All Categories</option>
+            </select>
+            <input type="text" placeholder="Search Products Here.....">
+            <button><i class="fas fa-search"></i></button>
+        </div>
+        <div class="header-icons">
+            <div class="icon-btn">
+                <i class="fas fa-heart"></i>
+                <span class="badge">0</span>
+            </div>
+            <div class="icon-btn">
+                <i class="fas fa-shopping-bag"></i>
+                <span class="badge">0</span>
+            </div>
+        </div>
+    </div>
+</header>
+
+
+<nav>
+    <div class="nav-container">
+        <ul>
+            <li><a href="#" class="active">Home</a></li>
+            <li><a href="#">About Us</a></li>
+            <li><a href="#">Products<span class="new-badge">NEW</span></a></li>
+            <li><a href="#">Category</a></li>
+            <li><a href="#">Blog</a></li>
+            <li><a href="#">Contact Us</a></li>
+        </ul>
+    </div>
+</nav>
+
+<script>
+document.addEventListener("DOMContentLoaded", function() {
+    const categorySelect = document.getElementById("categorySelect");
+
+    // Fetch main categories
+    fetch("/orders/category/")
+        .then(res => res.json())
+        .then(data => {
+            if (!data || data.length === 0) return;
+
+            data.forEach(category => {
+                if (!category.photo_url) return; // Only main categories
+
+                const option = document.createElement("option");
+                option.value = category.id;  // Use id to fetch subcategories
+                option.textContent = category.title;
+                categorySelect.appendChild(option);
+            });
+        })
+        .catch(err => console.error("Error fetching main categories:", err));
+
+    // Redirect to subcategories on change
+    categorySelect.addEventListener("change", function() {
+        const selectedId = this.value;
+        if (selectedId) {
+            // Navigate to subcategories page (you can create this page)
+            window.location.href = `/products/subcategories/${selectedId}/`;
+        }
+    });
+});
+</script>
+

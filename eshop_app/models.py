@@ -120,6 +120,7 @@ class Product(models.Model):
     brand = models.ForeignKey(Brand, on_delete=models.SET_NULL, null=True, blank=True)
 
     condition = models.CharField(max_length=20, choices=CONDITION_CHOICES, default="default")
+    deal_end_date = models.DateTimeField(null=True, blank=True)
     stock = models.PositiveIntegerField(default=0)
 
     shipping_charge = models.DecimalField(max_digits=8, decimal_places=2, default=0.00)

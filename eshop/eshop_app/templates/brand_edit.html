@@ -1,0 +1,49 @@
+{% extends 'admin_base.html' %}
+
+{% block title %}Edit Brand: {{ brand.title }}{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+
+    <div class="d-flex align-items-center justify-content-between mb-3">
+        <h1 class="h3 text-gray-800">Brand Management</h1>
+    </div>
+
+    <div class="card shadow mb-4">
+        <div class="card-header py-3">
+            <h6 class="m-0 font-weight-bold text-primary">Edit Brand: {{ brand.title }}</h6>
+        </div>
+        <div class="card-body">
+            {% if error_message %}
+            <div class="alert alert-danger">{{ error_message }}</div>
+            {% endif %}
+            {% if success_message %}
+            <div class="alert alert-success">{{ success_message }}</div>
+            {% endif %}
+
+            <form method="post" enctype="multipart/form-data" action="{% url 'brand_edit' brand.id %}">
+                {% csrf_token %}
+
+                {# Title Field - Pre-populated with current brand title #}
+                <div class="form-group">
+                    <label for="id_title">Brand Title <span class="text-danger">*</span></label>
+                    <input type="text" class="form-control" id="id_title" name="title"
+                           value="{{ brand.title }}" required>
+                </div>
+
+                {# Status Field - Pre-selected with current brand status #}
+                <div class="form-group">
+                    <label for="id_status">Status</label>
+                    <select class="form-control" id="id_status" name="status">
+                        <option value="active" {% if brand.status == "active" %}selected{% endif %}>Active</option>
+                        <option value="inactive" {% if brand.status == "inactive" %}selected{% endif %}>Inactive</option>
+                    </select>
+                </div>
+
+                <button type="submit" class="btn btn-primary mt-3">✅ Update Brand</button>
+                <a href="{% url 'brand_list' %}" class="btn btn-secondary mt-3">Cancel</a>
+            </form>
+        </div>
+    </div>
+</div>
+{% endblock %}

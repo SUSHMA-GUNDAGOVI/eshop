@@ -1,0 +1,420 @@
+{% extends 'landing_base.html' %}
+{% load static %}
+{% block title %}{{ main_category.title }}{% endblock %}
+
+{% block content %}
+
+<style>
+.product__item__pic {
+    width: 100%;
+    height: 250px;
+    overflow: hidden;
+    position: relative;
+}
+.product__item__pic img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    display: block;
+}
+.product__hover {
+    position: absolute;
+    top: 10px;
+    right: 10px;
+    z-index: 2;
+}
+.image-link {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    z-index: 1;
+}
+.heart-outlined {
+    color: #ffffff;
+    text-shadow:
+        -1px -1px 0 #000,
+        1px -1px 0 #000,
+        -1px 1px 0 #000,
+        1px 1px 0 #000;
+}
+.active-cat {
+    color: #ca1515 !important;
+    font-weight: bold;
+}
+.shop__sidebar {
+  overflow: visible !important;
+  max-height: none !important;
+}
+.shop__sidebar::-webkit-scrollbar {
+  display: none;
+}
+.shop__sidebar .card-body {
+  overflow: visible;
+}
+.shop__sidebar__categories > ul {
+  max-height: 100%;
+  overflow-y: auto;
+  overflow-x: hidden;
+  scrollbar-width: none;
+}
+.shop__sidebar__categories > ul::-webkit-scrollbar {
+  display: none;
+}
+
+/* Active color styles */
+.active-color {
+    position: relative;
+}
+.active-color::after {
+    content: "✓";
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    color: white;
+    font-weight: bold;
+    font-size: 14px;
+}
+</style>
+
+<!-- ✅ CSRF Token for AJAX -->
+<input type="hidden" id="csrf_token" value="{{ csrf_token }}">
+
+<section class="shop spad">
+  <div class="container">
+    <div class="row">
+
+      <!-- Sidebar -->
+      <div class="col-lg-3">
+        <div class="shop__sidebar">
+          <div class="shop__sidebar__accordion">
+            <div class="accordion" id="accordionExample">
+
+              <!-- Category Filter -->
+           <!-- Category Filter -->
+<div class="card">
+  <div class="card-heading">
+    <a data-toggle="collapse" data-target="#collapseCategories">{{ main_category.title }}</a>
+  </div>
+  <div id="collapseCategories" class="collapse show" data-parent="#accordionExample">
+    <div class="card-body">
+      <div class="shop__sidebar__categories">
+        <ul>
+          <!-- ✅ ALL CATEGORY LINK - This should NOT include subcategory parameter -->
+          <li>
+            <a href="?{% if request.GET.brand %}brand={{ request.GET.brand }}&{% endif %}
+                      {% if request.GET.min_price %}min_price={{ request.GET.min_price }}&{% endif %}
+                      {% if request.GET.max_price %}max_price={{ request.GET.max_price }}&{% endif %}
+                      {% if request.GET.size %}size={{ request.GET.size }}&{% endif %}
+                      {% if request.GET.color %}color={{ request.GET.color }}&{% endif %}
+                      {% if request.GET.q %}q={{ request.GET.q }}&{% endif %}
+                      {% if request.GET.sort %}sort={{ request.GET.sort }}{% endif %}"
+               class="{% if not selected_subcat_id %}active-cat{% endif %}">
+               All {{ main_category.title }}
+            </a>
+          </li>
+
+          <!-- ✅ EACH SUBCATEGORY -->
+          {% for subcat in subcategories %}
+          <li>
+            <a href="?subcategory={{ subcat.id }}
+                      {% if request.GET.brand %}&brand={{ request.GET.brand }}{% endif %}
+                      {% if request.GET.min_price %}&min_price={{ request.GET.min_price }}{% endif %}
+                      {% if request.GET.max_price %}&max_price={{ request.GET.max_price }}{% endif %}
+                      {% if request.GET.size %}&size={{ request.GET.size }}{% endif %}
+                      {% if request.GET.color %}&color={{ request.GET.color }}{% endif %}
+                      {% if request.GET.q %}&q={{ request.GET.q }}{% endif %}
+                      {% if request.GET.sort %}&sort={{ request.GET.sort }}{% endif %}"
+               class="{% if selected_subcat_id == subcat.id %}active-cat{% endif %}">
+               &mdash; {{ subcat.title }}
+            </a>
+          </li>
+          {% empty %}
+          <li>No subcategories available</li>
+          {% endfor %}
+        </ul>
+      </div>
+    </div>
+  </div>
+</div>
+
+              <!-- Brand Filter -->
+              <div class="card">
+                <div class="card-heading">
+                  <a data-toggle="collapse" data-target="#collapseBrand">Branding</a>
+                </div>
+                <div id="collapseBrand" class="collapse show" data-parent="#accordionExample">
+                  <div class="card-body">
+                    <div class="shop__sidebar__brand">
+                      <ul>
+                        <li>
+                          <a href="?{% if request.GET.subcategory %}subcategory={{ request.GET.subcategory }}&{% endif %}{% if request.GET.min_price %}min_price={{ request.GET.min_price }}&{% endif %}{% if request.GET.max_price %}max_price={{ request.GET.max_price }}&{% endif %}{% if request.GET.size %}size={{ request.GET.size }}&{% endif %}{% if request.GET.color %}color={{ request.GET.color }}&{% endif %}{% if request.GET.q %}q={{ request.GET.q }}&{% endif %}{% if request.GET.sort %}sort={{ request.GET.sort }}{% endif %}"
+                             {% if not request.GET.brand %}class="active-cat"{% endif %}>
+                             All Brands
+                          </a>
+                        </li>
+                        {% for brand in brands %}
+                          <li>
+                            <a href="?brand={{ brand.id }}{% if request.GET.subcategory %}&subcategory={{ request.GET.subcategory }}{% endif %}{% if request.GET.min_price %}&min_price={{ request.GET.min_price }}{% endif %}{% if request.GET.max_price %}&max_price={{ request.GET.max_price }}{% endif %}{% if request.GET.size %}&size={{ request.GET.size }}{% endif %}{% if request.GET.color %}&color={{ request.GET.color }}{% endif %}{% if request.GET.q %}&q={{ request.GET.q }}{% endif %}{% if request.GET.sort %}&sort={{ request.GET.sort }}{% endif %}" 
+                               {% if request.GET.brand == brand.id|stringformat:'i' %}class="active-cat"{% endif %}>
+                               {{ brand.title }}
+                            </a>
+                          </li>
+                        {% empty %}
+                          <li>No brands found</li>
+                        {% endfor %}
+                      </ul>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              <!-- Price Filter -->
+              <div class="card">
+                <div class="card-heading">
+                  <a data-toggle="collapse" data-target="#collapsePrice">Filter Price</a>
+                </div>
+                <div id="collapsePrice" class="collapse show" data-parent="#accordionExample">
+                  <div class="card-body">
+                    <div class="shop__sidebar__price">
+                      <ul>
+                        <li>
+                          <a href="?{% if request.GET.subcategory %}subcategory={{ request.GET.subcategory }}&{% endif %}{% if request.GET.brand %}brand={{ request.GET.brand }}&{% endif %}{% if request.GET.size %}size={{ request.GET.size }}&{% endif %}{% if request.GET.color %}color={{ request.GET.color }}&{% endif %}{% if request.GET.q %}q={{ request.GET.q }}&{% endif %}{% if request.GET.sort %}sort={{ request.GET.sort }}{% endif %}"
+                             {% if not request.GET.min_price %}class="active-cat"{% endif %}>
+                             All Prices
+                          </a>
+                        </li>
+                        <li>
+                          <a href="?min_price=0&max_price=50{% if request.GET.subcategory %}&subcategory={{ request.GET.subcategory }}{% endif %}{% if request.GET.brand %}&brand={{ request.GET.brand }}{% endif %}{% if request.GET.size %}&size={{ request.GET.size }}{% endif %}{% if request.GET.color %}&color={{ request.GET.color }}{% endif %}{% if request.GET.q %}&q={{ request.GET.q }}{% endif %}{% if request.GET.sort %}&sort={{ request.GET.sort }}{% endif %}"
+                             {% if request.GET.min_price == '0' and request.GET.max_price == '50' %}class="active-cat"{% endif %}>
+                             ₹0 - ₹50
+                          </a>
+                        </li>
+                        <li>
+                          <a href="?min_price=50&max_price=100{% if request.GET.subcategory %}&subcategory={{ request.GET.subcategory }}{% endif %}{% if request.GET.brand %}&brand={{ request.GET.brand }}{% endif %}{% if request.GET.size %}&size={{ request.GET.size }}{% endif %}{% if request.GET.color %}&color={{ request.GET.color }}{% endif %}{% if request.GET.q %}&q={{ request.GET.q }}{% endif %}{% if request.GET.sort %}&sort={{ request.GET.sort }}{% endif %}"
+                             {% if request.GET.min_price == '50' and request.GET.max_price == '100' %}class="active-cat"{% endif %}>
+                             ₹50 - ₹100
+                          </a>
+                        </li>
+                        <li>
+                          <a href="?min_price=100&max_price=200{% if request.GET.subcategory %}&subcategory={{ request.GET.subcategory }}{% endif %}{% if request.GET.brand %}&brand={{ request.GET.brand }}{% endif %}{% if request.GET.size %}&size={{ request.GET.size }}{% endif %}{% if request.GET.color %}&color={{ request.GET.color }}{% endif %}{% if request.GET.q %}&q={{ request.GET.q }}{% endif %}{% if request.GET.sort %}&sort={{ request.GET.sort }}{% endif %}"
+                             {% if request.GET.min_price == '100' and request.GET.max_price == '200' %}class="active-cat"{% endif %}>
+                             ₹100 - ₹200
+                          </a>
+                        </li>
+                        <li>
+                          <a href="?min_price=200&max_price=500{% if request.GET.subcategory %}&subcategory={{ request.GET.subcategory }}{% endif %}{% if request.GET.brand %}&brand={{ request.GET.brand }}{% endif %}{% if request.GET.size %}&size={{ request.GET.size }}{% endif %}{% if request.GET.color %}&color={{ request.GET.color }}{% endif %}{% if request.GET.q %}&q={{ request.GET.q }}{% endif %}{% if request.GET.sort %}&sort={{ request.GET.sort }}{% endif %}"
+                             {% if request.GET.min_price == '200' and request.GET.max_price == '500' %}class="active-cat"{% endif %}>
+                             ₹200 - ₹500
+                          </a>
+                        </li>
+                        <li>
+                          <a href="?min_price=500&max_price=1000{% if request.GET.subcategory %}&subcategory={{ request.GET.subcategory }}{% endif %}{% if request.GET.brand %}&brand={{ request.GET.brand }}{% endif %}{% if request.GET.size %}&size={{ request.GET.size }}{% endif %}{% if request.GET.color %}&color={{ request.GET.color }}{% endif %}{% if request.GET.q %}&q={{ request.GET.q }}{% endif %}{% if request.GET.sort %}&sort={{ request.GET.sort }}{% endif %}"
+                             {% if request.GET.min_price == '500' and request.GET.max_price == '1000' %}class="active-cat"{% endif %}>
+                             ₹500 - ₹1000
+                          </a>
+                        </li>
+                      </ul>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              <!-- Size Filter -->
+              <div class="card">
+                <div class="card-heading">
+                  <a data-toggle="collapse" data-target="#collapseSize">Size</a>
+                </div>
+                <div id="collapseSize" class="collapse show" data-parent="#accordionExample">
+                  <div class="card-body">
+                    <div class="shop__sidebar__size">
+                      <label>
+                        <a href="?{% if request.GET.subcategory %}subcategory={{ request.GET.subcategory }}&{% endif %}{% if request.GET.brand %}brand={{ request.GET.brand }}&{% endif %}{% if request.GET.min_price %}min_price={{ request.GET.min_price }}&{% endif %}{% if request.GET.max_price %}max_price={{ request.GET.max_price }}&{% endif %}{% if request.GET.color %}color={{ request.GET.color }}&{% endif %}{% if request.GET.q %}q={{ request.GET.q }}&{% endif %}{% if request.GET.sort %}sort={{ request.GET.sort }}{% endif %}"
+                           {% if not request.GET.size %}class="active-cat"{% endif %}>
+                           ALL
+                        </a>
+                      </label>
+                      {% for s in sizes_list %}
+                        <label for="{{ s }}">
+                          <a href="?size={{ s }}{% if request.GET.subcategory %}&subcategory={{ request.GET.subcategory }}{% endif %}{% if request.GET.brand %}&brand={{ request.GET.brand }}{% endif %}{% if request.GET.min_price %}&min_price={{ request.GET.min_price }}{% endif %}{% if request.GET.max_price %}&max_price={{ request.GET.max_price }}{% endif %}{% if request.GET.color %}&color={{ request.GET.color }}{% endif %}{% if request.GET.q %}&q={{ request.GET.q }}{% endif %}{% if request.GET.sort %}&sort={{ request.GET.sort }}{% endif %}" 
+                             {% if request.GET.size == s %}class="active-cat"{% endif %}>
+                             {{ s|upper }}
+                          </a>
+                        </label>
+                      {% endfor %}
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              <!-- Color Filter -->
+              <div class="card">
+                <div class="card-heading">
+                  <a data-toggle="collapse" data-target="#collapseColor">Colors</a>
+                </div>
+                <div id="collapseColor" class="collapse show" data-parent="#accordionExample">
+                  <div class="card-body">
+                    <div class="shop__sidebar__color">
+                      <!-- All Colors Option -->
+                      <label class="c-all {% if not request.GET.color %}active-color{% endif %}">
+                        <a href="?{% if request.GET.subcategory %}subcategory={{ request.GET.subcategory }}&{% endif %}{% if request.GET.brand %}brand={{ request.GET.brand }}&{% endif %}{% if request.GET.min_price %}min_price={{ request.GET.min_price }}&{% endif %}{% if request.GET.max_price %}max_price={{ request.GET.max_price }}&{% endif %}{% if request.GET.size %}size={{ request.GET.size }}&{% endif %}{% if request.GET.q %}q={{ request.GET.q }}&{% endif %}{% if request.GET.sort %}sort={{ request.GET.sort }}{% endif %}"></a>
+                      </label>
+                      
+                      {% for color in colors_list %}
+                        <label class="{{ color }} {% if request.GET.color == color %}active-color{% endif %}">
+                          <a href="?color={{ color }}{% if request.GET.subcategory %}&subcategory={{ request.GET.subcategory }}{% endif %}{% if request.GET.brand %}&brand={{ request.GET.brand }}{% endif %}{% if request.GET.min_price %}&min_price={{ request.GET.min_price }}{% endif %}{% if request.GET.max_price %}&max_price={{ request.GET.max_price }}{% endif %}{% if request.GET.size %}&size={{ request.GET.size }}{% endif %}{% if request.GET.q %}&q={{ request.GET.q }}{% endif %}{% if request.GET.sort %}&sort={{ request.GET.sort }}{% endif %}"></a>
+                        </label>
+                      {% endfor %}
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+            </div> <!-- accordion end -->
+          </div>
+        </div>
+      </div>
+
+      <!-- Products Grid -->
+      <div class="col-lg-9">
+        <div class="shop__product__option__right d-flex justify-content-end mb-3">
+          <form method="get" id="sortForm" class="d-flex align-items-center gap-2">
+            <label for="sort" class="mb-0 me-2 fw-semibold">Sort by:</label>
+            <select name="sort" id="sort" class="form-select form-select-sm w-auto"
+                    onchange="document.getElementById('sortForm').submit();">
+              <option value="low_to_high" {% if request.GET.sort == 'low_to_high' %}selected{% endif %}>Low to High</option>
+              <option value="high_to_low" {% if request.GET.sort == 'high_to_low' %}selected{% endif %}>High to Low</option>
+            </select>
+          </form>
+        </div>
+
+        <div class="row">
+          {% for product in products %}
+          <div class="col-lg-4 col-md-6 col-sm-6">
+            <div class="product__item">
+              <div class="product__item__pic">
+                {% if product.photo %}
+                  <img src="{{ product.photo.url }}" alt="{{ product.title }}">
+                {% else %}
+                  <img src="{% static 'frontend/img/product-placeholder.jpg' %}" alt="{{ product.title }}">
+                {% endif %}
+
+                <ul class="product__hover">
+                  <li>
+                    {% if user.is_authenticated %}
+                      <a href="#" class="wishlist-btn" data-product-id="{{ product.pk }}">
+                        {% if product.pk in wishlisted_ids %}
+                          <i class="fa fa-heart" style="color:#ff0000; font-size:18px;"></i>
+                        {% else %}
+                          <i class="fa fa-heart heart-outlined" style="font-size:18px;"></i>
+                        {% endif %}
+                      </a>
+                    {% else %}
+                      <a href="{% url 'login' %}">
+                        <i class="fa fa-heart heart-outlined" style="font-size:18px;"></i>
+                      </a>
+                    {% endif %}
+                  </li>
+                </ul>
+
+                <a href="{% url 'product_detail' product.pk %}" class="image-link"></a>
+              </div>
+
+              <div class="product__item__text">
+                <h6>{{ product.title }}</h6>
+                {% if user.is_authenticated %}
+                  <a href="{% url 'product_detail' product.pk %}" class="add-cart">+ Add To Cart</a>
+                {% else %}
+                  <a href="{% url 'login' %}" class="add-cart">Login to Add</a>
+                {% endif %}
+                <div class="rating">
+                  <i class="fa fa-star-o"></i><i class="fa fa-star-o"></i><i class="fa fa-star-o"></i>
+                  <i class="fa fa-star-o"></i><i class="fa fa-star-o"></i>
+                </div>
+                <h5>₹{{ product.price|floatformat:2 }}</h5>
+              </div>
+            </div>
+          </div>
+          {% empty %}
+            <p class="text-center">No products found in this category.</p>
+          {% endfor %}
+        </div>
+      </div>
+
+    </div>
+  </div>
+</section>
+
+<script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/toastify-js/src/toastify.min.css">
+<script src="https://cdn.jsdelivr.net/npm/toastify-js"></script>
+
+<script>
+$(document).ready(function () {
+    const csrfToken = $("#csrf_token").val();
+
+    // ❤️ Wishlist toggle click event
+    $(document).on('click', '.wishlist-btn', function (e) {
+        e.preventDefault();
+        const btn = $(this);
+        const icon = btn.find('i');
+        const productId = btn.data('product-id');
+
+        $.ajax({
+            url: `/toggle-wishlist/${productId}/`,
+            type: "POST",
+            headers: { "X-CSRFToken": csrfToken },
+            success: function (response) {
+                if (response.status === "ok") {
+                    if (response.is_added) {
+                        icon.css("color", "#ff0000");
+                        
+                    } else {
+                        icon.css("color", "");
+                        
+                    }
+                    updateWishlistBadge(response.wishlist_count);
+                }
+            },
+            error: function () {
+                showToast("⚠️ Something went wrong!", "#ff9800");
+            }
+        });
+    });
+
+    // 🔢 Update wishlist badge count
+    function updateWishlistBadge(count) {
+        const badge = $("#wishlistIcon .badge");
+        if (count > 0) {
+            if (badge.length) {
+                badge.text(count);
+            } else {
+                $("#wishlistIcon").append(`
+                    <span class="badge bg-danger rounded-circle"
+                          style="position:absolute; top:-5px; right:-5px; font-size:10px;">
+                          ${count}
+                    </span>
+                `);
+            }
+        } else {
+            badge.remove();
+        }
+    }
+
+    // 🔔 Toastify popup
+    function showToast(message, color) {
+        Toastify({
+            text: message,
+            duration: 2000,
+            gravity: "top",
+            position: "center",
+            backgroundColor: color,
+            stopOnFocus: true
+        }).showToast();
+    }
+});
+</script>
+
+{% endblock %}

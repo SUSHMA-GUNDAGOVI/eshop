@@ -32,48 +32,34 @@
                     <input type="text" class="form-control" id="id_title" name="title" required>
                 </div>
 
-                {# Summary Field #}
-                <div class="form-group">
-                    <label for="id_summary">Summary</label>
-                    <textarea class="form-control" id="id_summary" name="summary" rows="3"></textarea>
-                </div>
+               
 
                 {# Is Parent Checkbox & Dynamic Parent Select #}
-                <div class="form-group">
-                    <div class="custom-control custom-checkbox">
-                        <input type="checkbox" class="custom-control-input" id="id_is_parent" name="is_parent" value="1"
-                            checked>
-                        <label class="custom-control-label" for="id_is_parent">Is Parent Category?</label>
-                    </div>
-                </div>
+<div class="form-group">
+    <div class="custom-control custom-checkbox">
+        <input type="checkbox" class="custom-control-input" id="id_is_parent" name="is_parent" value="1" checked>
+        <label class="custom-control-label" for="id_is_parent">Is Parent Category?</label>
+    </div>
+</div>
 
-                {# Parent Category Dropdown (Initially Hidden) #}
-                <div class="form-group" id="parent_category_group" style="display: none;">
-                    <label for="id_parent_id">Select Parent Category <span class="text-danger">*</span></label>
-                    <select class="form-control" id="id_parent_id" name="parent_id">
-                        <option value="">--- Select Parent ---</option>
-                        {# Loop through the active parent categories passed from the view #}
-                        {% for cat in parent_cats %}
-                        <option value="{{ cat.id }}">{{ cat.title }}</option>
-                        {% endfor %}
-                    </select>
-                </div>
+{# Parent Category Dropdown (Initially Hidden) #}
+<div class="form-group" id="parent_category_group" style="display: none;">
+    <label for="id_parent_id">Select Parent Category <span class="text-danger">*</span></label>
+    <select class="form-control" id="id_parent_id" name="parent_id">
+        <option value="">--- Select Parent ---</option>
+        {% for cat in parent_cats %}
+        <option value="{{ cat.id }}">{{ cat.title }}</option>
+        {% endfor %}
+    </select>
+</div>
 
-                {# Status Field #}
-                <div class="form-group">
-                    <label for="id_status">Status</label>
-                    <select class="form-control" id="id_status" name="status">
-                        <option value="active" selected>Active</option>
-                        <option value="inactive">Inactive</option>
-                    </select>
-                </div>
+{# Photo Upload Field (Visible only for Parent Categories) #}
+<div class="form-group" id="photo_group">
+    <label for="id_photo">Upload Category Image</label>
+    <input type="file" class="form-control-file" id="id_photo" name="photo" accept="image/*">
+</div>
 
-                {# Photo Upload Field #}
-                <div class="form-group">
-                    <label for="id_photo">Category Image</label>
-                    <input type="file" class="form-control-file" id="id_photo" name="photo" accept="image/*">
-                </div>
-
+    
                 <button type="submit" class="btn btn-success mt-3">💾 Add Category</button>
                 <a href="" class="btn btn-secondary mt-3">Cancel</a>
             </form>
@@ -84,29 +70,28 @@
 {# JAVASCRIPT FOR DYNAMIC BEHAVIOR #}
 <script>
     document.addEventListener('DOMContentLoaded', function () {
-        const isParentCheckbox = document.getElementById('id_is_parent');
-        const parentCategoryGroup = document.getElementById('parent_category_group');
-        const parentIdSelect = document.getElementById('id_parent_id');
+    const isParentCheckbox = document.getElementById('id_is_parent');
+    const parentCategoryGroup = document.getElementById('parent_category_group');
+    const photoGroup = document.getElementById('photo_group');
+    const parentIdSelect = document.getElementById('id_parent_id');
 
-        // Function to toggle the visibility and requirement of the parent category field
-        function toggleParentField() {
-            if (isParentCheckbox.checked) {
-                // It is a parent category, hide the parent select
-                parentCategoryGroup.style.display = 'none';
-                parentIdSelect.removeAttribute('required'); // Remove required attribute
-            } else {
-                // It is a sub-category, show the parent select
-                parentCategoryGroup.style.display = 'block';
-                parentIdSelect.setAttribute('required', 'required'); // Add required attribute for sub-category
-            }
+    function toggleParentField() {
+        if (isParentCheckbox.checked) {
+            // ✅ It's a parent category: show image field, hide parent dropdown
+            parentCategoryGroup.style.display = 'none';
+            parentIdSelect.removeAttribute('required');
+            photoGroup.style.display = 'block';
+        } else {
+            // ✅ It's a sub-category: show parent dropdown, hide image field
+            parentCategoryGroup.style.display = 'block';
+            parentIdSelect.setAttribute('required', 'required');
+            photoGroup.style.display = 'none';
         }
+    }
 
-        // 1. Initial check when the page loads
-        toggleParentField();
-
-        // 2. Add event listener to the checkbox
-        isParentCheckbox.addEventListener('change', toggleParentField);
-    });
+    toggleParentField();
+    isParentCheckbox.addEventListener('change', toggleParentField);
+});
 </script>
 
 {% endblock %}

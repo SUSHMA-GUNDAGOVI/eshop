@@ -1,0 +1,159 @@
+{% extends "admin_base.html" %}
+{% block title %}Vendor List{% endblock %}
+{% block content %}
+
+<div class="container-fluid my-4">
+    <!-- Header -->
+    <div class="d-flex align-items-center justify-content-between mb-3">
+        <h1 class="h3 text-gray-800">Vendor List</h1>
+        <a href="{% url 'vendor_add' %}" class="btn btn-primary">Add Vendor</a>
+    </div>
+
+    <!-- Search & Entries -->
+    <div class="card shadow mb-4">
+        <div class="card-body d-flex justify-content-between align-items-center flex-wrap">
+            <!-- Entries per page -->
+            <form method="get" class="d-flex align-items-center mb-2 mb-md-0">
+                <label class="me-2 mb-0">Show</label>
+                <select name="per_page" class="form-control form-control-sm me-2" onchange="this.form.submit()">
+                    <option value="10" {% if per_page|default:"10" == "10" %}selected{% endif %}>10</option>
+                    <option value="25" {% if per_page|default:"10" == "25" %}selected{% endif %}>25</option>
+                    <option value="50" {% if per_page|default:"10" == "50" %}selected{% endif %}>50</option>
+                    <option value="100" {% if per_page|default:"10" == "100" %}selected{% endif %}>100</option>
+                </select>
+                <span>entries</span>
+                {% if search_query %}
+                <input type="hidden" name="q" value="{{ search_query }}">
+                {% endif %}
+            </form>
+
+            <!-- Search -->
+            <form method="get" id="searchForm" class="d-flex align-items-center">
+                <div class="input-group input-group-sm">
+                    <input type="text" name="q" id="searchInput" class="form-control"
+                           placeholder="Search by name or email" value="{{ search_query }}">
+                    {% if per_page %}
+                    <input type="hidden" name="per_page" value="{{ per_page }}">
+                    {% endif %}
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Table -->
+    <div class="card shadow mb-4">
+        <div class="card-body">
+            <div class="table-responsive">
+                <table class="table table-bordered table-striped align-middle">
+                    <thead class="table">
+                        <tr>
+                            <th>Name</th>
+                            <th>Email</th>
+                            <th>Phone</th>
+                            <th>Address</th>
+                            <th>Profile Image</th>
+                            <th>Action</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for vendor in vendors %}
+                        <tr>
+                            <td>{{ vendor.first_name }} {{ vendor.last_name }}</td>
+                            <td>{{ vendor.email }}</td>
+                            <td>{{ vendor.phone|default:"-" }}</td>
+                            <td>{{ vendor.address|default:"-" }}</td>
+                            
+                            <td>
+                                {% if vendor.profile_image %}
+                                    <img src="{{ vendor.profile_image.url }}" width="50" class="img-thumbnail">
+                                {% else %}
+                                    -
+                                {% endif %}
+                            </td>
+                            <td style="white-space: nowrap;">
+                                <a href="" class="btn btn-sm btn-primary"><i class="fas fa-edit"></i></a>
+                                <a href="" class="btn btn-sm btn-danger"
+                                   onclick="return confirm('Are you sure?');"><i class="fas fa-trash-alt"></i></a>
+                            </td>
+                        </tr>
+                        {% empty %}
+                        <tr>
+                            <td colspan="7" class="text-center">No vendors found.</td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+
+            <!-- Pagination -->
+            {% if vendors.has_other_pages %}
+            <nav>
+                <ul class="pagination justify-content-center">
+                    {% if vendors.has_previous %}
+                    <li class="page-item">
+                        <a class="page-link"
+                           href="?page={{ vendors.previous_page_number }}{% if search_query %}&q={{ search_query }}{% endif %}{% if per_page %}&per_page={{ per_page }}{% endif %}">&laquo;</a>
+                    </li>
+                    {% else %}
+                    <li class="page-item disabled"><span class="page-link">&laquo;</span></li>
+                    {% endif %}
+
+                    {% for i in vendors.paginator.page_range %}
+                    {% if vendors.number == i %}
+                    <li class="page-item active"><span class="page-link">{{ i }}</span></li>
+                    {% else %}
+                    <li class="page-item">
+                        <a class="page-link"
+                           href="?page={{ i }}{% if search_query %}&q={{ search_query }}{% endif %}{% if per_page %}&per_page={{ per_page }}{% endif %}">{{ i }}</a>
+                    </li>
+                    {% endif %}
+                    {% endfor %}
+
+                    {% if vendors.has_next %}
+                    <li class="page-item">
+                        <a class="page-link"
+                           href="?page={{ vendors.next_page_number }}{% if search_query %}&q={{ search_query }}{% endif %}{% if per_page %}&per_page={{ per_page }}{% endif %}">&raquo;</a>
+                    </li>
+                    {% else %}
+                    <li class="page-item disabled"><span class="page-link">&raquo;</span></li>
+                    {% endif %}
+                </ul>
+            </nav>
+            {% endif %}
+
+            <div class="text-center text-muted mt-2">
+                Showing {{ vendors.start_index }} to {{ vendors.end_index }} of {{ vendors.paginator.count }} entries
+            </div>
+        </div>
+    </div>
+</div>
+
+{# Toastify assets (CDN). If offline, the fallback will still show a native toast. #}
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/toastify-js/src/toastify.min.css">
+<script src="https://cdn.jsdelivr.net/npm/toastify-js"></script>
+
+{% if success_message %}
+<script>
+    (function () {
+        var text = "{{ success_message|escapejs }}";
+        if (window.Toastify) {
+            Toastify({
+                text: text,
+                duration: 2000,
+                close: true,
+                gravity: "top",
+                position: "right",
+                backgroundColor: "#4CAF50",
+                stopOnFocus: true
+            }).showToast();
+        }
+        // Remove ?success=1 from URL so refresh won't trigger toast again
+        if (window.history.replaceState) {
+            const url = new URL(window.location);
+            url.searchParams.delete("success");
+            window.history.replaceState({}, document.title, url.pathname);
+        }
+    })();
+</script>
+{% endif %}
+{% endblock %}

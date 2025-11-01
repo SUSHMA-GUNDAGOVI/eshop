@@ -28,7 +28,6 @@ urlpatterns = [
     path("products/list/", views.product_list, name="product_list"),
     path("products/add/", views.product_add, name="product_add"),
     path("products/edit/<int:pk>/", views.product_edit, name="product_edit"),
-    path('products/toggle-status/<int:pk>/', views.product_toggle_status, name='product_toggle_status'),    
     path("products/delete/<int:pk>/", views.product_delete, name="product_delete"),
     path("ajax/get-child-categories/", views.get_child_categories, name="get_child_categories"),
     path("coupons/list/", views.coupon_list, name="coupon_list"),
@@ -61,5 +60,11 @@ urlpatterns = [
     path('faqs/add/', views.add_general_faqs_view, name='add_general_faqs'),
     path('faqs/edit/<int:pk>/', views.faqs_edit_view, name='faqs_edit'),
     path('faqs/delete/<int:pk>/', views.faqs_delete_view, name='faqs_delete'),
+    path('admin/product/toggle-status/<int:pk>/', views.toggle_product_status, name='toggle_product_status'),
+    path("get-child-categories/<int:parent_id>/", views.get_child_categories, name="get_child_categories"),
+    
+
+
+    
     
 ]

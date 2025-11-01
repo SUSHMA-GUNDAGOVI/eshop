@@ -1,0 +1,55 @@
+{% extends "admin_base.html" %}
+{% block title %}Edit Banner{% endblock %}
+{% block content %}
+
+<div class="container-fluid">
+
+    <!-- Page Heading -->
+    <div class="d-flex align-items-center justify-content-between mb-3">
+        <h1 class="h3 text-gray-800">Edit Banner</h1>
+    </div>
+
+    <!-- Edit Banner Form -->
+    <div class="card shadow mb-4">
+        <div class="card-header py-3">
+            <h6 class="m-0 font-weight-bold text-primary">Edit Banner</h6>
+        </div>
+        <div class="card-body">
+            {% if error %}
+                <div class="alert alert-danger">{{ error }}</div>
+            {% endif %}
+            {% if success %}
+                <div class="alert alert-success">{{ success }}</div>
+            {% endif %}
+           <form method="POST" enctype="multipart/form-data" action="{% url 'edit_banner' banner.id %}">
+                {% csrf_token %}
+                <div class="mb-3">
+                    <label>Title</label>
+                    <input type="text" name="title" class="form-control" value="{{ banner.title }}" required>
+                </div>
+                <div class="mb-3">
+                    <label>Description</label>
+                    <textarea name="description" class="form-control">{{ banner.description }}</textarea>
+                </div>
+                <div class="mb-3">
+                    <label>Current Image</label><br>
+                    <img src="{{ banner.photo.url }}" width="150">
+                </div>
+                <div class="mb-3">
+                    <label>Change Image</label>
+                    <input type="file" name="photo" class="form-control">
+                </div>
+                <div class="mb-3">
+                    <label>Status</label>
+                    <select name="status" class="form-control">
+                        <option value="active" {% if banner.status == 'active' %}selected{% endif %}>Active</option>
+                        <option value="inactive" {% if banner.status == 'inactive' %}selected{% endif %}>Inactive</option>
+                    </select>
+                </div>
+                <button type="submit" class="btn btn-primary">Update Banner</button>
+            </form>
+        </div>
+    </div>
+</div>
+
+{% endblock %}

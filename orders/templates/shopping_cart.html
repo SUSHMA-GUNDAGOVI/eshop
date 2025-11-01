@@ -74,26 +74,44 @@
                         <tbody>
                             {% if cart_items %}
                                 {% for item in cart_items %}
-                                    <tr class="cart-row" data-item-id="{{ item.item_id }}" data-price="{{ item.price }}">
-                                       <td class="product__cart__item">
-    <div class="product__cart__item__pic">
-        {% if item.selected_image %}
-            <img src="{{ item.selected_image }}" alt="{{ item.product.title }}" style="max-width: 100px; border-radius: 8px;">
-        {% else %}
-            <img src="{{ item.product.photo.url }}" alt="{{ item.product.title }}" style="max-width: 100px; border-radius: 8px;">
-        {% endif %}
-    </div>
-    <div class="product__cart__item__text">
-        <h6>{{ item.product.title }}</h6>
-        <p class="mb-0 text-muted small">
-            {% if item.size != 'N/A' %}Size: {{ item.size }}{% endif %}
-            {% if item.size != 'N/A' and item.color != 'N/A' %} | {% endif %}
-            {% if item.color != 'N/A' %}Color: {{ item.color }}{% endif %}
-        </p>
-    </div>
-</td>
-
-                                        <td class="cart__price">₹<span class="item-price">{{ item.price|floatformat:2 }}</span></td>
+                                    <tr class="cart-row" data-item-id="{{ item.item_id }}" data-price="{{ item.price }}" data-discount-percent="{{ item.discount_percent }}">
+                                        <td class="product__cart__item">
+                                            <div class="product__cart__item__pic">
+                                                {% if item.selected_image %}
+                                                    <img src="{{ item.selected_image }}" alt="{{ item.product.title }}" style="max-width: 100px; border-radius: 8px;">
+                                                {% else %}
+                                                    <img src="{{ item.product.photo.url }}" alt="{{ item.product.title }}" style="max-width: 100px; border-radius: 8px;">
+                                                {% endif %}
+                                            </div>
+                                            <div class="product__cart__item__text">
+                                                <h6>{{ item.product.title }}</h6>
+                                                <p class="mb-0 text-muted small">
+                                                    {% if item.size != 'N/A' %}Size: {{ item.size }}{% endif %}
+                                                    {% if item.size != 'N/A' and item.color != 'N/A' %} | {% endif %}
+                                                    {% if item.color != 'N/A' %}Color: {{ item.color }}{% endif %}
+                                                </p>
+                                            </div>
+                                        </td>
+                                        
+                                        <td class="cart__price">
+                                            <!-- Original Price -->
+                                            <div class="original-price">
+                                                <del style="color:#888; font-size: 14px;">₹{{ item.price|floatformat:2 }}</del>
+                                            </div>
+                                            
+                                            <!-- Discount Percentage -->
+                                            {% if item.discount_percent > 0 %}
+                                            <div class="discount-percent" style="color: #28a745; font-size: 13px; font-weight: 600;">
+                                                {{ item.discount_percent|floatformat:0 }}% OFF
+                                            </div>
+                                            {% endif %}
+                                            
+                                            <!-- Discounted Price -->
+                                            <div class="discounted-price" style="font-size: 16px; font-weight: 600; color: #333;">
+                                                ₹{{ item.line_after_discount|floatformat:2 }}
+                                            </div>
+                                            
+                                        </td>
                                         
                                         <td class="quantity__item">
                                             <div class="quantity">
@@ -105,7 +123,16 @@
                                             </div>
                                         </td>
                                         
-                                        <td class="cart__price">₹<span class="item-line-total">{{ item.line_total|floatformat:2 }}</span></td>
+                                        <td class="cart__price">
+                                            <div class="line-total">
+                                                ₹<span class="item-line-total">{{ item.line_after_discount|floatformat:2 }}</span>
+                                            </div>
+                                            {% if item.line_discount > 0 %}
+                                            <div class="line-savings" style="color: #28a745; font-size: 12px;">
+                                                Saved: ₹{{ item.line_discount|floatformat:2 }}
+                                            </div>
+                                            {% endif %}
+                                        </td>
                                         
                                         <td class="cart__close">
                                             <button type="button" class="remove-item-btn" data-item-id="{{ item.item_id }}" data-item-title="{{ item.product.title }}" style="background: none; border: none; cursor: pointer; color: #333;">
@@ -129,80 +156,77 @@
                             <a href="{% url 'shop_all' %}">Continue Shopping</a>
                         </div>
                     </div>
-                   
                 </div>
             </div>
             
             <div class="col-lg-4">
-<div class="cart__discount p-3" style="background: #f8f9fa; border-radius: 8px; border: 1px solid #e0e0e0;">
-    <h6 class="mb-3" style="font-weight: 600;">Discount Code</h6>
+                <div class="cart__discount p-3" style="background: #f8f9fa; border-radius: 8px; border: 1px solid #e0e0e0;">
+                    <h6 class="mb-3" style="font-weight: 600;">Discount Code</h6>
 
-    <!-- Coupon Apply Form -->
-    <form method="POST" action="{% url 'apply_coupon' %}" class="d-flex gap-2 align-items-center">
-        {% csrf_token %}
-        <select name="coupon_code" class="form-select" style="flex: 1; height: 40px; font-size: 14px;" required>
-            <option value="">Select a coupon</option>
-            {% for c in coupons %}
-                <option value="{{ c.code }}">{{ c.code }}</option>
-            {% empty %}
-                <option value="">No coupons available</option>
-            {% endfor %}
-        </select>
-        <button type="submit" class="btn btn-dark px-3" style="height: 40px;">Apply</button>
-    </form>
+                    <!-- Coupon Apply Form -->
+                    <form method="POST" action="{% url 'apply_coupon' %}" class="d-flex gap-2 align-items-center">
+                        {% csrf_token %}
+                        <select name="coupon_code" class="form-select" style="flex: 1; height: 40px; font-size: 14px;" required>
+                            <option value="">Select a coupon</option>
+                            {% for c in coupons %}
+                                <option value="{{ c.code }}">{{ c.code }}</option>
+                            {% empty %}
+                                <option value="">No coupons available</option>
+                            {% endfor %}
+                        </select>
+                        <button type="submit" class="btn btn-dark px-3" style="height: 40px;">Apply</button>
+                    </form>
 
-    <!-- Applied Coupon Box -->
-    {% if applied_coupon %}
-    <div class="mt-3 position-relative p-3" style="background: #e8f9f0; border: 1px solid #bde5c8; border-radius: 8px;">
-        <p class="mb-0" style="color: #28a745; font-weight: 600;">
-            ✅ Applied: <strong>{{ applied_coupon.code }}</strong>
-            ({{ applied_coupon.discount_value }}
-            {% if applied_coupon.discount_type == 'percent' %}%{% else %}₹{% endif %})
-        </p>
+                    <!-- Applied Coupon Box -->
+                    {% if applied_coupon %}
+                    <div class="mt-3 position-relative p-3" style="background: #e8f9f0; border: 1px solid #bde5c8; border-radius: 8px;">
+                        <p class="mb-0" style="color: #28a745; font-weight: 600;">
+                            ✅ Applied: <strong>{{ applied_coupon.code }}</strong>
+                            ({{ applied_coupon.discount_value }}
+                            {% if applied_coupon.discount_type == 'percent' %}%{% else %}₹{% endif %})
+                        </p>
 
-        <!-- Remove Coupon (Cross Icon) -->
-        <form method="POST" action="{% url 'remove_coupon' %}" style="position: absolute; top: 8px; right: 10px;">
-            {% csrf_token %}
-            <button type="submit" class="btn btn-sm p-0" style="border: none; background: transparent; color: #dc3545; font-size: 18px; line-height: 1;">
-                &times;
-            </button>
-        </form>
-    </div>
-    {% endif %}
-</div>
-
-
-
+                        <!-- Remove Coupon (Cross Icon) -->
+                        <form method="POST" action="{% url 'remove_coupon' %}" style="position: absolute; top: 8px; right: 10px;">
+                            {% csrf_token %}
+                            <button type="submit" class="btn btn-sm p-0" style="border: none; background: transparent; color: #dc3545; font-size: 18px; line-height: 1;">
+                                &times;
+                            </button>
+                        </form>
+                    </div>
+                    {% endif %}
+                </div>
 
            <div class="cart__total">
     <h6>Cart total</h6>
     <ul>
+        <!-- Subtotal (After product discounts) -->
         <li>Subtotal <span id="cart-subtotal">₹{{ cart_subtotal|floatformat:2 }}</span></li>
+
+        <!-- Shipping -->
         <li>
-  Shipping
-  <span id="shipping-cost" data-shipping="{{ shipping_cost|floatformat:2 }}">
-    {% if shipping_cost == 0 %}
-      Free
-    {% else %}
-      ₹{{ shipping_cost|floatformat:2 }}
-    {% endif %}
-  </span>
-</li>
-
-
-        {% if applied_coupon %}
-        <li>Coupon ({{ applied_coupon.code }})
-            <span>- ₹{{ discount_amount|floatformat:2 }}</span>
+            Shipping
+            <span id="shipping-cost" data-shipping="{{ shipping_cost|floatformat:2 }}">
+                {% if shipping_cost == 0 %}
+                    Free
+                {% else %}
+                    ₹{{ shipping_cost|floatformat:2 }}
+                {% endif %}
+            </span>
         </li>
-        {% endif %}
+      <!-- In your template, replace this section: -->
+{% if applied_coupon %}
+<li style="color: #28a745;">
+    Coupon Discount
+    <span id="coupon-amount">-₹{{ discount_amount|floatformat:2 }}</span>
+</li>
+{% endif %}
 
+        <!-- Final Total -->
         <li class="total">Total <span id="order-total">₹{{ order_total|floatformat:2 }}</span></li>
     </ul>
-  <a href="{% url 'checkout' %}" class="primary-btn">Proceed to checkout</a>
-
+    <a href="{% url 'checkout' %}" class="primary-btn">Proceed to checkout</a>
 </div>
-
-
             </div>
         </div>
     </div>
@@ -220,7 +244,7 @@
 
         if (removedItemTitle) {
             Toastify({
-                text: removedItemTitle + "  removed from your cart.",
+                text: removedItemTitle + " removed from your cart.",
                 duration: 3000,
                 close: true,
                 gravity: "top", 
@@ -282,12 +306,6 @@
                 updateRowTotal($row, newQty);
                 updateCartTotals();
             }
-        });
-        
-        // Update cart button
-        $('#update-cart-btn').on('click', function(e) {
-            e.preventDefault();
-            updateCartOnServer();
         });
     });
     
@@ -361,113 +379,87 @@
     // Update the total for a specific row
     function updateRowTotal($row, quantity) {
         var price = parseFloat($row.data('price'));
-        var lineTotal = price * quantity;
+        var discountPercent = parseFloat($row.data('discount-percent')) || 0;
+        
+        // Calculate line total
+        var lineOriginal = price * quantity;
+        var lineDiscount = discountPercent > 0 ? (lineOriginal * discountPercent / 100) : 0;
+        var lineTotal = lineOriginal - lineDiscount;
+        
         $row.find('.item-line-total').text(lineTotal.toFixed(2));
+        
+        // Update savings display if it exists
+        var $savings = $row.find('.line-savings');
+        if ($savings.length && lineDiscount > 0) {
+            $savings.text('Saved: ₹' + lineDiscount.toFixed(2));
+        }
     }
     
-    // Recalculate cart subtotal, tax, and final total
-    function updateCartTotals() {
-    let subtotal = 0;
+    // Recalculate cart subtotal, discounts, and final total
+     function updateCartTotals() {
+        let subtotal = 0;
+        let quantityChanged = false;
 
-    // Calculate subtotal
-    $('.cart-row').each(function() {
-        let $row = $(this);
-        let quantity = parseInt($row.find('.quantity-input').val());
-        let price = parseFloat($row.data('price'));
-        subtotal += quantity * price;
-    });
+        $('.cart-row').each(function() {
+            let $row = $(this);
+            let quantity = parseInt($row.find('.quantity-input').val()) || 0;
+            let price = parseFloat($row.data('price')) || 0;
+            let discountPercent = parseFloat($row.data('discount-percent')) || 0;
 
-    // Get shipping
-    let shipping = parseFloat($('#shipping-cost').data('shipping')) || 0;
+            // Calculate line total after discount
+            let lineOriginal = price * quantity;
+            let lineDiscount = discountPercent > 0 ? (lineOriginal * discountPercent / 100) : 0;
+            let lineTotal = lineOriginal - lineDiscount;
+            
+            subtotal += lineTotal; // This is the discounted subtotal
+        });
 
-    // Base total (without coupon)
-    let total = subtotal + shipping;
+        // Shipping
+        let shipping = parseFloat($('#shipping-cost').data('shipping')) || 0;
 
-    // Check if coupon applied (from DOM — not Django context)
-    const $couponBox = $('.cart__discount .mt-3');
-    if ($couponBox.length) {
-        // Read discount text safely
-        let discountText = $couponBox.find('p').text();
-        let discountAmount = 0;
-
-        // Try to extract percentage or ₹ value
-        if (discountText.includes('%')) {
-            // Extract numeric percentage
-            let match = discountText.match(/(\d+(\.\d+)?)%/);
-            if (match) {
-                let percent = parseFloat(match[1]);
-                discountAmount = subtotal * (percent / 100);
+        // ✅ Get original coupon details
+        let couponAmount = 0;
+        let couponType = '';
+        let couponValue = 0;
+        
+        {% if applied_coupon %}
+            couponType = '{{ applied_coupon.discount_type }}';
+            couponValue = parseFloat('{{ applied_coupon.discount_value }}') || 0;
+            
+            // ✅ Recalculate coupon discount based on NEW subtotal + shipping
+            let orderTotal = subtotal + shipping;
+            
+            if (couponType === 'percent') {
+                couponAmount = (orderTotal * couponValue / 100);
+            } else {
+                // Fixed amount
+                couponAmount = Math.min(couponValue, orderTotal);
             }
-        } else if (discountText.includes('₹')) {
-            let match = discountText.match(/₹\s*(\d+(\.\d+)?)/);
-            if (match) {
-                discountAmount = parseFloat(match[1]);
-            }
+            
+            couponAmount = Math.max(0, couponAmount);
+        {% endif %}
+
+        // Compute final total (subtotal + shipping - coupon)
+        let total = subtotal + shipping - couponAmount;
+
+        // Ensure values are not negative
+        total = Math.max(0, total);
+
+        // Update DOM values
+        $('#cart-subtotal').text('₹' + subtotal.toFixed(2));
+
+        if (shipping === 0) {
+            $('#shipping-cost').text('Free');
+        } else {
+            $('#shipping-cost').text('₹' + shipping.toFixed(2));
         }
 
-        // Apply discount
-        total -= discountAmount;
-    }
+        // Update coupon display if it exists
+        if ($('#coupon-amount').length && couponAmount > 0) {
+            $('#coupon-amount').text('-₹' + couponAmount.toFixed(2));
+        }
 
-    // Update DOM
-    $('#cart-subtotal').text('₹' + subtotal.toFixed(2));
-    $('#order-total').text('₹' + total.toFixed(2));
-}
-
-    
-    // Send updated quantities to server
-    function updateCartOnServer() {
-        var cartData = [];
-        
-        $('.cart-row').each(function() {
-            var itemId = $(this).data('item-id');
-            var quantity = parseInt($(this).find('.quantity-input').val());
-            
-            cartData.push({
-                cart_id: itemId,
-                quantity: quantity
-            });
-        });
-        
-        $.ajax({
-            url: '/update-cart/',
-            method: 'POST',
-            headers: {
-                'X-CSRFToken': getCookie('csrftoken')
-            },
-            contentType: 'application/json',
-            data: JSON.stringify({ cart_items: cartData }),
-            success: function(data) {
-                if (data.status === 'success') {
-                    Toastify({
-                        text: "Cart updated successfully!",
-                        duration: 3000,
-                        close: true,
-                        gravity: "top", 
-                        position: "right", 
-                        style: {
-                            background: "linear-gradient(to right, #00b09b, #96c93d)",
-                        },
-                    }).showToast();
-                    
-                    setTimeout(function() {
-                        location.reload();
-                    }, 1000);
-                }
-            },
-            error: function(xhr) {
-                Toastify({
-                    text: "Error updating cart.",
-                    duration: 3000,
-                    close: true,
-                    gravity: "top", 
-                    position: "right", 
-                    style: {
-                        background: "linear-gradient(to right, #ff416c, #ff4b2b)",
-                    },
-                }).showToast();
-            }
-        });
+        $('#order-total').text('₹' + total.toFixed(2));
     }
     
     function getCookie(name) {

@@ -137,12 +137,6 @@
                         value="{{ request.POST.title }}" class="form-control">
                 </div>
 
-                <!-- Summary -->
-                <div class="form-group">
-                    <label for="summary">Summary <span class="text-danger">*</span></label>
-                    <textarea class="form-control" id="summary" name="summary">{{ request.POST.summary }}</textarea>
-                </div>
-
                 <!-- Description -->
                 <div class="form-group">
                     <label for="description">Description</label>
@@ -156,24 +150,22 @@
                     <input type="checkbox" name="is_featured" id="is_featured" value="1" {% if request.POST.is_featured %}checked{% endif %}> Yes
                 </div>
 
-                <!-- Category -->
-                <div class="form-group">
-                    <label for="cat_id">Category <span class="text-danger">*</span></label>
-                    <select name="cat_id" id="cat_id" class="form-control">
-                        <option value="">--Select any category--</option>
-                        {% for cat in categories %}
-                        <option value="{{ cat.id }}">{{ cat.title }}</option>
-                        {% endfor %}
-                    </select>
-                </div>
+         <div class="form-group">
+    <label>Category *</label>
+    <select name="cat_id" id="cat_id" class="form-control" required>
+        <option value="">--Select category--</option>
+        {% for cat in categories %}
+            <option value="{{ cat.id }}">{{ cat.title }}</option>
+        {% endfor %}
+    </select>
+</div>
 
-                <!-- Sub Category -->
-                <div class="form-group d-none" id="child_cat_div">
-                    <label for="child_cat_id">Sub Category</label>
-                    <select name="child_cat_id" id="child_cat_id" class="form-control">
-                        <option value="">--Select any sub category--</option>
-                    </select>
-                </div>
+<div class="form-group" id="subcategory-group" style="display: none;">
+    <label>Sub Category</label>
+    <select name="child_cat_id" id="child_cat_id" class="form-control">
+        <option value="">--Select child category--</option>
+    </select>
+</div>
 
                 <!-- Price -->
                 <div class="form-group">
@@ -182,13 +174,7 @@
                         value="{{ request.POST.price }}" class="form-control">
                 </div>
 
-                <!-- Discount -->
-                <div class="form-group">
-                    <label for="discount">Discount (%)</label>
-                    <input id="discount" type="number" name="discount" min="0" max="100" placeholder="Enter discount"
-                        value="{{ request.POST.discount }}" class="form-control">
-                </div>
-
+               
                 <!-- Size -->
                 <div class="form-group">
                     <label for="size">Size <span class="text-danger">*</span></label>
@@ -323,6 +309,14 @@
                     </select>
                 </div>
 
+                 <!-- Discount -->
+                <div class="form-group">
+                    <label for="discount">Discount (%)</label>
+                    <input id="discount" type="number" name="discount" min="0" max="100" placeholder="Enter discount"
+                        value="{{ request.POST.discount }}" class="form-control">
+                </div>
+
+
                 <!-- Condition -->
                 <div class="form-group">
                     <label for="condition">Condition</label>
@@ -333,6 +327,13 @@
                         <option value="hot">Hot</option>
                     </select>
                 </div>
+                
+                <div class="form-group">
+    <label for="deal_end_date ">End Deal Date/Time</label>
+    <input type="datetime-local" name="deal_end_date" id="deal_end_date" class="form-control">
+    <small class="text-muted">Leave blank if not a limited-time deal.</small>
+</div>
+                
 
                 <!-- Quantity -->
                 <div class="form-group">
@@ -353,6 +354,14 @@
     <input id="shipping_charge" type="number" name="shipping_charge" step="0.01" min="0"
         placeholder="Enter shipping charge (e.g. 50)" class="form-control">
 </div>
+
+<div class="form-group">
+    <label for="status">Status <span class="text-danger">*</span></label>
+    <select id="status" name="status" class="form-control" required>
+        <option value="active" selected>Active</option>
+        <option value="inactive">Inactive</option>
+    </select>
+</div> 
 
                
 
@@ -640,4 +649,57 @@ document.addEventListener('DOMContentLoaded', () => {
     toggleShippingInput(document.getElementById('shipping_option').value);
 });
 </script>
+
+<script>
+document.addEventListener("DOMContentLoaded", function () {
+    const categorySelect = document.getElementById("cat_id");
+    const subcategoryGroup = document.getElementById("subcategory-group");
+    const childCategorySelect = document.getElementById("child_cat_id");
+
+    // Hide subcategory initially
+    subcategoryGroup.style.display = "none";
+
+    categorySelect.addEventListener("change", function () {
+        const parentId = this.value;
+
+        // If no parent selected → hide subcategory
+        if (!parentId) {
+            subcategoryGroup.style.display = "none";
+            childCategorySelect.innerHTML = '<option value="">--Select child category--</option>';
+            return;
+        }
+
+        // Show subcategory dropdown while loading
+        subcategoryGroup.style.display = "block";
+        childCategorySelect.innerHTML = '<option value="">--Loading--</option>';
+
+        // Fetch subcategories
+        fetch(`/get-child-categories/${parentId}/`)
+            .then(response => response.json())
+            .then(data => {
+                childCategorySelect.innerHTML = '<option value="">--Select child category--</option>';
+
+                if (data.length === 0) {
+                    const opt = document.createElement('option');
+                    opt.value = '';
+                    opt.textContent = 'No subcategories available';
+                    childCategorySelect.appendChild(opt);
+                    return;
+                }
+
+                data.forEach(cat => {
+                    const opt = document.createElement('option');
+                    opt.value = cat.id;
+                    opt.textContent = cat.title;
+                    childCategorySelect.appendChild(opt);
+                });
+            })
+            .catch(error => {
+                console.error("Error fetching child categories:", error);
+                childCategorySelect.innerHTML = '<option value="">--Error loading--</option>';
+            });
+    });
+});
+</script>
+
 {% endblock %}

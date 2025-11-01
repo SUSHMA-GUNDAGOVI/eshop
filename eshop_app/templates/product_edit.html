@@ -4,7 +4,6 @@
 
 {% block content %}
 <style>
-/* Your existing CSS styles here */
 .color-selection-grid {
     border: 1px solid #e3e6f0;
     border-radius: 8px;
@@ -87,6 +86,7 @@
     gap: 5px;
     min-width: 80px;
     justify-content: space-between;
+    margin: 5px;
 }
 
 .remove-color-btn {
@@ -108,225 +108,280 @@
     width: 100%;
 }
 </style>
-<div class="container-fluid">
 
+<div class="container-fluid">
+    <!-- Page Heading -->
     <div class="d-flex align-items-center justify-content-between mb-3">
         <h1 class="h3 text-gray-800">Product Management</h1>
     </div>
 
+    <!-- Edit Product Form -->
     <div class="card shadow mb-4">
         <div class="card-header py-3">
-            <h6 class="m-0 font-weight-bold text-primary">Edit Product: {{ product.title }}</h6>
+            <h6 class="m-0 font-weight-bold text-primary">Edit Product</h6>
         </div>
         <div class="card-body">
             {% if error_message %}
             <div class="alert alert-danger">{{ error_message }}</div>
             {% endif %}
+            {% if success_message %}
+            <div class="alert alert-success">{{ success_message }}</div>
+            {% endif %}
 
-            <form method="post" enctype="multipart/form-data" action="{% url 'product_edit' product.id %}">
+            <form method="post" enctype="multipart/form-data" id="productForm">
                 {% csrf_token %}
 
-                <!-- Your existing form fields (title, summary, description, etc.) -->
                 <div class="form-group">
                     <label for="inputTitle">Title <span class="text-danger">*</span></label>
                     <input id="inputTitle" type="text" name="title" placeholder="Enter title"
-                        value="{% if request.POST.title %}{{ request.POST.title }}{% else %}{{ product.title }}{% endif %}" 
-                        class="form-control" required>
+                        value="{{ request.POST.title|default:product.title }}" class="form-control">
                 </div>
 
-                <div class="form-group">
-                    <label for="summary">Summary <span class="text-danger">*</span></label>
-                    <textarea class="form-control" id="summary" name="summary" required>{% if request.POST.summary %}{{ request.POST.summary }}{% else %}{{ product.summary }}{% endif %}</textarea>
-                </div>
-
+                <!-- Description -->
                 <div class="form-group">
                     <label for="description">Description</label>
-                    <textarea class="form-control" id="description" name="description">{% if request.POST.description %}{{ request.POST.description }}{% else %}{{ product.description }}{% endif %}</textarea>
+                    <textarea class="form-control" id="description"
+                        name="description">{{ request.POST.description|default:product.description }}</textarea>
                 </div>
 
+                <!-- Featured -->
                 <div class="form-group">
                     <label for="is_featured">Is Featured</label><br>
-                    <input type="checkbox" name="is_featured" id="is_featured" value="1" 
-                           {% if request.POST.is_featured or product.is_featured %}checked{% endif %}> Yes
+                    <input type="checkbox" name="is_featured" id="is_featured" value="1" {% if request.POST.is_featured or product.is_featured %}checked{% endif %}> Yes
                 </div>
 
-                <div class="form-group">
-                    <label for="cat_id">Category <span class="text-danger">*</span></label>
-                    <select name="cat_id" id="cat_id" class="form-control" required>
-                        <option value="">--Select any category--</option>
-                        {% for cat in categories %}
-                        <option value="{{ cat.id }}" 
-                            {% if product.category.id == cat.id %}selected{% endif %}>{{ cat.title }}</option>
-                        {% endfor %}
-                    </select>
-                </div>
+         <div class="form-group">
+    <label>Category *</label>
+    <select name="cat_id" id="cat_id" class="form-control" required>
+        <option value="">--Select category--</option>
+        {% for cat in categories %}
+            <option value="{{ cat.id }}" {% if product.category.id == cat.id %}selected{% endif %}>{{ cat.title }}</option>
+        {% endfor %}
+    </select>
+</div>
 
-                <div class="form-group {% if not product.child_category %}d-none{% endif %}" id="child_cat_div">
-                    <label for="child_cat_id">Sub Category</label>
-                    <select name="child_cat_id" id="child_cat_id" class="form-control">
-                        {% if product.child_category %}
-                            <option value="{{ product.child_category.id }}" selected>{{ product.child_category.title }}</option>
-                        {% endif %}
-                    </select>
-                </div>
+<div class="form-group" id="subcategory-group" style="{% if product.child_category %}display: block;{% else %}display: none;{% endif %}">
+    <label>Sub Category</label>
+    <select name="child_cat_id" id="child_cat_id" class="form-control">
+        <option value="">--Select child category--</option>
+        {% if product.child_category %}
+            <option value="{{ product.child_category.id }}" selected>{{ product.child_category.title }}</option>
+        {% endif %}
+    </select>
+</div>
 
+                <!-- Price -->
                 <div class="form-group">
                     <label for="price">Price (₹) <span class="text-danger">*</span></label>
                     <input id="price" type="number" name="price" placeholder="Enter price"
-                        value="{% if request.POST.price %}{{ request.POST.price }}{% else %}{{ product.price|default_if_none:'' }}{% endif %}" 
-                        class="form-control" required>
+                        value="{{ request.POST.price|default:product.price }}" class="form-control">
                 </div>
 
-                <div class="form-group">
-                    <label for="discount">Discount (%)</label>
-                    <input id="discount" type="number" name="discount" min="0" max="100" placeholder="Enter discount"
-                        value="{% if request.POST.discount %}{{ request.POST.discount }}{% else %}{{ product.discount|default:0 }}{% endif %}" 
-                        class="form-control">
-                </div>
+               
 
-                <!-- Size Section - Fixed to show existing values -->
+                <!-- Size -->
                 <div class="form-group">
                     <label for="size">Size <span class="text-danger">*</span></label>
                     <div class="row">
                         <div class="col-md-3">
                             <div class="form-check">
-                                <input class="form-check-input" type="checkbox" name="size" value="S" id="size_s"
-                                    {% if 'S' in product.size %}checked{% endif %}>
-                                <label class="form-check-label" for="size_s">
-                                    Small (S)
-                                </label>
+                                <input class="form-check-input" type="checkbox" name="size" value="S" id="size_s" {% if 'S' in product.size %}checked{% endif %}>
+                                <label class="form-check-label" for="size_s">Small (S)</label>
                             </div>
                         </div>
                         <div class="col-md-3">
                             <div class="form-check">
-                                <input class="form-check-input" type="checkbox" name="size" value="M" id="size_m"
-                                    {% if 'M' in product.size %}checked{% endif %}>
-                                <label class="form-check-label" for="size_m">
-                                    Medium (M)
-                                </label>
+                                <input class="form-check-input" type="checkbox" name="size" value="M" id="size_m" {% if 'M' in product.size %}checked{% endif %}>
+                                <label class="form-check-label" for="size_m">Medium (M)</label>
                             </div>
                         </div>
                         <div class="col-md-3">
                             <div class="form-check">
-                                <input class="form-check-input" type="checkbox" name="size" value="L" id="size_l"
-                                    {% if 'L' in product.size %}checked{% endif %}>
-                                <label class="form-check-label" for="size_l">
-                                    Large (L)
-                                </label>
+                                <input class="form-check-input" type="checkbox" name="size" value="L" id="size_l" {% if 'L' in product.size %}checked{% endif %}>
+                                <label class="form-check-label" for="size_l">Large (L)</label>
                             </div>
                         </div>
                         <div class="col-md-3">
                             <div class="form-check">
-                                <input class="form-check-input" type="checkbox" name="size" value="XL" id="size_xl"
-                                    {% if 'XL' in product.size %}checked{% endif %}>
-                                <label class="form-check-label" for="size_xl">
-                                    Extra Large (XL)
-                                </label>
+                                <input class="form-check-input" type="checkbox" name="size" value="XL" id="size_xl" {% if 'XL' in product.size %}checked{% endif %}>
+                                <label class="form-check-label" for="size_xl">Extra Large (XL)</label>
                             </div>
                         </div>
                     </div>
                     <div class="row mt-2">
                         <div class="col-md-3">
                             <div class="form-check">
-                                <input class="form-check-input" type="checkbox" name="size" value="XXL" id="size_xxl"
-                                    {% if 'XXL' in product.size %}checked{% endif %}>
-                                <label class="form-check-label" for="size_xxl">
-                                    XXL
-                                </label>
+                                <input class="form-check-input" type="checkbox" name="size" value="XXL" id="size_xxl" {% if 'XXL' in product.size %}checked{% endif %}>
+                                <label class="form-check-label" for="size_xxl">XXL</label>
                             </div>
                         </div>
                         <div class="col-md-3">
                             <div class="form-check">
-                                <input class="form-check-input" type="checkbox" name="size" value="XXXL" id="size_xxxl"
-                                    {% if 'XXXL' in product.size %}checked{% endif %}>
-                                <label class="form-check-label" for="size_xxxl">
-                                    XXXL
-                                </label>
+                                <input class="form-check-input" type="checkbox" name="size" value="XXXL" id="size_xxxl" {% if 'XXXL' in product.size %}checked{% endif %}>
+                                <label class="form-check-label" for="size_xxxl">XXXL</label>
                             </div>
                         </div>
                     </div>
                 </div>
 
-               <!-- Color Section - Fixed to work with color_data -->
-<div class="form-group">
-    <label for="color">Color <span class="text-danger">*</span></label>
-    
-    <!-- Color Selection Grid -->
-    <div class="color-selection-grid mb-3">
-        <div class="row">
-            <!-- Black -->
-            <div class="col-md-2 col-4 mb-2">
-                <div class="color-option" data-color="Black" data-hex="#000000">
-                    <input type="checkbox" class="color-checkbox" name="color" value="Black" id="color_black" hidden
-                        {% if 'Black' in product.color_names %}checked{% endif %}>
-                    <label for="color_black" class="color-label">
-                        <span class="color-swatch" style="background-color: #000000;"></span>
-                        <span class="color-name">Black</span>
-                    </label>
-                </div>
-            </div>
-            <!-- White -->
-            <div class="col-md-2 col-4 mb-2">
-                <div class="color-option" data-color="White" data-hex="#ffffff">
-                    <input type="checkbox" class="color-checkbox" name="color" value="White" id="color_white" hidden
-                        {% if 'White' in product.color_names %}checked{% endif %}>
-                    <label for="color_white" class="color-label">
-                        <span class="color-swatch" style="background-color: #ffffff; border: 1px solid #ddd;"></span>
-                        <span class="color-name">White</span>
-                    </label>
-                </div>
-            </div>
-            <!-- Navy Blue -->
-            <div class="col-md-2 col-4 mb-2">
-                <div class="color-option" data-color="Navy Blue" data-hex="#000080">
-                    <input type="checkbox" class="color-checkbox" name="color" value="Navy Blue" id="color_navy" hidden
-                        {% if 'Navy Blue' in product.color_names %}checked{% endif %}>
-                    <label for="color_navy" class="color-label">
-                        <span class="color-swatch" style="background-color: #000080;"></span>
-                        <span class="color-name">Navy Blue</span>
-                    </label>
-                </div>
-            </div>
-            <!-- Cream -->
-            <div class="col-md-2 col-4 mb-2">
-                <div class="color-option" data-color="Cream" data-hex="#fffdd0">
-                    <input type="checkbox" class="color-checkbox" name="color" value="Cream" id="color_cream" hidden
-                        {% if 'Cream' in product.color_names %}checked{% endif %}>
-                    <label for="color_cream" class="color-label">
-                        <span class="color-swatch" style="background-color: #fffdd0; border: 1px solid #ddd;"></span>
-                        <span class="color-name">Cream</span>
-                    </label>
-                </div>
-            </div>
-            <!-- Add Custom Color Button -->
-            <div class="col-md-2 col-4 mb-2">
-                <div class="color-option add-color-option" onclick="openColorModal()">
-                    <div class="color-label text-center">
-                        <span class="color-swatch add-color-swatch">
-                            <i class="fas fa-plus"></i>
-                        </span>
-                        <span class="color-name">Add Color</span>
+                <!-- Color - Multiple Selection -->
+                <div class="form-group">
+                    <label for="color">Color <span class="text-danger">*</span></label>
+                    
+                    <!-- Color Selection Grid -->
+                    <div class="color-selection-grid mb-3">
+                        <div class="row" id="colorGrid">
+                            <!-- Black -->
+                            <div class="col-md-2 col-4 mb-2">
+                                <div class="color-option" data-color="Black" data-hex="#000000">
+                                    <input type="checkbox" class="color-checkbox" name="color" value="Black" id="color_black" hidden {% if 'Black' in product.color_names %}checked{% endif %}>
+                                    <label for="color_black" class="color-label">
+                                        <span class="color-swatch" style="background-color: #000000;"></span>
+                                        <span class="color-name">Black</span>
+                                    </label>
+                                </div>
+                            </div>
+                            <!-- White -->
+                            <div class="col-md-2 col-4 mb-2">
+                                <div class="color-option" data-color="White" data-hex="#ffffff">
+                                    <input type="checkbox" class="color-checkbox" name="color" value="White" id="color_white" hidden {% if 'White' in product.color_names %}checked{% endif %}>
+                                    <label for="color_white" class="color-label">
+                                        <span class="color-swatch" style="background-color: #ffffff; border: 1px solid #ddd;"></span>
+                                        <span class="color-name">White</span>
+                                    </label>
+                                </div>
+                            </div>
+                            <!-- Navy Blue -->
+                            <div class="col-md-2 col-4 mb-2">
+                                <div class="color-option" data-color="Navy Blue" data-hex="#000080">
+                                    <input type="checkbox" class="color-checkbox" name="color" value="Navy Blue" id="color_navy" hidden {% if 'Navy Blue' in product.color_names %}checked{% endif %}>
+                                    <label for="color_navy" class="color-label">
+                                        <span class="color-swatch" style="background-color: #000080;"></span>
+                                        <span class="color-name">Navy Blue</span>
+                                    </label>
+                                </div>
+                            </div>
+                            <!-- Cream -->
+                            <div class="col-md-2 col-4 mb-2">
+                                <div class="color-option" data-color="Cream" data-hex="#fffdd0">
+                                    <input type="checkbox" class="color-checkbox" name="color" value="Cream" id="color_cream" hidden {% if 'Cream' in product.color_names %}checked{% endif %}>
+                                    <label for="color_cream" class="color-label">
+                                        <span class="color-swatch" style="background-color: #fffdd0; border: 1px solid #ddd;"></span>
+                                        <span class="color-name">Cream</span>
+                                    </label>
+                                </div>
+                            </div>
+                            <!-- Add Custom Color Button -->
+                            <div class="col-md-2 col-4 mb-2">
+                                <div class="color-option add-color-option" onclick="openColorModal()">
+                                    <div class="color-label text-center">
+                                        <span class="color-swatch add-color-swatch">
+                                            <i class="fas fa-plus"></i>
+                                        </span>
+                                        <span class="color-name">Add Color</span>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
                     </div>
-                </div>
-            </div>
-        </div>
-    </div>
 
-    <!-- Selected Colors Display -->
-    <div class="selected-colors-container mb-3">
-        <label>Selected Colors:</label>
-        <div id="selectedColors" class="d-flex flex-wrap gap-2 mt-2">
-            <!-- Selected colors will appear here dynamically -->
+                    <!-- Selected Colors Display -->
+                    <div class="selected-colors-container mb-3">
+                        <label>Selected Colors:</label>
+                        <div id="selectedColors" class="d-flex flex-wrap gap-2 mt-2">
+                            <span class="text-muted">No colors selected</span>
+                        </div>
+                    </div>
+
+                    <!-- Color-Specific Media Uploads -->
+<div id="colorMediaContainer" class="mt-3">
+    <!-- Color-specific file upload areas will appear here -->
+</div>
+                </div>
+
+                <!-- Hidden Color Inputs -->
+                <div id="hiddenColorInputs"></div>
+
+                <!-- Brand -->
+                <div class="form-group">
+                    <label for="brand_id">Brand</label>
+                    <select name="brand_id" class="form-control">
+                        <option value="">--Select Brand--</option>
+                        {% for brand in brands %}
+                        <option value="{{ brand.id }}" {% if product.brand.id == brand.id %}selected{% endif %}>{{ brand.title }}</option>
+                        {% endfor %}
+                    </select>
+                </div>
+
+                 <!-- Discount -->
+                <div class="form-group">
+                    <label for="discount">Discount (%)</label>
+                    <input id="discount" type="number" name="discount" min="0" max="100" placeholder="Enter discount"
+                        value="{{ request.POST.discount|default:product.discount|default:0 }}" class="form-control">
+                </div>
+
+                <!-- Condition -->
+                <div class="form-group">
+                    <label for="condition">Condition</label>
+                    <select name="condition" class="form-control">
+                        <option value="">--Select Condition--</option>
+                        <option value="default" {% if product.condition == 'default' %}selected{% endif %}>Default</option>
+                        <option value="new" {% if product.condition == 'new' %}selected{% endif %}>New</option>
+                        <option value="hot" {% if product.condition == 'hot' %}selected{% endif %}>Hot</option>
+                    </select>
+                </div>
+                
+                <div class="form-group">
+    <label for="deal_end_date ">End Deal Date/Time</label>
+    <input type="datetime-local" name="deal_end_date" id="deal_end_date" class="form-control" value="{% if product.deal_end_date %}{{ product.deal_end_date|date:'Y-m-d\TH:i' }}{% endif %}">
+    <small class="text-muted">Leave blank if not a limited-time deal.</small>
+</div>
+                
+
+                <!-- Quantity -->
+                <div class="form-group">
+                    <label for="stock">Quantity <span class="text-danger">*</span></label>
+                    <input id="stock" type="number" name="stock" min="0" placeholder="Enter quantity"
+                        value="{{ request.POST.stock|default:product.stock }}" class="form-control">
+                </div>
+<div class="form-group">
+    <label for="shipping_option">Shipping Option</label>
+    <select id="shipping_option" name="shipping_option" class="form-control" onchange="toggleShippingInput(this.value)">
+        <option value="free" {% if product.is_free_shipping %}selected{% endif %}>Free Shipping</option>
+        <option value="custom" {% if not product.is_free_shipping %}selected{% endif %}>Custom Shipping Charge</option>
+    </select>
+</div>
+
+<div class="form-group" id="shipping_charge_group" style="{% if not product.is_free_shipping %}display: block;{% else %}display: none;{% endif %}">
+    <label for="shipping_charge">Shipping Charge (₹)</label>
+    <input id="shipping_charge" type="number" name="shipping_charge" step="0.01" min="0"
+        value="{{ product.shipping_charge|default:0 }}" placeholder="Enter shipping charge (e.g. 50)" class="form-control">
+</div>
+
+<div class="form-group">
+    <label for="status">Status <span class="text-danger">*</span></label>
+    <select id="status" name="status" class="form-control" required>
+        <option value="active" {% if product.status == 'active' %}selected{% endif %}>Active</option>
+        <option value="inactive" {% if product.status == 'inactive' %}selected{% endif %}>Inactive</option>
+    </select>
+</div> 
+
+               
+
+                <!-- Submit Buttons -->
+                <button type="submit" class="btn btn-success mt-3">💾 Update Product</button>
+                <a href="{% url 'product_list' %}" class="btn btn-secondary mt-3">Cancel</a>
+            </form>
         </div>
     </div>
 </div>
 
-                <!-- Custom Color Modal -->
-<div class="modal fade" id="colorModal" tabindex="-1" aria-hidden="true">
+<!-- Custom Color Modal -->
+<div class="modal fade" id="colorModal" tabindex="-1" aria-labelledby="colorModalLabel" aria-hidden="true">
     <div class="modal-dialog modal-sm">
         <div class="modal-content">
             <div class="modal-header">
-                <h5 class="modal-title">Add Custom Color</h5>
+                <h5 class="modal-title" id="colorModalLabel">Add Custom Color</h5>
                 <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
             </div>
             <div class="modal-body">
@@ -342,261 +397,84 @@
             <div class="modal-footer">
                 <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
                 <button type="button" class="btn btn-primary" onclick="addCustomColor()">
-                    <i class="fas fa-plus"></i> Add Color
+                    <i class="fas fa-plus"></i> Add
                 </button>
             </div>
         </div>
     </div>
 </div>
 
-                <div id="hiddenColorInputs" style="display: none;">
-                    <!-- Hidden inputs for color data will be added here -->
-                </div>
-
-                <!-- Rest of your form fields -->
-                <div class="form-group">
-                    <label for="brand_id">Brand</label>
-                    <select name="brand_id" class="form-control">
-                        <option value="">--Select Brand--</option>
-                        {% for brand in brands %}
-                        <option value="{{ brand.id }}" {% if product.brand.id == brand.id %}selected{% endif %}>{{ brand.title }}</option>
-                        {% endfor %}
-                    </select>
-                </div>
-
-                <div class="form-group">
-                    <label for="condition">Condition</label>
-                    <select name="condition" class="form-control">
-                        <option value="">--Select Condition--</option>
-                        <option value="default" {% if product.condition == 'default' %}selected{% endif %}>Default</option>
-                        <option value="new" {% if product.condition == 'new' %}selected{% endif %}>New</option>
-                        <option value="hot" {% if product.condition == 'hot' %}selected{% endif %}>Hot</option>
-                    </select>
-                </div>
-
-                <div class="form-group">
-                    <label for="stock">Quantity <span class="text-danger">*</span></label>
-                    <input id="stock" type="number" name="stock" min="0" placeholder="Enter quantity"
-                        value="{% if request.POST.stock %}{{ request.POST.stock }}{% else %}{{ product.stock|default_if_none:'' }}{% endif %}" 
-                        class="form-control" required>
-                </div>
-
-                <!-- Current Main Photo/Video -->
-<div class="mb-3">
-    <label>Current Main Photo/Video</label><br>
-    {% if product.photo %}
-        {% if product.photo.url|lower|slice:"-4:" == '.mp4' or product.photo.url|lower|slice:"-5:" == '.webm' %}
-            <video width="320" height="240" controls>
-                <source src="{{ product.photo.url }}" type="video/mp4">
-                Your browser does not support the video tag.
-            </video>
-        {% else %}
-            <img src="{{ product.photo.url }}" width="200" class="img-thumbnail">
-        {% endif %}
-    {% else %}
-        <p class="text-muted">No main photo/video uploaded.</p>
-    {% endif %}
-</div>
-
-<!-- Change Main Photo/Video (Single file - for backward compatibility) -->
-<div class="form-group mb-4">
-    <label for="photo">Change Main Photo/Video</label>
-    <input id="photo" class="form-control" type="file" name="photo" accept="image/,video/">
-    <small class="form-text text-muted">Leave blank to keep current main file. This will replace the primary image.</small>
-</div>
-
-<!-- Existing Media Files -->
-<div class="form-group mb-4">
-    <label>Existing Additional Media Files</label>
-    <div class="row">
-        {% for media in media_files %}
-        <div class="col-md-3 mb-3">
-            <div class="card position-relative">
-                {% if media.file_type == 'image' %}
-                    <img src="{{ media.file.url }}" class="card-img-top" alt="{{ product.title }}" style="height: 150px; object-fit: cover;">
-                {% else %}
-                    <div class="card-img-top bg-dark d-flex align-items-center justify-content-center" style="height: 150px;">
-                        <video width="100%" height="150" controls>
-                            <source src="{{ media.file.url }}" type="video/mp4">
-                        </video>
-                    </div>
-                {% endif %}
-                <div class="card-body p-2">
-                    <small class="text-muted d-block">{{ media.file_type|title }}</small>
-                    <small class="text-muted d-block">{{ media.file.name|slice:"-20:" }}</small>
-                    {% if media.is_primary %}
-                        <span class="badge bg-primary">Primary</span>
-                    {% endif %}
-                </div>
-                <!-- Remove button -->
-                <button type="button" class="btn btn-danger btn-sm position-absolute top-0 end-0 m-1" 
-                        onclick="removeMedia({{ media.id }})" title="Remove this file">
-                    <i class="fas fa-times"></i>
-                </button>
-            </div>
-        </div>
-        {% empty %}
-        <div class="col-12">
-            <p class="text-muted">No additional media files uploaded.</p>
-        </div>
-        {% endfor %}
-    </div>
-</div>
-
-<!-- Add Multiple Media Files -->
-<div class="form-group">
-    <label for="media_files">Add More Images/Videos</label>
-    <input id="media_files" class="form-control" type="file" name="media_files" multiple accept="image/,video/">
-    <small class="form-text text-muted">
-        Select multiple files to add more images/videos to this product. 
-        Supported formats: Images (JPEG, PNG, GIF) and Videos (MP4, WebM)
-    </small>
-</div>
-
-<!-- File Preview -->
-<div class="form-group">
-    <label>New Files Preview:</label>
-    <div id="filePreview" class="mt-2 p-3 border rounded bg-light">
-        <span class="text-muted">No new files selected</span>
-    </div>
-</div>
-
-                <div class="form-group d-none">
-                    <label for="status">Status <span class="text-danger">*</span></label>
-                    <select name="status" class="form-control">
-                        <option value="active" {% if product.status == 'active' %}selected{% endif %}>Active</option>
-                        <option value="inactive" {% if product.status == 'inactive' %}selected{% endif %}>Inactive</option>
-                    </select>
-                </div>
-                
-                <!-- Debug Information -->
-                <div class="mt-3 p-3 bg-light border rounded">
-                    <h6>Debug Information:</h6>
-                    <div id="debugInfo" class="small"></div>
-                </div>
-
-                <button type="submit" class="btn btn-primary mt-3">✅ Update Product</button>
-                <a href="{% url 'product_list' %}" class="btn btn-secondary mt-3">Cancel</a>
-            </form>
-        </div>
-    </div>
-</div>
 <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
 <script>
-// Initialize colorMap with actual data from the product
-const initialColorMap = {
+const existingMedia = {{ media_by_color|safe }};
+const colorData = {{ color_data|safe }};
+</script>
+<script>
+// Store for color mapping (name -> hex)
+const colorMap = {
     {% for color_name, color_hex in color_map.items %}
     '{{ color_name }}': '{{ color_hex }}',
     {% endfor %}
 };
 
-// Default colors for fallback
-const defaultColorMap = {
-    'Black': '#000000',
-    'White': '#ffffff',
-    'Navy Blue': '#000080',
-    'Cream': '#fffdd0'
-};
-
-// Merge initial color map with defaults
-const colorMap = { ...defaultColorMap, ...initialColorMap };
-
-// Function to prepare color inputs for form submission
-function prepareColorInputs() {
-    // Clear previous dynamic inputs
-    $('#hiddenColorInputs').empty();
-    
-    // Iterate over all checked color checkboxes
-    $('.color-checkbox:checked').each(function() {
-        const colorName = $(this).val();
-        const colorHex = colorMap[colorName] || '#cccccc'; // Get the hex code from the JS map
-        
-        // Append a hidden input for the hex code for the server to read
-        // The name 'color_hex' will be used by request.POST.getlist('color_hex')
-        $('#hiddenColorInputs').append(
-            <input type="hidden" name="color_hex" value="${colorHex}">
-        );
-    });
-
-    console.log("Hidden color hex codes prepared for submission.");
-}
-
 // Initialize on page load
 $(document).ready(function() {
-    console.log("Initial colorMap:", colorMap);
+    console.log('Document ready - initializing color selector');
     
-    // ✅ FIXED: Initialize existing colors from product data
+    // Initialize existing colors
     initializeExistingColors();
     
-    // Handle color selection
-    $('.color-option:not(.add-color-option)').on('click', function() {
+    // Update display on load
+    updateSelectedColorsDisplay();
+    
+    // Handle color selection - Use event delegation
+    $(document).on('click', '.color-option:not(.add-color-option)', function(e) {
+        e.preventDefault();
         const checkbox = $(this).find('.color-checkbox');
         checkbox.prop('checked', !checkbox.prop('checked'));
         updateSelectedColorsDisplay();
     });
-    
-    // Initialize category functionality
-    initializeCategorySelection();
 });
 
-// ✅ FIXED: Function to initialize existing colors from product
+// Function to initialize existing colors
 function initializeExistingColors() {
-    try {
-        // Get existing colors from the product's color_data
-        const existingColors = {{ product.color_names|safe }};
-        console.log("Existing colors from color_data:", existingColors);
-        console.log("Available colorMap:", colorMap);
-        
-        // ✅ FIXED: First, uncheck ALL color checkboxes to start fresh
-        $('.color-checkbox').prop('checked', false);
-        
-        if (existingColors && existingColors.length > 0) {
-            console.log("Parsed colors array:", existingColors);
-            
-            existingColors.forEach(colorName => {
-                const trimmedColor = colorName.trim();
-                if (trimmedColor) {
-                    console.log("Processing color:", trimmedColor, "Hex:", colorMap[trimmedColor]);
-                    
-                    // Check if this is a custom color not in our default map
-                    if (!['Black', 'White', 'Navy Blue', 'Cream'].includes(trimmedColor)) {
-                        // For custom colors, create the option if it doesn't exist
-                        if (!$(.color-checkbox[value="${trimmedColor}"]).length) {
-                            const colorHex = colorMap[trimmedColor] || '#cccccc';
-                            createColorOption(trimmedColor, colorHex);
-                        }
-                    }
-                    
-                    // Check the checkbox for this color
-                    const checkbox = $(.color-checkbox[value="${trimmedColor}"]);
-                    if (checkbox.length > 0) {
-                        checkbox.prop('checked', true);
-                        console.log(Checked existing color: ${trimmedColor});
-                    } else {
-                        console.log(Checkbox not found for color: ${trimmedColor});
-                    }
-                }
-            });
-        } else {
-            console.log("No existing colors found");
+    // Uncheck all first
+    $('.color-checkbox').prop('checked', false);
+    
+    // Check predefined if in existing
+    const existingNames = colorData.map(c => c.name);
+    $('.color-checkbox').each(function() {
+        if (existingNames.includes($(this).val())) {
+            $(this).prop('checked', true);
         }
-        
-        // Update the display
-        updateSelectedColorsDisplay();
-    } catch (error) {
-        console.error("Error initializing colors:", error);
-    }
+    });
+    
+    // Create options for custom colors not predefined
+    const predefined = ['Black', 'White', 'Navy Blue', 'Cream'];
+    existingNames.forEach(name => {
+        if (!predefined.includes(name) && !$(`[data-color="${name}"]`).length) {
+            const hex = colorMap[name] || '#cccccc';
+            createColorOption(name, hex);
+            // Check it
+            $(`.color-checkbox[value="${name}"]`).prop('checked', true);
+        }
+    });
 }
 
 // Function to open modal
 function openColorModal() {
+    console.log('Opening color modal');
+    // Reset form
     $('#customColorName').val('');
     $('#customColorPicker').val('#ff0000');
     
-    var colorModal = new bootstrap.Modal(document.getElementById('colorModal'));
+    // Show modal using Bootstrap 5
+    const modalElement = document.getElementById('colorModal');
+    const colorModal = new bootstrap.Modal(modalElement);
     colorModal.show();
 }
 
+// Function to add custom color
 function addCustomColor() {
     const colorName = $('#customColorName').val().trim();
     const colorHex = $('#customColorPicker').val();
@@ -606,83 +484,173 @@ function addCustomColor() {
         return;
     }
 
+    // Check if color name already exists
     if (colorMap[colorName]) {
         alert('Color name already exists! Please use a different name.');
         return;
     }
 
-    // Add to colorMap and create option
+    // Add to color map
     colorMap[colorName] = colorHex;
+    
+    // Create new color option
     createColorOption(colorName, colorHex);
     
-    var colorModal = bootstrap.Modal.getInstance(document.getElementById('colorModal'));
+    // Close modal
+    const modalElement = document.getElementById('colorModal');
+    const colorModal = bootstrap.Modal.getInstance(modalElement);
     colorModal.hide();
     
-    showTempMessage(Color "${colorName}" added successfully!, 'success');
+    showTempMessage('Color "' + colorName + '" added successfully!', 'success');
 }
 
+// Create new color option element
 function createColorOption(colorName, colorHex) {
-    const colorId = 'color_' + colorName.replace(/\s+/g, '_').toLowerCase();
+    const safeColor = colorName.replace(/\s+/g, '_');
+    const colorId = 'color_' + safeColor.toLowerCase();
+    const borderStyle = (colorHex === '#ffffff' || colorHex === '#fffdd0') ? 'border: 1px solid #ddd;' : '';
     
-    const colorOption = `
-        <div class="col-md-2 col-4 mb-2">
-            <div class="color-option" data-color="${colorName}" data-hex="${colorHex}">
-                <input type="checkbox" class="color-checkbox" name="color" value="${colorName}" id="${colorId}" hidden checked>
-                <label for="${colorId}" class="color-label">
-                    <span class="color-swatch" style="background-color: ${colorHex}; ${colorHex === '#ffffff' || colorHex === '#fffdd0' ? 'border: 1px solid #ddd;' : ''}"></span>
-                    <span class="color-name">${colorName}</span>
-                </label>
-            </div>
-        </div>
-    `;
+    const colorOption = '<div class="col-md-2 col-4 mb-2">' +
+        '<div class="color-option" data-color="' + colorName + '" data-hex="' + colorHex + '">' +
+            '<input type="checkbox" class="color-checkbox" name="color" value="' + colorName + '" id="' + colorId + '" hidden>' +
+            '<label for="' + colorId + '" class="color-label">' +
+                '<span class="color-swatch" style="background-color: ' + colorHex + '; ' + borderStyle + '"></span>' +
+                '<span class="color-name">' + colorName + '</span>' +
+            '</label>' +
+        '</div>' +
+    '</div>';
     
+    // Add before the "Add Color" button
     $('.add-color-option').parent().before(colorOption);
     
-    // Add click handler for the new color option
-    $(.color-option[data-color="${colorName}"]).on('click', function() {
+    // Bind click for new option
+    $(document).off('click', `.color-option[data-color="${colorName}"]`).on('click', `.color-option[data-color="${colorName}"]`, function(e) {
+        e.preventDefault();
         const checkbox = $(this).find('.color-checkbox');
         checkbox.prop('checked', !checkbox.prop('checked'));
         updateSelectedColorsDisplay();
     });
-    
-    // Update display after adding new color
-    updateSelectedColorsDisplay();
 }
 
+// Remove color from selection
 function removeColor(colorName) {
-    $(.color-checkbox[value="${colorName}"]).prop('checked', false);
+    $(`.color-checkbox[value="${colorName}"]`).prop('checked', false);
     updateSelectedColorsDisplay();
-    showTempMessage(Color "${colorName}" removed!, 'warning');
+    showTempMessage('Color "' + colorName + '" removed!', 'warning');
 }
 
+// Update the selected colors display
 function updateSelectedColorsDisplay() {
     const displayContainer = $('#selectedColors');
+    const colorMediaContainer = $('#colorMediaContainer');
     displayContainer.empty();
+    colorMediaContainer.empty();
     
-    const checkedBoxes = $('.color-checkbox:checked');
+    const checkedColors = $('.color-checkbox:checked');
     
-    if (checkedBoxes.length === 0) {
+    if (checkedColors.length === 0) {
         displayContainer.html('<span class="text-muted">No colors selected</span>');
         return;
     }
-    
-    checkedBoxes.each(function() {
+
+    checkedColors.each(function() {
         const colorName = $(this).val();
         const colorHex = colorMap[colorName] || '#cccccc';
         const textColor = getTextColor(colorHex);
         
+        // Selected color badge
         const colorBadge = `
-            <div class="selected-color-badge" style="background-color: ${colorHex}; color: ${textColor}; border: 1px solid #dee2e6;">
+            <div class="selected-color-badge" style="background-color:${colorHex}; color:${textColor}">
                 ${colorName}
-                <button type="button" class="remove-color-btn" onclick="removeColor('${colorName}')" title="Remove ${colorName}">
+                <button type="button" class="remove-color-btn" onclick="removeColor('${colorName}')">
                     <i class="fas fa-times"></i>
                 </button>
-            </div>
-        `;
+            </div>`;
         displayContainer.append(colorBadge);
+
+        // Existing media for this color
+        let existingHtml = '';
+        const mediaList = existingMedia[colorName] || [];
+        if (mediaList.length > 0) {
+            mediaList.forEach(m => {
+                const mediaTag = m.type === 'image' ? 
+                    `<img src="${m.url}" class="img-thumbnail me-2 mb-2" style="width: 100px; height: 100px; object-fit: cover;" alt="${m.name}">` :
+                    `<video src="${m.url}" class="img-thumbnail me-2 mb-2" style="width: 100px; height: 100px;" controls>
+                        <source src="${m.url}" type="video/mp4">
+                    </video>`;
+                existingHtml += `
+                    <div class="position-relative d-inline-block">
+                        ${mediaTag}
+                        <button type="button" class="btn btn-danger btn-sm position-absolute top-0 end-0" onclick="removeMedia(${m.id})" title="Remove">
+                            <i class="fas fa-times"></i>
+                        </button>
+                        {% if m.is_primary %}<span class="badge bg-primary ms-1">Primary</span>{% endif %}
+                    </div>`;
+            });
+        }
+
+        // Safe name for input
+        const safeColor = colorName.replace(/\s+/g, '_');
+
+        // Create upload input for that color
+        const colorUploadBlock = `
+            <div class="form-group border rounded p-3 mb-3">
+                <label><strong>${colorName}</strong> - Upload Images/Videos</label>
+                ${existingHtml ? `<div class="existing-media mb-2">${existingHtml}</div>` : ''}
+                <input type="file" name="media_files_${safeColor}" multiple accept="image/*,video/*" class="form-control media-input" data-color="${colorName}">
+                <div class="preview mt-2 text-muted small">No files selected</div>
+            </div>`;
+        colorMediaContainer.append(colorUploadBlock);
     });
+
+    // Bind change event for media inputs
+    $('.media-input').off('change').on('change', function() {
+        const previewDiv = $(this).siblings('.preview');
+        const files = this.files;
+        if (files.length > 0) {
+            let list = '<ul class="list-unstyled mb-0">';
+            for (let i = 0; i < files.length; i++) {
+                list += `<li><i class="fas fa-file"></i> ${files[i].name}</li>`;
+            }
+            list += '</ul>';
+            previewDiv.html(list);
+        } else {
+            previewDiv.html('No files selected');
+        }
+    });
+
+    // Handle uncategorized media (color_name == '')
+    const uncatMedia = existingMedia[''] || [];
+    if (uncatMedia.length > 0) {
+        let uncatHtml = '';
+        uncatMedia.forEach(m => {
+            const mediaTag = m.type === 'image' ? 
+                `<img src="${m.url}" class="img-thumbnail me-2 mb-2" style="width: 100px; height: 100px; object-fit: cover;" alt="${m.name}">` :
+                `<video src="${m.url}" class="img-thumbnail me-2 mb-2" style="width: 100px; height: 100px;" controls>
+                    <source src="${m.url}" type="video/mp4">
+                </video>`;
+            uncatHtml += `
+                <div class="position-relative d-inline-block">
+                    ${mediaTag}
+                    <button type="button" class="btn btn-danger btn-sm position-absolute top-0 end-0" onclick="removeMedia(${m.id})" title="Remove">
+                        <i class="fas fa-times"></i>
+                    </button>
+                    {% if m.is_primary %}<span class="badge bg-primary ms-1">Primary</span>{% endif %}
+                </div>`;
+        });
+
+        const uncatBlock = `
+            <div class="form-group border rounded p-3 mb-3">
+                <label><strong>Media without Color Association</strong> - Existing Files</label>
+                <div class="existing-media mb-2">${uncatHtml}</div>
+                <input type="file" name="media_files" multiple accept="image/*,video/*" class="form-control media-input" data-color="">
+                <div class="preview mt-2 text-muted small">No files selected</div>
+            </div>`;
+        colorMediaContainer.append(uncatBlock);
+    }
 }
 
+// Calculate text color based on background
 function getTextColor(backgroundColor) {
     const hex = backgroundColor.replace('#', '');
     const r = parseInt(hex.substr(0, 2), 16);
@@ -692,197 +660,154 @@ function getTextColor(backgroundColor) {
     return luminance > 0.5 ? '#000000' : '#ffffff';
 }
 
+// Show temporary message
 function showTempMessage(message, type) {
     const alertClass = type === 'success' ? 'alert-success' : 'alert-warning';
-    const alertDiv = $(`<div class="alert ${alertClass} alert-dismissible fade show mt-2">
-        ${message}
-        <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
-    </div>`);
+    const alertDiv = $('<div class="alert ' + alertClass + ' alert-dismissible fade show mt-2">' +
+        message +
+        '<button type="button" class="btn-close" data-bs-dismiss="alert"></button>' +
+    '</div>');
     
     $('.selected-colors-container').append(alertDiv);
     
-    setTimeout(() => {
+    setTimeout(function() {
         alertDiv.remove();
     }, 3000);
 }
 
-// Category AJAX functionality
-function initializeCategorySelection() {
-    function loadChildCategories(parent_id, child_cat_id_to_select) {
-        if(parent_id) {
-            $.ajax({
-                url: "{% url 'get_child_categories' %}",
-                data: { parent_id: parent_id },
-                dataType: "json",
-                success: function(response) {
-                    var childCatSelect = $("#child_cat_id");
-                    childCatSelect.empty();
-                    
-                    if(response.child_categories && response.child_categories.length > 0){
-                        $("#child_cat_div").removeClass("d-none");
-                        childCatSelect.append('<option value="">--Select any sub category--</option>');
-                        $.each(response.child_categories, function(i, cat) {
-                            var is_selected = (cat.id == child_cat_id_to_select);
-                            childCatSelect.append('<option value="'+cat.id+'" ' + (is_selected ? 'selected' : '') + '>'+cat.title+'</option>');
-                        });
-                    } else {
-                        $("#child_cat_div").addClass("d-none");
-                        childCatSelect.append('<option value="">--No sub categories--</option>');
-                    }
-                },
-                error: function(xhr, status, error) {
-                    console.error("Error loading child categories:", error);
-                    $("#child_cat_div").addClass("d-none");
-                }
-            });
-        } else {
-            $("#child_cat_div").addClass("d-none");
-        }
-    }
-   
-    var initialParentId = $("#cat_id").val();
-    var initialChildId = "{{ product.child_category.id|default:'' }}";
-    if (initialParentId) {
-        loadChildCategories(initialParentId, initialChildId);
-    }
- 
-    $("#cat_id").change(function() {
-        var parent_id = $(this).val();
-        loadChildCategories(parent_id, '');
+// Prepare color inputs for form submission
+function prepareColorInputs() {
+    const hiddenContainer = $('#hiddenColorInputs');
+    hiddenContainer.empty();
+    
+    // Get all checked colors
+    $('.color-checkbox:checked').each(function() {
+        const colorName = $(this).val();
+        const colorHex = colorMap[colorName] || '#cccccc';
+        
+        // Create hidden inputs for each selected color
+        const nameInput = '<input type="hidden" name="color_name" value="' + colorName + '">';
+        const codeInput = '<input type="hidden" name="color_code" value="' + colorHex + '">';
+        
+        hiddenContainer.append(nameInput);
+        hiddenContainer.append(codeInput);
     });
 }
 
 // Form submission handler
-$('form').on('submit', function(e) {
-    prepareColorInputs(); // <-- CALL THIS TO ADD HIDDEN HEX INPUTS
+$('#productForm').on('submit', function(e) {
+    // Prepare color inputs
+    prepareColorInputs();
     
+    // Validate at least one color is selected
     const selectedColors = $('.color-checkbox:checked').length;
-    // ... (rest of the form validation remains the same)
-    
     if (selectedColors === 0) {
+        e.preventDefault();
         alert('Please select at least one color');
-        e.preventDefault();
-        return false;
-    }
-    
-    const selectedSizes = $('input[name="size"]:checked').length;
-    if (selectedSizes === 0) {
-        alert('Please select at least one size');
-        e.preventDefault();
         return false;
     }
     
     return true;
 });
+</script>
+<script>
+function toggleShippingInput(option) {
+    const chargeGroup = document.getElementById('shipping_charge_group');
+    const chargeInput = document.getElementById('shipping_charge');
 
-// Debug function to show current state
-function showDebugInfo() {
-    const debugInfo = $('#debugInfo');
-    const selectedColors = $('.color-checkbox:checked').map(function() {
-        const colorName = $(this).val();
-        return ${colorName} (${colorMap[colorName]});
-    }).get();
-    
-    const debugContent = `
-        <strong>Selected Colors (${selectedColors.length}):</strong> ${selectedColors.join(', ') || 'None'}<br>
-        <strong>Will be saved:</strong> Only the ${selectedColors.length} selected colors above
-    `;
-    
-    debugInfo.html(debugContent);
+    if (option === 'custom') {
+        chargeGroup.style.display = 'block';
+        chargeInput.required = true;
+    } else {
+        chargeGroup.style.display = 'none';
+        chargeInput.required = false;
+        chargeInput.value = '';
+    }
 }
 
-// Initialize debug info
-$(document).ready(function() {
-    showDebugInfo();
-    setInterval(showDebugInfo, 2000);
+// Preserve visibility on page load
+document.addEventListener('DOMContentLoaded', () => {
+    const shippingOption = document.getElementById('shipping_option').value;
+    toggleShippingInput(shippingOption);
 });
+</script>
 
-$(document).ready(function() {
-    $('#media_files').on('change', function() {
-        const preview = $('#filePreview');
-        const files = this.files;
-        
-        if (files.length > 0) {
-            let previewHTML = <p class="text-success mb-2"><strong>${files.length} new file(s) selected:</strong></p>;
-            let totalSize = 0;
-            
-            for (let i = 0; i < files.length; i++) {
-                const file = files[i];
-                const fileSize = (file.size / 1024 / 1024).toFixed(2);
-                totalSize += parseFloat(fileSize);
-                const fileType = file.type.split('/')[0];
-                const icon = fileType === 'video' ? '🎥 Video' : '🖼 Image';
-                
-                previewHTML += `
-                    <div class="file-item mb-2 p-2 border rounded bg-white">
-                        <div class="d-flex justify-content-between align-items-center">
-                            <div>
-                                <strong>${icon}</strong><br>
-                                <small class="text-muted">${file.name}</small><br>
-                                <small class="text-info">${fileSize} MB</small>
-                            </div>
-                            <div class="file-preview-icon">
-                                ${fileType === 'image' ? 
-                                    <img src="${URL.createObjectURL(file)}" width="50" height="50" style="object-fit: cover;" class="rounded"> : 
-                                    '<i class="fas fa-video fa-2x text-secondary"></i>'
-                                }
-                            </div>
-                        </div>
-                    </div>
-                `;
-            }
-            
-            previewHTML += `<div class="mt-2 p-2 bg-info text-white rounded">
-                <strong>Total: ${files.length} files (${totalSize.toFixed(2)} MB)</strong>
-            </div>`;
-            
-            preview.html(previewHTML);
-        } else {
-            preview.html('<span class="text-muted">No new files selected</span>');
+<script>
+document.addEventListener("DOMContentLoaded", function () {
+    const categorySelect = document.getElementById("cat_id");
+    const subcategoryGroup = document.getElementById("subcategory-group");
+    const childCategorySelect = document.getElementById("child_cat_id");
+
+    // Initial load if category selected
+    if (categorySelect.value) {
+        subcategoryGroup.style.display = "block";
+        loadChildCategories(categorySelect.value, childCategorySelect.value);
+    }
+
+    categorySelect.addEventListener("change", function () {
+        const parentId = this.value;
+
+        // If no parent selected → hide subcategory
+        if (!parentId) {
+            subcategoryGroup.style.display = "none";
+            childCategorySelect.innerHTML = '<option value="">--Select child category--</option>';
+            return;
         }
+
+        // Show subcategory dropdown while loading
+        subcategoryGroup.style.display = "block";
+        childCategorySelect.innerHTML = '<option value="">--Loading--</option>';
+
+        loadChildCategories(parentId, '');
     });
 
-    // Form validation
-    $('form').on('submit', function(e) {
-        prepareColorInputs();
-        
-        // Color validation
-        const selectedColors = $('.color-checkbox:checked').length;
-        if (selectedColors === 0) {
-            alert('Please select at least one color');
-            e.preventDefault();
-            return false;
-        }
-        
-        // Size validation
-        const selectedSizes = $('input[name="size"]:checked').length;
-        if (selectedSizes === 0) {
-            alert('Please select at least one size');
-            e.preventDefault();
-            return false;
-        }
-        
-        return true;
-    });
-});
+    function loadChildCategories(parentId, selectedId) {
+        fetch(`/get-child-categories/${parentId}/`)
+            .then(response => response.json())
+            .then(data => {
+                childCategorySelect.innerHTML = '<option value="">--Select child category--</option>';
 
-// Function to remove media file (you'll need to implement the backend for this)
+                if (data.length === 0) {
+                    const opt = document.createElement('option');
+                    opt.value = '';
+                    opt.textContent = 'No subcategories available';
+                    childCategorySelect.appendChild(opt);
+                    return;
+                }
+
+                data.forEach(cat => {
+                    const opt = document.createElement('option');
+                    opt.value = cat.id;
+                    opt.textContent = cat.title;
+                    if (cat.id == selectedId) opt.selected = true;
+                    childCategorySelect.appendChild(opt);
+                });
+            })
+            .catch(error => {
+                console.error("Error fetching child categories:", error);
+                childCategorySelect.innerHTML = '<option value="">--Error loading--</option>';
+            });
+    }
+});
+</script>
+
+<script>
+// Function to remove media file
 function removeMedia(mediaId) {
-    if (confirm('Are you sure you want to remove this file?')) {
-        // You'll need to implement this endpoint
-        fetch(/remove-media/${mediaId}/, {
+    if (confirm('Are you sure you want to remove this file? This action cannot be undone.')) {
+        fetch(`/remove-media/${mediaId}/`, {
             method: 'POST',
             headers: {
-                'X-CSRFToken': getCookie('csrftoken'),
+                'X-CSRFToken': $('[name=csrfmiddlewaretoken]').val(),
                 'Content-Type': 'application/json',
             },
         })
         .then(response => response.json())
         .then(data => {
             if (data.success) {
-                location.reload(); // Reload to see changes
+                location.reload(); // Reload to update display
             } else {
-                alert('Error removing file: ' + data.error);
+                alert('Error removing file: ' + (data.error || 'Unknown error'));
             }
         })
         .catch(error => {
@@ -891,22 +816,6 @@ function removeMedia(mediaId) {
         });
     }
 }
-
-// Helper function to get CSRF token
-function getCookie(name) {
-    let cookieValue = null;
-    if (document.cookie && document.cookie !== '') {
-        const cookies = document.cookie.split(';');
-        for (let i = 0; i < cookies.length; i++) {
-            const cookie = cookies[i].trim();
-            if (cookie.substring(0, name.length + 1) === (name + '=')) {
-                cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
-                break;
-            }
-        }
-    }
-    return cookieValue;
-}
-
 </script>
+
 {% endblock %}

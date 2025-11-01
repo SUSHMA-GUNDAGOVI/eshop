@@ -1,0 +1,32 @@
+{% extends 'landing_base.html' %}
+{% load static %}
+{% block title %}Categories{% endblock %}
+
+{% block content %}
+<section class="categories spad">
+    <div class="container">
+        <div class="row">
+            {% for category in categories %}
+            <div class="col-lg-4 col-md-6 col-sm-6">
+                <div class="category__item">
+                    <div class="category__item__pic">
+                        {% if category.photo %}
+                            <img src="{{ category.photo.url }}" alt="{{ category.title }}">
+                        {% else %}
+                            <img src="{% static 'frontend/img/category-placeholder.jpg' %}" alt="{{ category.title }}">
+                        {% endif %}
+                    </div>
+                    <div class="category__item__text">
+                        <h5>{{ category.title }}</h5>
+                        <p>{{ category.summary }}</p>
+                        <a href="">Shop Now</a>
+                    </div>
+                </div>
+            </div>
+            {% empty %}
+            <p>No categories found.</p>
+            {% endfor %}
+        </div>
+    </div>
+</section>
+{% endblock %}

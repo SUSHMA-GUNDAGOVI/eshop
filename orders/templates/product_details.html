@@ -1,19 +1,14 @@
 {% extends 'landing_base.html' %}
 {% load static %}
-
-
 {% block title %}{{ product.name }} Details{% endblock %}
-
 {% block content %}
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/toastify-js/src/toastify.min.css">
 <script src="https://cdn.jsdelivr.net/npm/toastify-js"></script>
-
 <style>
 /* ====== Styles ====== */
 .product-details-section {
     padding: 60px 0;
 }
-
 .product-gallery {
     display: flex;
     gap: 15px;
@@ -23,14 +18,12 @@
     justify-content: center;
     height: 100%;
 }
-
 .thumbnail-list {
     display: flex;
     flex-direction: column;
     gap: 10px;
     padding-top: 0;
 }
-
 .thumbnail-list img {
     width: 70px;
     height: 90px;
@@ -41,16 +34,13 @@
     background: #fff;
     box-shadow: 0 1px 4px rgba(0, 0, 0, 0.1);
 }
-
 .thumbnail-list img.active {
     border-color: #000;
 }
-
 .main-image-wrapper {
     position: relative;
     display: inline-block;
 }
-
 .main-image {
     width: 420px;
     height: 500px;
@@ -59,7 +49,6 @@
     background: #fff;
     box-shadow: 0 2px 10px rgba(0, 0, 0, 0.05);
 }
-
 .carousel-btn {
     position: absolute;
     top: 50%;
@@ -78,51 +67,42 @@
     z-index: 10;
     transition: all 0.2s ease;
 }
-
 .carousel-btn:hover {
     background: #e0e0e0;
     color: #000;
     box-shadow: 0 2px 6px rgba(0, 0, 0, 0.2);
 }
-
 .carousel-btn.prev {
     left: 12px;
 }
-
 .carousel-btn.next {
     right: 12px;
 }
-
 .product-info {
     padding-left: 40px;
     padding-top: 0;
 }
-
 .product-info h2 {
     font-size: 26px;
     font-weight: 600;
     margin-bottom: 10px;
     margin-top: 0;
 }
-
 .product-info .price {
     font-size: 22px;
     color: #222;
     font-weight: 600;
     margin: 15px 0;
 }
-
 .product-info .price span {
     text-decoration: line-through;
     color: #999;
     font-size: 18px;
     margin-left: 10px;
 }
-
 .rating i {
     color: #ffcc00;
 }
-
 .size-buttons label {
     border: 1px solid #ccc;
     padding: 6px 12px;
@@ -133,13 +113,11 @@
     background: #fff;
     color: #000;
 }
-
 .size-buttons label.selected {
     background: #000;
     color: #fff;
     font-weight: 600;
 }
-
 .color-buttons label {
     width: 25px;
     height: 25px;
@@ -150,14 +128,10 @@
     margin-right: 5px;
     transition: all 0.2s ease;
 }
-
-
-
 .size-buttons input[type="radio"],
 .color-buttons input[type="radio"] {
     display: none;
 }
-
 .primary-btn,
 .buy-now-btn {
     background: #000;
@@ -168,38 +142,31 @@
     margin-right: 10px;
     transition: 0.3s;
 }
-
 .primary-btn:hover,
 .buy-now-btn:hover {
     background: #333;
 }
-
 .btn-small {
     padding: 8px 20px;
-    font-size: 14px;
+    font-size: 11px;
     border-radius: 4px;
 }
-
 .quantity-input {
     width: 70px;
     padding: 5px 10px;
     font-size: 14px;
 }
-
 .d-flex.gap-2>* {
     margin-right: 8px;
 }
-
 /* ====== Accordion Styles ====== */
 .accordion-section {
     margin-top: 40px;
     border-top: 1px solid #e0e0e0;
 }
-
 .accordion-item {
     border-bottom: 1px solid #e0e0e0;
 }
-
 .accordion-header {
     display: flex;
     justify-content: space-between;
@@ -209,11 +176,9 @@
     user-select: none;
     transition: all 0.3s ease;
 }
-
 .accordion-header:hover {
     opacity: 0.7;
 }
-
 .accordion-title {
     font-size: 16px;
     font-weight: 600;
@@ -221,31 +186,26 @@
     text-transform: uppercase;
     margin: 0;
 }
-
 .accordion-icon {
     font-size: 20px;
     font-weight: 300;
     transition: transform 0.3s ease;
 }
-
 .accordion-content {
     max-height: 0;
     overflow: hidden;
     transition: max-height 0.3s ease;
     padding: 0;
 }
-
 .accordion-content.active {
     max-height: 1000px;
     padding-bottom: 20px;
 }
-
 .accordion-body {
     color: #666;
     line-height: 1.8;
     font-size: 14px;
 }
-
 .accordion-body h4 {
     font-size: 15px;
     font-weight: 600;
@@ -253,59 +213,48 @@
     margin-bottom: 10px;
     color: #333;
 }
-
 .accordion-body ul {
     padding-left: 20px;
     margin: 10px 0;
 }
-
 .accordion-body ul li {
     margin-bottom: 8px;
 }
-
 .review-item {
     border-bottom: 1px solid #f0f0f0;
     padding: 15px 0;
 }
-
 .review-item:last-child {
     border-bottom: none;
 }
-
 .review-header {
     display: flex;
     justify-content: space-between;
     align-items: center;
     margin-bottom: 8px;
 }
-
 .reviewer-name {
     font-weight: 600;
     color: #333;
 }
-
 .review-date {
     color: #999;
     font-size: 13px;
 }
-
 .review-stars {
     color: #ffcc00;
     margin-bottom: 5px;
 }
-
 .review-text {
     color: #666;
     font-size: 14px;
     line-height: 1.6;
 }
-
 /* ====== You May Also Like Section ====== */
 .related-products-section {
     padding: 60px 0;
     background: #f8f8f8;
 }
-
 .section-title {
     text-align: center;
     font-size: 28px;
@@ -314,7 +263,6 @@
     text-transform: uppercase;
     letter-spacing: 1px;
 }
-
 .related-product-card {
     background: #fff;
     border-radius: 8px;
@@ -323,24 +271,17 @@
     margin-bottom: 30px;
     position: relative;
 }
-
-
-
 .related-product-image {
     position: relative;
     overflow: hidden;
     height: 300px;
 }
-
 .related-product-image img {
     width: 100%;
     height: 100%;
     object-fit: cover;
     transition: transform 0.3s ease;
 }
-
-
-
 .wishlist-btn-related {
     position: absolute;
     top: 15px;
@@ -357,24 +298,19 @@
     transition: all 0.3s ease;
     z-index: 10;
 }
-
 .wishlist-btn-related:hover {
     background: #f0f0f0;
 }
-
 .wishlist-btn-related i {
     font-size: 16px;
     color: #666;
 }
-
 .wishlist-btn-related.active i {
     color: #ff0000;
 }
-
 .related-product-info {
     padding: 20px;
 }
-
 .related-product-title {
     font-size: 16px;
     font-weight: 600;
@@ -383,64 +319,124 @@
     text-decoration: none;
     display: block;
 }
-
 .related-product-title:hover {
     color: #666;
 }
-
 .related-product-price {
     font-size: 18px;
     font-weight: 600;
     color: #222;
 }
-
 .related-product-price .old-price {
     text-decoration: line-through;
     color: #999;
     font-size: 14px;
     margin-left: 8px;
 }
-
 .heart-outlined {
     color: #ffffff;
-    text-shadow: 
+    text-shadow:
         -1px -1px 0 #000,
         1px -1px 0 #000,
         -1px 1px 0 #000,
         1px 1px 0 #000;
 }
+/* Update the color-buttons container for better alignment */
+.color-buttons .d-flex.flex-wrap.gap-3 {
+    align-items: flex-start; /* Ensures items align to the top */
+}
+.color-buttons .text-center {
+    /* Optional: Ensure consistent size/padding for the wrapper */
+    padding: 5px;
+}
+/* **Bigger and Uniform Label/Container** */
+.color-buttons label {
+    /* Original circular color swatches are no longer needed for image thumbs */
+    width: 70px; /* **Increased size** (e.g., 70px) */
+    height: 90px; /* **Increased size** (e.g., 90px) */
+    display: block; /* Change from inline-block to block inside .text-center */
+    border-radius: 4px; /* Change to a slight box corner */
+    border: 2px solid #ccc;
+    cursor: pointer;
+    margin-right: 0; /* Margin is handled by parent gap-3 */
+    transition: all 0.2s ease;
+    padding: 0; /* Remove internal padding */
+    overflow: hidden; /* Ensure image stays within bounds */
+}
+/* Style for the image inside the label */
+.color-buttons label .color-thumb {
+    width: 100%;
+    height: 100%;
+    object-fit: cover; /* Ensures the image covers the area without distortion */
+    border-radius: 4px;
+}
+/* Highlight style for selected color */
+.color-buttons label.selected {
+    box-shadow: 0 0 0 2px #000;
+}
+/* Product Item Styles for Related Products */
+.product__item__pic {
+    width: 100%;
+    height: 250px;
+    overflow: hidden;
+    position: relative;
+}
+.product__item__pic img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    display: block;
+}
+.product__hover {
+    position: absolute;
+    top: 10px;
+    right: 10px;
+    z-index: 2;
+    list-style: none;
+    padding: 0;
+    margin: 0;
+}
+.image-link {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    z-index: 1;
+}
 </style>
+
+<!-- ✅ CSRF Token for AJAX -->
+<input type="hidden" id="csrf_token" value="{{ csrf_token }}">
 
 {% with selected_size=request.GET.size selected_color=request.GET.color %}
 <section class="product-details-section">
     <div class="container">
         <div class="row">
             <!-- LEFT -->
-         <div class="col-lg-6 d-flex align-items-start">
-    <div class="product-gallery w-100">
-        <!-- Thumbnail List -->
-        <div class="thumbnail-list mb-3" id="thumbnail-list">
-            {% for img_url in gallery_images %}
-    <img src="{{ img_url }}" 
-         alt="{{ product.title }} - Image {{ forloop.counter }}"
-         class="thumb {% if forloop.first %}active{% endif %}">
-{% empty %}
-    <img src="{% static 'assets/img/product/placeholder.jpg' %}" alt="No image" class="thumb active">
-{% endfor %}
-        </div>
-
-        <!-- Main Image Wrapper -->
-        <div class="main-image-wrapper position-relative">
-            <button class="carousel-btn prev">&lt;</button>
-           <img id="main-product-img"
-     src="{% if gallery_images %}{{ gallery_images.0 }}{% else %}{% static 'assets/img/product/placeholder.jpg' %}{% endif %}"
-     class="main-image img-fluid"
-     alt="{{ product.title }}">
-            <button class="carousel-btn next">&gt;</button>
-        </div>
-    </div>
-</div>
-
+            <div class="col-lg-6 d-flex align-items-start">
+                <div class="product-gallery w-100">
+                    <!-- Thumbnail List -->
+                    <div class="thumbnail-list mb-3" id="thumbnail-list">
+                        {% for img_url in gallery_images %}
+                            <img src="{{ img_url }}"
+                                 alt="{{ product.title }} - Image {{ forloop.counter }}"
+                                 class="thumb {% if forloop.first %}active{% endif %}">
+                        {% empty %}
+                            <img src="{% static 'assets/img/product/placeholder.jpg' %}" alt="No image" class="thumb active">
+                        {% endfor %}
+                    </div>
+                    <!-- Main Image Wrapper -->
+                    <div class="main-image-wrapper position-relative">
+                        <button class="carousel-btn prev">&lt;</button>
+                        <img id="main-product-img"
+                             src="{% if gallery_images %}{{ gallery_images.0 }}{% else %}{% static 'assets/img/product/placeholder.jpg' %}{% endif %}"
+                             class="main-image img-fluid"
+                             alt="{{ product.title }}">
+                        <button class="carousel-btn next">&gt;</button>
+                    </div>
+                </div>
+            </div>
             <!-- RIGHT -->
             <div class="col-lg-6">
                 <div class="product-info">
@@ -451,19 +447,15 @@
                         <i class="fa fa-star"></i>
                         <span> (5 Reviews)</span>
                     </div>
-
                     <div class="price">
                         ₹{{ product.price|floatformat:2 }}
                         {% if product.old_price %}<span>₹{{ product.old_price|floatformat:2 }}</span>{% endif %}
                     </div>
-
                  
-
                     <form id="add-to-cart-form" action="{% url 'add_to_cart' product.pk %}" method="POST">
                         {% csrf_token %}
                         <input type="hidden" name="product_id" value="{{ product.pk }}">
                         <input type="hidden" name="selected_image" id="selected-image">
-
                         <div class="mb-3 size-buttons">
                             <span class="fw-bold">Sizes:</span><br>
                             {% for size_item in sizes %}
@@ -473,57 +465,49 @@
                                 class="{% if size_item == selected_size %}selected{% endif %}">{{ size_item }}</label>
                             {% endfor %}
                         </div>
-
-                     <div class="mb-4 color-buttons">
-    <span class="fw-bold d-block mb-2">Colors:</span>
-    <div class="d-flex flex-wrap gap-3">
-        {% for color in colors %}
-        <div class="text-center">
-            <input type="radio" 
-                   id="color-{{ forloop.counter }}" 
-                   name="color" 
-                   value="{{ color.name }}"
-                   {% if forloop.first %}checked{% endif %}>
-            
-            <label for="color-{{ forloop.counter }}"
-                   class="color-img-label {% if forloop.first %}selected{% endif %}" 
-                   data-color="{{ color.name }}"
-                   data-images="{{ color.images|safe }}">
-                <img src="{{ color.thumb }}" alt="{{ color.name }}" class="color-thumb">
-            </label>
-        </div>
-        {% endfor %}
-    </div>
-</div>
-
-
+                        <div class="mb-4 color-buttons">
+                            <span class="fw-bold d-block mb-2">Colors:</span>
+                            <div class="d-flex flex-wrap gap-3">
+                                {% for color in colors %}
+                                <div class="text-center">
+                                    <input type="radio"
+                                           id="color-{{ forloop.counter }}"
+                                           name="color"
+                                           value="{{ color.name }}"
+                                           {% if forloop.first %}checked{% endif %}>
+                                    
+                                    <label for="color-{{ forloop.counter }}"
+                                           class="color-img-label {% if forloop.first %}selected{% endif %}"
+                                           data-color="{{ color.name }}"
+                                           data-images="{{ color.images|safe }}">
+                                        <img src="{{ color.thumb }}" alt="{{ color.name }}" class="color-thumb">
+                                    </label>
+                                </div>
+                                {% endfor %}
+                            </div>
+                        </div>
                         <div class="d-flex align-items-center mb-3 gap-2">
                             <input type="number" name="quantity" value="1" min="1" max="100"
                                 class="form-control quantity-input">
                             <button type="submit" class="primary-btn btn-small">Add to Cart</button>
-                        <a href="javascript:void(0);" id="buy-now-btn" class="primary-btn btn-small">
-   Buy Now
-</a>
-
+                            <a href="javascript:void(0);" id="buy-now-btn" class="primary-btn btn-small">
+                                Buy Now
+                            </a>
                         </div>
                     </form>
-
                     <!-- ACCORDION SECTION -->
                     <div class="accordion-section">
-                        <!-- DETAILS -->
                         <div class="accordion-item">
-    <div class="accordion-header" onclick="toggleAccordion(this)">
-        <h3 class="accordion-title">DETAILS</h3>
-        <span class="accordion-icon">+</span>
-    </div>
-    <div class="accordion-content">
-        <div class="accordion-body">
-            <!-- Use product.description from database -->
-            {{ product.description|linebreaksbr }}
-        </div>
-    </div>
-</div>
-
+                            <div class="accordion-header" onclick="toggleAccordion(this)">
+                                <h3 class="accordion-title">DETAILS</h3>
+                                <span class="accordion-icon">+</span>
+                            </div>
+                            <div class="accordion-content">
+                                <div class="accordion-body">
+                                    {{ product.description|linebreaksbr }}
+                                </div>
+                            </div>
+                        </div>
                         <!-- REVIEWS -->
                         <div class="accordion-item">
                             <div class="accordion-header" onclick="toggleAccordion(this)">
@@ -546,7 +530,6 @@
                                         </div>
                                         <p class="review-text">Excellent quality! The fabric is soft and breathable. Perfect fit and the color is exactly as shown in the pictures. Highly recommended!</p>
                                     </div>
-
                                     <div class="review-item">
                                         <div class="review-header">
                                             <span class="reviewer-name">Priya Patel</span>
@@ -561,7 +544,6 @@
                                         </div>
                                         <p class="review-text">Great purchase! My husband loves it. The material feels premium and it looks very stylish. Worth every penny.</p>
                                     </div>
-
                                     <div class="review-item">
                                         <div class="review-header">
                                             <span class="reviewer-name">Amit Kumar</span>
@@ -579,9 +561,7 @@
                                 </div>
                             </div>
                         </div>
-
                     
-
                         <!-- RETURNS -->
                         <div class="accordion-item">
                             <div class="accordion-header" onclick="toggleAccordion(this)">
@@ -622,50 +602,67 @@
 </section>
 
 <!-- You May Also Like Section -->
-<section class="related-products-section">
+<section class="product spad mt-5">
     <div class="container">
-        <h2 class="section-title">You May Also Like</h2>
+        <!-- Section Title -->
+        <div class="row mb-4">
+            <div class="col-lg-12">
+                <h3 class="section-title mb-1">
+                    <b>You May Also Like</b>
+                </h3>
+            </div>
+        </div>
+
+        <!-- Product Grid -->
         <div class="row">
-            {% for rel_product in related_products %}
+            {% for product in related_products|slice:":4" %}
             <div class="col-lg-3 col-md-6 col-sm-6">
-                <div class="related-product-card">
-                    <div class="related-product-image" style="position: relative;">
-    <a href="{% url 'product_detail' rel_product.pk %}">
-        <img src="{% if rel_product.photo %}{{ rel_product.photo.url }}{% else %}{% static 'frontend/img/product/placeholder.jpg' %}{% endif %}" 
-             alt="{{ rel_product.title }}" style="width:100%; height:100%; object-fit:cover;">
-    </a>
+                <div class="product__item">
+                    <div class="product__item__pic">
+                        {% if product.photo %}
+                            <img src="{{ product.photo.url }}" alt="{{ product.title }}">
+                        {% else %}
+                            <img src="{% static 'frontend/img/product-placeholder.jpg' %}" alt="{{ product.title }}">
+                        {% endif %}
 
-    <!-- Wishlist Button (kept on top right) -->
-    <div class="product__hover">
-        {% if user.is_authenticated %}
-        <a href="#" class="wishlist-btn-related" data-product-id="{{ rel_product.pk }}">
-            {% if rel_product.pk in wishlisted_ids %}
-                <i class="fa fa-heart" style="color: #ff0000; font-size: 16px;"></i>
-            {% else %}
-                <i class="fa fa-heart heart-outlined" style="font-size: 16px;"></i>
-            {% endif %}
-        </a>
-        {% else %}
-        <a href="{% url 'login' %}">
-            <i class="fa fa-heart heart-outlined" style="font-size: 16px;"></i>
-        </a>
-        {% endif %}
-    </div>
-</div>
+                        <ul class="product__hover">
+                            <li>
+                                {% if user.is_authenticated %}
+                                    <a href="#" class="wishlist-btn" data-product-id="{{ product.pk }}">
+                                        {% if product.pk in wishlisted_ids %}
+                                            <i class="fa fa-heart" style="color:#ff0000; font-size:18px;"></i>
+                                        {% else %}
+                                            <i class="fa fa-heart heart-outlined" style="font-size:18px;"></i>
+                                        {% endif %}
+                                    </a>
+                                {% else %}
+                                    <a href="{% url 'login' %}">
+                                        <i class="fa fa-heart heart-outlined" style="font-size:18px;"></i>
+                                    </a>
+                                {% endif %}
+                            </li>
+                        </ul>
 
-                    <div class="related-product-info">
-                        <a href="{% url 'product_detail' rel_product.pk %}" class="related-product-title">{{ rel_product.title }}</a>
-                        <div class="related-product-price">
-                            ₹{{ rel_product.price|floatformat:2 }}
-                            {% if rel_product.old_price %}<span class="old-price">₹{{ rel_product.old_price|floatformat:2 }}</span>{% endif %}
+                        <a href="{% url 'product_detail' product.pk %}" class="image-link"></a>
+                    </div>
+
+                    <div class="product__item__text">
+                        <h6>{{ product.title }}</h6>
+                        {% if user.is_authenticated %}
+                            <a href="{% url 'product_detail' product.pk %}" class="add-cart">+ Add To Cart</a>
+                        {% else %}
+                            <a href="{% url 'login' %}" class="add-cart">Login to Add</a>
+                        {% endif %}
+                        <div class="rating">
+                            <i class="fa fa-star-o"></i><i class="fa fa-star-o"></i><i class="fa fa-star-o"></i>
+                            <i class="fa fa-star-o"></i><i class="fa fa-star-o"></i>
                         </div>
+                        <h5>₹{{ product.price|floatformat:2 }}</h5>
                     </div>
                 </div>
             </div>
             {% empty %}
-            <div class="col-12">
-                <p class="text-center">No related products found.</p>
-            </div>
+                <p class="text-center">No related products available.</p>
             {% endfor %}
         </div>
     </div>
@@ -674,24 +671,43 @@
 
 <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
 <script>
-// ===== Image Gallery & Carousel Logic =====
+// ===== Global Variables and DOM Elements =====
 let thumbs = document.querySelectorAll('.thumb');
-let mainImg = document.getElementById('main-product-img');
-let currentIndex = 0;
-let imageList = Array.from(thumbs).map(img => img.src);
-
+const mainImg = document.getElementById('main-product-img');
 const prevButton = document.querySelector('.carousel-btn.prev');
 const nextButton = document.querySelector('.carousel-btn.next');
 const thumbnailList = document.getElementById('thumbnail-list');
+const selectedImageInput = document.getElementById('selected-image');
+const sizeLabels = document.querySelectorAll('.size-buttons label');
+const colorLabels = document.querySelectorAll('.color-buttons label');
+let currentIndex = 0;
+let imageList = Array.from(thumbs).map(img => img.src);
+
+// ===== Toast Function =====
+function showToast(message, color) {
+    Toastify({
+        text: message,
+        duration: 2000,
+        gravity: "top",
+        position: "right",
+        backgroundColor: color,
+        stopOnFocus: true,
+    }).showToast();
+}
+
+// ===== Core Functions =====
+function updateSelectedImage() {
+    if (selectedImageInput && mainImg) {
+        selectedImageInput.value = mainImg.src;
+    }
+}
 
 function updateImage() {
     if (imageList.length === 0) return;
-
     mainImg.src = imageList[currentIndex];
     thumbs.forEach(t => t.classList.remove('active'));
     if (thumbs[currentIndex]) thumbs[currentIndex].classList.add('active');
-    
-    updateSelectedImage(); // ← update hidden input
+    updateSelectedImage();
 }
 
 function handleThumbnailClick(index) {
@@ -700,45 +716,47 @@ function handleThumbnailClick(index) {
 }
 
 function bindThumbnailEvents() {
-    thumbs = document.querySelectorAll('.thumb');
+    thumbs = document.querySelectorAll('#thumbnail-list .thumb');
     imageList = Array.from(thumbs).map(img => img.src);
-
+    
     thumbs.forEach((thumb, index) => {
-        // Remove previous listeners to prevent duplicates
         const newThumb = thumb.cloneNode(true);
         thumb.parentNode.replaceChild(newThumb, thumb);
         newThumb.addEventListener('click', () => handleThumbnailClick(index));
     });
-    // Re-select thumbs after replacement
-    thumbs = document.querySelectorAll('.thumb');
+    
+    thumbs = document.querySelectorAll('#thumbnail-list .thumb');
 }
 
 function bindCarouselControls() {
-    // Rebind Prev/Next button logic using the current imageList
     prevButton.onclick = () => {
-        currentIndex = (currentIndex - 1 + imageList.length) % imageList.length;
-        updateImage();
+        if (imageList.length > 0) {
+            currentIndex = (currentIndex - 1 + imageList.length) % imageList.length;
+            updateImage();
+        }
     };
+    
     nextButton.onclick = () => {
-        currentIndex = (currentIndex + 1) % imageList.length;
-        updateImage();
+        if (imageList.length > 0) {
+            currentIndex = (currentIndex + 1) % imageList.length;
+            updateImage();
+        }
     };
 }
 
 function initializeGallery() {
-    bindThumbnailEvents(); // Initialize thumbnails and imageList
-    bindCarouselControls(); // Initialize carousel buttons
-    // Set initial active state for the first image
+    bindThumbnailEvents();
+    bindCarouselControls();
+    
+    thumbs.forEach(t => t.classList.remove('active'));
     if (thumbs.length > 0) {
-        thumbs[0].classList.add('active');
+        currentIndex = 0;
+        updateImage();
     }
 }
 
-// Initial setup on page load
-initializeGallery(); 
-
-// ===== Dynamic size selection =====
-const sizeLabels = document.querySelectorAll('.size-buttons label');
+// ===== Event Listeners =====
+// Size selection
 sizeLabels.forEach(label => {
     label.addEventListener('click', () => {
         sizeLabels.forEach(l => l.classList.remove('selected'));
@@ -746,59 +764,44 @@ sizeLabels.forEach(label => {
     });
 });
 
-// ===== Dynamic color selection + gallery update =====
-const colorLabels = document.querySelectorAll('.color-buttons label');
-
+// Color selection + gallery update
 colorLabels.forEach(label => {
-    label.addEventListener('click', () => {
-        // Visually select color
+    label.addEventListener('click', function() {
         colorLabels.forEach(l => l.classList.remove('selected'));
-        label.classList.add('selected');
-
-        // Get images from data attribute
-        const imagesData = label.getAttribute('data-images');
+        this.classList.add('selected');
+        const imagesData = this.getAttribute('data-images');
         let images = [];
         
         try {
-            // Parse the JSON string
             images = JSON.parse(imagesData.replace(/'/g, '"'));
         } catch (e) {
             console.error('Error parsing images:', e);
             return;
         }
-
-        // Clear existing thumbnails
+        
         thumbnailList.innerHTML = '';
-
-        // Populate thumbnails with new images
+        
         images.forEach((imgUrl, index) => {
             const thumb = document.createElement('img');
             thumb.src = imgUrl;
             thumb.alt = `Image ${index + 1}`;
             thumb.className = 'thumb';
             if (index === 0) thumb.classList.add('active');
-            
             thumbnailList.appendChild(thumb);
         });
-
-        // Update main image and reset index
+        
         if (images.length > 0) {
-            mainImg.src = images[0];
-            currentIndex = 0;
-            updateSelectedImage(); // ← add this line
+            initializeGallery();
         }
-
-        initializeGallery();
     });
 });
 
-// ===== Accordion Toggle Function =====
+// Accordion Toggle Function
 function toggleAccordion(header) {
     const content = header.nextElementSibling;
     const icon = header.querySelector('.accordion-icon');
     const isActive = content.classList.contains('active');
     
-    // Close all other open accordions
     document.querySelectorAll('.accordion-content.active').forEach(item => {
         item.classList.remove('active');
         item.previousElementSibling.querySelector('.accordion-icon').textContent = '+';
@@ -807,29 +810,19 @@ function toggleAccordion(header) {
     if (!isActive) {
         content.classList.add('active');
         icon.textContent = '−';
+    } else {
+        content.classList.remove('active');
+        icon.textContent = '+';
     }
 }
 
-// Bind accordion click events
-document.querySelectorAll('.accordion-header').forEach(header => {
-    header.addEventListener('click', () => toggleAccordion(header));
-});
-
-
-// ===== Form Validation and Toastify messages =====
+// ===== Form Validation =====
 document.getElementById('add-to-cart-form').addEventListener('submit', function (e) {
     const selectedSize = document.querySelector('input[name="size"]:checked');
     const selectedColor = document.querySelector('input[name="color"]:checked');
     if (!selectedSize || !selectedColor) {
         e.preventDefault();
-        Toastify({
-            text: "Please select a size and color before adding to cart!",
-            duration: 3000,
-            close: true,
-            gravity: "top",
-            position: "right",
-            backgroundColor: "#ff9800",
-        }).showToast();
+        showToast("Please select a size and color before adding to cart!", "#ff9800");
     }
 });
 
@@ -837,59 +830,84 @@ document.getElementById('buy-now-btn').addEventListener('click', function(e) {
     const size = document.querySelector('input[name="size"]:checked')?.value;
     const color = document.querySelector('input[name="color"]:checked')?.value;
     const quantity = document.querySelector('input[name="quantity"]').value || 1;
-
     if (!size || !color) {
         e.preventDefault();
-        Toastify({
-            text: "Please select a size and color!",
-            duration: 3000,
-            close: true,
-            gravity: "top",
-            position: "right",
-            backgroundColor: "#ff9800",
-        }).showToast();
+        showToast("Please select a size and color!", "#ff9800");
         return;
     }
-
-    // Assuming a buy_now URL exists as per your original logic
     window.location.href = `{% url 'buy_now' product.id %}?size=${size}&color=${color}&quantity=${quantity}`;
 });
 
-// ===== Toastify messages from GET params and URL cleanup =====
-{% if request.GET.cart_added %}
-Toastify({
-    text: "Product added to cart!",
-    duration: 3000,
-    close: true,
-    gravity: "top",
-    position: "right",
-    backgroundColor: "#4caf50",
-}).showToast();
-{% endif %}
+// ===== Wishlist Functionality =====
+$(document).ready(function () {
+    const csrfToken = $("#csrf_token").val();
 
-{% if request.GET.cart_exists %}
-Toastify({
-    text: "This product with selected size & color is already in cart!",
-    duration: 3000,
-    close: true,
-    gravity: "top",
-    position: "right",
-    backgroundColor: "#f44336",
-}).showToast();
-{% endif %}
+    // Wishlist toggle click event for ALL wishlist buttons
+    $(document).on('click', '.wishlist-btn', function (e) {
+        e.preventDefault();
+        e.stopPropagation();
+        
+        const btn = $(this);
+        const icon = btn.find('i');
+        const productId = btn.data('product-id');
 
-// Remove GET params so toast doesn't repeat
-if (window.history.replaceState) {
-    const cleanUrl = window.location.protocol + "//" + window.location.host + window.location.pathname;
-    window.history.replaceState({}, document.title, cleanUrl);
-}
+        $.ajax({
+            url: `/toggle-wishlist/${productId}/`,
+            type: "POST",
+            headers: { "X-CSRFToken": csrfToken },
+            success: function (response) {
+                if (response.status === "ok") {
+                    if (response.is_added) {
+                        // Added to wishlist
+                        icon.css("color", "#ff0000");
+                        icon.css("text-shadow", "none");
+                        icon.removeClass('heart-outlined');
+                        
+                    } else {
+                        // Removed from wishlist
+                        icon.css("color", "#ffffff");
+                        icon.css("text-shadow", 
+                            "-1px -1px 0 #000, 1px -1px 0 #000, -1px 1px 0 #000, 1px 1px 0 #000");
+                        icon.addClass('heart-outlined');
+                       
+                    }
+                    
+                    // Animation
+                    icon.css('transform', 'scale(1.3)');
+                    setTimeout(function() {
+                        icon.css('transform', 'scale(1)');
+                    }, 300);
 
-// ===== Wishlist Toggle for Related Products =====
-$(document).ready(function() {
-    // Add logic to handle the initial state/display of color-thumbs as well
-    // ... your existing color-buttons logic
-    
-    // Add logic to select the primary color label if none is selected on load
+                    // Update badge
+                    updateWishlistBadge(response.wishlist_count);
+                }
+            },
+            error: function () {
+                showToast("⚠️ Something went wrong!", "#ff9800");
+            }
+        });
+    });
+
+    // Update wishlist badge count
+    function updateWishlistBadge(count) {
+        const badge = $("#wishlistIcon .badge");
+        if (count > 0) {
+            if (badge.length) {
+                badge.text(count);
+            } else {
+                $("#wishlistIcon").append(`
+                    <span class="badge bg-danger rounded-circle"
+                          style="position:absolute; top:-5px; right:-5px; font-size:10px;">
+                          ${count}
+                    </span>
+                `);
+            }
+        } else {
+            badge.remove();
+        }
+    }
+
+    // Initial setup
     const initiallySelectedColor = document.querySelector('input[name="color"]:checked');
     if (initiallySelectedColor) {
         const correspondingLabel = document.querySelector(`label[for="${initiallySelectedColor.id}"]`);
@@ -897,94 +915,35 @@ $(document).ready(function() {
             correspondingLabel.classList.add('selected');
         }
     } else {
-        // If no color is pre-selected (e.g., from URL), select the first one visually
         const firstColorLabel = document.querySelector('.color-buttons label:first-of-type');
         if(firstColorLabel) {
             firstColorLabel.classList.add('selected');
         }
     }
     
-    $('.wishlist-btn-related').on('click', function(e) {
-        e.preventDefault();
-        var btn = $(this);
-        var productId = btn.data('product-id');
-        var csrftoken = $('[name=csrfmiddlewaretoken]').val();
-
-        $.ajax({
-            // NOTE: Ensure your Django URL for toggle-wishlist is correctly configured.
-            url: '/toggle-wishlist/' + productId + '/', 
-            type: 'POST',
-            data: { 'csrfmiddlewaretoken': csrftoken },
-            dataType: 'json',
-            success: function(response) {
-                if (response.status === 'ok') {
-                    var heartIcon = btn.find('i');
-                    if (response.is_added) {
-                        // Change to solid red heart
-                        heartIcon.removeClass('heart-outlined fa-heart-o').addClass('fa fa-heart').css('color', '#ff0000');
-                    } else {
-                        // Change to outlined heart
-                        heartIcon.removeClass('fa-heart').addClass('heart-outlined fa-heart-o').css('color', '');
-                    }
-                    // A full page reload might be unnecessary for just a change in a related product list, 
-                    // but keeping it if your Django template/context relies on it.
-                    // window.location.reload(); 
-                }
-            },
-            error: function(xhr) {
-                alert('Something went wrong. Please try again.');
-            }
-        });
-    });
-});
-</script>
-
-<script>
-    function updateSelectedColor(colorName) {
-    document.getElementById('selected_color_input').value = colorName;
-}
-
-// Function to update hidden input for currently visible image
-function updateSelectedImage() {
-    const selectedImageInput = document.getElementById('selected-image');
-    if (selectedImageInput && mainImg && mainImg.src) {
-        selectedImageInput.value = mainImg.src;
-    }
-}
-
-// On color select
-colorLabels.forEach(label => {
-    label.addEventListener('click', () => {
-        const selectedColor = label.getAttribute('data-color');
-        updateSelectedColor(selectedColor);
-        updateSelectedImage(); // also set first image of that color
-    });
+    updateSelectedImage();
 });
 
-// When thumbnail clicked or carousel changes
-function handleThumbnailClick(index) {
-    currentIndex = index;
-    updateImage();
-    updateSelectedImage(); // update hidden image input when switching image
-}
-
-// When next/prev buttons clicked
-prevButton.onclick = () => {
-    currentIndex = (currentIndex - 1 + imageList.length) % imageList.length;
-    updateImage();
-    updateSelectedImage();
-};
-nextButton.onclick = () => {
-    currentIndex = (currentIndex + 1) % imageList.length;
-    updateImage();
-    updateSelectedImage();
-};
-
-// Initialize default selected color and image on page load
+// URL parameter handling for cart messages
 window.addEventListener('DOMContentLoaded', () => {
-    const defaultColor = document.querySelector('input[name="color"]:checked')?.value || '';
-    if (defaultColor) updateSelectedColor(defaultColor);
-    updateSelectedImage();
+    const params = new URLSearchParams(window.location.search);
+
+    if (params.has('cart_added')) {
+        showToast("Product added to cart!", "#4caf50");
+    }
+
+    if (params.has('cart_exists')) {
+        showToast("This product with selected size & color is already in cart!", "#f44336");
+    }
+
+    // Clean the URL
+    if (window.history.replaceState) {
+        const cleanUrl = window.location.origin + window.location.pathname;
+        window.history.replaceState({}, document.title, cleanUrl);
+    }
+
+    // Initialize gallery
+    initializeGallery();
 });
 </script>
 

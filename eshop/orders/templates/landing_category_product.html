@@ -1,0 +1,256 @@
+{% extends 'landing_base.html' %}
+
+{% block title %}Products - Category{% endblock %}
+
+{% block content %}
+<div class="container my-5">
+    <!-- Banner Section -->
+    <div id="banner-section" class="mb-5">
+        <div class="row">
+            <div class="col-12">
+                <div class="single-banner" id="category-banner">
+                    <img src="https://via.placeholder.com/1200x400?text=Products+Banner" alt="Products Banner">
+                    <div class="content">
+                        <h3>Our Products</h3>
+                        <p>Discover amazing products in our collection</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Products Section -->
+    <div class="products-section">
+        <h2 class="text-center mb-4 fw-bold">🛍️ Products</h2>
+        
+        <!-- Loading Spinner -->
+        <div id="loading-spinner" class="text-center">
+            <div class="spinner-border text-primary" role="status">
+                <span class="visually-hidden">Loading...</span>
+            </div>
+            <p class="mt-2">Loading products...</p>
+        </div>
+
+        <!-- Products Container -->
+        <div id="products-container" class="row g-4" style="display: none;">
+            <!-- Products will be loaded here dynamically -->
+        </div>
+
+        <!-- No Products Message -->
+        <div id="no-products" class="text-center" style="display: none;">
+            <div class="alert alert-info">
+                <h4>No products found</h4>
+                <p>Please check back later for new products.</p>
+            </div>
+        </div>
+
+        <!-- Error Message -->
+        <div id="error-message" class="text-center" style="display: none;">
+            <div class="alert alert-danger">
+                <h4>Error Loading Products</h4>
+                <p>Please try again later.</p>
+                <button id="retry-button" class="btn btn-warning">Retry</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+    .single-banner {
+        position: relative;
+        overflow: hidden;
+        border-radius: 12px;
+        transition: transform 0.3s, box-shadow 0.3s;
+    }
+    .single-banner:hover {
+        transform: translateY(-5px);
+        box-shadow: 0 10px 20px rgba(0,0,0,0.15);
+    }
+    .single-banner img {
+        width: 100%;
+        height: 300px;
+        object-fit: cover;
+        display: block;
+    }
+    .single-banner .content {
+        position: absolute;
+        bottom: 0;
+        width: 100%;
+        padding: 20px;
+        background: rgba(0,0,0,0.6);
+        color: white;
+        text-align: center;
+    }
+    .single-banner .content h3 {
+        margin: 0 0 10px 0;
+        font-size: 1.5rem;
+        font-weight: bold;
+    }
+    .single-banner .content p {
+        margin: 0;
+        font-size: 1.1rem;
+        opacity: 0.9;
+    }
+    .product-card {
+        border: none;
+        border-radius: 12px;
+        box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+        transition: transform 0.3s, box-shadow 0.3s;
+        height: 100%;
+        margin-bottom: 20px;
+    }
+    .product-card:hover {
+        transform: translateY(-5px);
+        box-shadow: 0 8px 15px rgba(0,0,0,0.2);
+    }
+    .product-image {
+        height: 200px;
+        object-fit: cover;
+        border-top-left-radius: 12px;
+        border-top-right-radius: 12px;
+        width: 100%;
+    }
+    .product-info {
+        padding: 20px;
+    }
+    .product-title {
+        font-size: 1.1rem;
+        font-weight: bold;
+        margin-bottom: 10px;
+        color: #333;
+        height: 50px;
+        overflow: hidden;
+        display: -webkit-box;
+        -webkit-line-clamp: 2;
+        -webkit-box-orient: vertical;
+    }
+    .product-description {
+        color: #666;
+        margin-bottom: 15px;
+        font-size: 0.9rem;
+        height: 60px;
+        overflow: hidden;
+        display: -webkit-box;
+        -webkit-line-clamp: 3;
+        -webkit-box-orient: vertical;
+    }
+    .product-price {
+        font-size: 1.3rem;
+        font-weight: bold;
+        color: #28a745;
+        margin-bottom: 15px;
+    }
+    .btn-add-to-cart {
+        background: linear-gradient(45deg, #007bff, #0056b3);
+        border: none;
+        border-radius: 25px;
+        padding: 10px 20px;
+        font-weight: bold;
+        transition: all 0.3s;
+    }
+    .btn-add-to-cart:hover {
+        transform: scale(1.05);
+        box-shadow: 0 4px 8px rgba(0,0,0,0.2);
+    }
+</style>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // Get category ID from URL
+    const currentUrl = window.location.pathname;
+    const urlParts = currentUrl.split('/');
+    const categoryId = urlParts[urlParts.length - 2];
+    console.log('Loading products for category ID:', categoryId);
+
+    // Load products
+    loadProducts(categoryId);
+
+    // Add retry button event listener
+    document.getElementById('retry-button')?.addEventListener('click', function() {
+        loadProducts(categoryId);
+    });
+});
+
+function loadProducts(categoryId) {
+    const productsContainer = document.getElementById('products-container');
+    const loadingSpinner = document.getElementById('loading-spinner');
+    const noProducts = document.getElementById('no-products');
+    const errorMessage = document.getElementById('error-message');
+
+    // Reset displays
+    loadingSpinner.style.display = 'block';
+    productsContainer.style.display = 'none';
+    noProducts.style.display = 'none';
+    errorMessage.style.display = 'none';
+    productsContainer.innerHTML = '';
+
+    console.log('Fetching products from:', `/orders/products-by-category/${categoryId}/`);
+
+    fetch(`/orders/products-by-category/${categoryId}/`)
+        .then(response => {
+            if (!response.ok) {
+                throw new Error(`HTTP error! status: ${response.status}`);
+            }
+            return response.json();
+        })
+        .then(products => {
+            console.log('Products received:', products);
+            loadingSpinner.style.display = 'none';
+
+            if (!products || products.length === 0) {
+                noProducts.style.display = 'block';
+                return;
+            }
+
+            productsContainer.style.display = 'flex';
+            products.forEach(product => {
+                const productCol = document.createElement('div');
+                productCol.className = 'col-12 col-md-6 col-lg-4 col-xl-3';
+
+                // Handle photo URL
+                let photoSrc = 'https://via.placeholder.com/300x200?text=No+Image';
+                if (product.photo) {
+                    // Check if it's already a full URL
+                    photoSrc = product.photo.startsWith('http') ? product.photo : `${window.location.origin}${product.photo}`;
+                }
+                
+                const description = product.description || product.summary || 'No description available';
+                const price = parseFloat(product.price || 0).toFixed(2);
+                const discount = product.discount ? parseFloat(product.discount).toFixed(2) : null;
+                const finalPrice = discount ? (parseFloat(product.price) - parseFloat(product.discount)).toFixed(2) : price;
+                
+                productCol.innerHTML = `
+                    <div class="card product-card">
+                        <img src="${photoSrc}" alt="${product.title}" class="product-image" onerror="this.src='https://via.placeholder.com/300x200?text=Image+Error'">
+                        <div class="product-info">
+                            <h5 class="product-title">${product.title}</h5>
+                            <p class="product-description">${description}</p>
+                            <div class="product-price">
+                                ${discount ? `
+                                    <span class="text-danger text-decoration-line-through me-2">$${price}</span>
+                                    <span>$${finalPrice}</span>
+                                    <small class="text-success d-block">Save $${discount}</small>
+                                ` : `$${price}`}
+                            </div>
+                            <div class="d-flex justify-content-between align-items-center mb-2">
+                                <small class="text-muted">Stock: ${product.stock || 0}</small>
+                                <small class="text-info">${product.brand_name || ''}</small>
+                            </div>
+                            <button class="btn btn-add-to-cart w-100 text-white">
+                                <i class="fas fa-shopping-cart"></i> Add to Cart
+                            </button>
+                        </div>
+                    </div>
+                `;
+
+                productsContainer.appendChild(productCol);
+            });
+        })
+        .catch(error => {
+            console.error('Error fetching products:', error);
+            loadingSpinner.style.display = 'none';
+            errorMessage.style.display = 'block';
+        });
+}
+</script>
+{% endblock %}

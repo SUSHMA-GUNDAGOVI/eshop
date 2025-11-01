@@ -1,0 +1,185 @@
+{% extends 'admin_base.html' %}
+
+{% block title %}Edit User - {{ user.get_full_name }}{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+
+    <div class="d-flex align-items-center justify-content-between mb-3">
+        <h1 class="h3 text-gray-800">User Management</h1>
+    </div>
+
+    <div class="card shadow mb-4">
+        <div class="card-header py-3">
+            <h6 class="m-0 font-weight-bold text-primary">
+                Edit User: {{ user.get_full_name|default:user.email }}
+            </h6>
+        </div>
+        <div class="card-body">
+            {% if messages %}
+                {% for message in messages %}
+                    <div class="alert alert-{{ message.tags }} alert-dismissible fade show" role="alert">
+                        {{ message }}
+                        <button type="button" class="close" data-dismiss="alert" aria-label="Close">
+                            <span aria-hidden="true">&times;</span>
+                        </button>
+                    </div>
+                {% endfor %}
+            {% endif %}
+
+            <form method="post" enctype="multipart/form-data">
+                {% csrf_token %}
+
+                <!-- Profile Image -->
+                <div class="form-group text-center mb-4">
+                    {% if user.profile_image %}
+                        <img src="{{ user.profile_image.url }}" alt="Profile Image" 
+                             class="img-thumbnail rounded-circle" style="width: 150px; height: 150px; object-fit: cover;">
+                    {% else %}
+                        <div class="bg-light rounded-circle d-inline-flex align-items-center justify-content-center" 
+                             style="width: 150px; height: 150px;">
+                            <i class="fas fa-user fa-3x text-secondary"></i>
+                        </div>
+                    {% endif %}
+                    <div class="mt-3">
+                        <label for="id_profile_image" class="btn btn-outline-primary btn-sm">
+                            <i class="fas fa-camera"></i> Change Photo
+                        </label>
+                        <input type="file" id="id_profile_image" name="profile_image" 
+                               class="d-none" accept="image/*">
+                        {% if user.profile_image %}
+                        <button type="button" class="btn btn-outline-danger btn-sm" onclick="removeProfileImage()">
+                            <i class="fas fa-trash"></i> Remove
+                        </button>
+                        {% endif %}
+                    </div>
+                </div>
+
+                <!-- Full Name -->
+                <div class="form-group">
+                    <label for="id_name">Full Name <span class="text-danger">*</span></label>
+                    <input type="text" class="form-control" id="id_name" name="name" 
+                           value="{{ full_name }}" placeholder="Enter full name" required>
+                </div>
+
+                <!-- Email -->
+                <div class="form-group">
+                    <label for="id_email">Email Address <span class="text-danger">*</span></label>
+                    <input type="email" class="form-control" id="id_email" name="email" 
+                           value="{{ user.email }}" placeholder="Enter email address" required>
+                </div>
+
+                <!-- Phone -->
+                <div class="form-group">
+                    <label for="id_phone">Phone Number</label>
+                    <input type="tel" class="form-control" id="id_phone" name="phone" 
+                           value="{{ user.phone|default:'' }}" placeholder="Enter phone number">
+                </div>
+
+                <!-- Address -->
+                <div class="form-group">
+                    <label for="id_address">Address</label>
+                    <textarea class="form-control" id="id_address" name="address" 
+                              rows="3" placeholder="Enter address">{{ user.address|default:'' }}</textarea>
+                </div>
+
+               
+                <!-- User Information -->
+                <div class="card mt-4">
+                    <div class="card-header">
+                        <h6 class="m-0 font-weight-bold text-info">User Information</h6>
+                    </div>
+                    <div class="card-body">
+                        <div class="row">
+                            <div class="col-md-6">
+                                <p><strong>Username:</strong> {{ user.username }}</p>
+                                <p><strong>User ID:</strong> {{ user.id }}</p>
+                                <p><strong>Date Joined:</strong> {{ user.date_joined|date:"M d, Y" }}</p>
+                            </div>
+                            <div class="col-md-6">
+                                <p><strong>Last Login:</strong> 
+                                    {% if user.last_login %}
+                                        {{ user.last_login|date:"M d, Y H:i" }}
+                                    {% else %}
+                                        Never
+                                    {% endif %}
+                                </p>
+                                <p><strong>Status:</strong> 
+                                    <span class="badge badge-{% if user.is_active %}success{% else %}danger{% endif %}">
+                                        {% if user.is_active %}Active{% else %}Inactive{% endif %}
+                                    </span>
+                                </p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="form-group mt-4">
+                    <button type="submit" class="btn btn-primary">
+                        <i class="fas fa-save"></i> Update User
+                    </button>
+                    <a href="{% url 'user_list' %}" class="btn btn-secondary">
+                        <i class="fas fa-times"></i> Cancel
+                    </a>
+                   
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        // Profile image preview
+        const profileImageInput = document.getElementById('id_profile_image');
+        const profileImage = document.querySelector('.img-thumbnail');
+        
+        profileImageInput.addEventListener('change', function(e) {
+            if (e.target.files && e.target.files[0]) {
+                const reader = new FileReader();
+                reader.onload = function(e) {
+                    if (profileImage.tagName === 'IMG') {
+                        profileImage.src = e.target.result;
+                    } else {
+                        // Replace placeholder with image
+                        const newImg = document.createElement('img');
+                        newImg.src = e.target.result;
+                        newImg.className = 'img-thumbnail rounded-circle';
+                        newImg.style.width = '150px';
+                        newImg.style.height = '150px';
+                        newImg.style.objectFit = 'cover';
+                        profileImage.parentNode.replaceChild(newImg, profileImage);
+                    }
+                }
+                reader.readAsDataURL(e.target.files[0]);
+            }
+        });
+
+        // Password confirmation validation
+        const newPassword = document.getElementById('id_new_password');
+        const confirmPassword = document.getElementById('id_confirm_password');
+        
+        function validatePasswords() {
+            if (newPassword.value && confirmPassword.value) {
+                if (newPassword.value !== confirmPassword.value) {
+                    confirmPassword.setCustomValidity('Passwords do not match');
+                } else {
+                    confirmPassword.setCustomValidity('');
+                }
+            }
+        }
+        
+        newPassword.addEventListener('input', validatePasswords);
+        confirmPassword.addEventListener('input', validatePasswords);
+    });
+
+    function removeProfileImage() {
+        if (confirm('Are you sure you want to remove the profile image?')) {
+            // You can implement AJAX call to remove image or handle in form submission
+            window.location.href = "{% url 'user_remove_image' user.id %}";
+        }
+    }
+</script>
+{% endblock %}

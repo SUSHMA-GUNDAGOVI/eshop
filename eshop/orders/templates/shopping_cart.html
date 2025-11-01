@@ -1,0 +1,409 @@
+{% extends "landing_base.html" %}
+
+
+{% block title %}Shopping Cart - Your E-Shop{% endblock %}
+
+{% block content %}
+    <section class="breadcrumb-option">
+        <div class="container">
+            <div class="row">
+                <div class="col-lg-12">
+                    <div class="breadcrumb__text">
+                        <h4>Shopping Cart</h4>
+                        <div class="breadcrumb__links">
+                            <a href="/">Home</a> 
+                            <a href="">Shop</a> 
+                            <span>Shopping Cart</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+    <section class="shopping-cart spad">
+        <div class="container">
+            <div class="row">
+                <div class="col-lg-8">
+                    <div class="shopping__cart__table">
+                        <table>
+                            <thead>
+                                <tr>
+                                    <th>Product</th>
+                                    <th>Price</th>
+                                    <th>Quantity</th>
+                                    <th>Total</th>
+                                    <th></th> </tr>
+                            </thead>
+                            <tbody>
+                                {% if cart_items %}
+                                    {% for item in cart_items %}
+                                        <tr>
+                                            <td class="product__cart__item">
+                                                <div class="product__cart__item__pic">
+                                                <img src="{{ item.product.photo.url }}" alt="{{ item.product.title }}" style="max-width: 100px;">
+                                            </div>
+                                                <div class="product__cart__item__text">
+                                                    <h6>{{ item.product.title }}</h6>
+                                                    <p>
+                                                        {% if item.size != 'N/A' %}Size: {{ item.size }}{% endif %}
+                                                        {% if item.size != 'N/A' and item.color != 'N/A' %} | {% endif %}
+                                                        {% if item.color != 'N/A' %}Color: {{ item.color }}{% endif %}
+                                                    </p>
+                                                </div>
+                                            </td>
+
+                                             <td class="cart__price">₹<span class="item-price" data-item-key="{{ item.item_key }}">{{ item.price|floatformat:2 }}</span></td>
+                                            
+                                            <td class="quantity__item">
+                                                <div class="quantity">
+                                                    <div class="pro-qty-2">
+                                                        <input 
+                                                            type="text" 
+                                                            value="{{ item.quantity }}" 
+                                                            name="quantity" 
+                                                            id="qty-{{ item.item_key }}" 
+                                                            data-item-key="{{ item.item_key }}" 
+                                                            class="cart-quantity-input"> 
+                                                    </div>
+                                                </div>
+                                            </td>
+                                            
+                                            <td class="cart__price">₹<span class="item-total" id="total-{{ item.item_key }}">{{ item.line_total|floatformat:2 }}</span></td>
+                                            <td class="cart__close">
+                                                <form id="remove-form-{{ item.item_key }}" 
+                                                      action="{% url 'remove_from_cart' %}" 
+                                                      method="POST" 
+                                                      style="display: none;">
+                                                    {% csrf_token %}
+                                                    <input type="hidden" name="item_key" value="{{ item.item_key }}">
+                                                </form>
+                                                
+                                                <a href="#" 
+                                                   onclick="confirmRemoval('{{ item.product.title|escapejs }}', 'remove-form-{{ item.item_key }}'); return false;">
+                                                   <i class="fa fa-close"></i>
+                                                </a>
+                                            </td>
+                                        </tr>
+                                    {% endfor %}
+                                {% else %}
+                                    <tr>
+                                        <td colspan="5" class="text-center">Your cart is currently empty.</td>
+                                    </tr>
+                                {% endif %}
+                            </tbody>
+                        </table>
+                    </div>
+                    
+                    <div class="row">
+                        <div class="col-lg-6 col-md-6 col-sm-6">
+                            <div class="continue__btn">
+                                <a href="/">Continue Shopping</a>
+                            </div>
+                        </div>
+                        <div class="col-lg-6 col-md-6 col-sm-6">
+                            <div class="continue__btn update__btn">
+                                <a href="#"><i class="fa fa-spinner"></i> Update cart</a>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="col-lg-4">
+                    <div class="cart__discount">
+                        <h6>Discount codes</h6>
+                        <form action="#">
+                            {% csrf_token %}
+                            <input type="text" placeholder="Coupon code">
+                            <button type="submit">Apply</button>
+                        </form>
+                    </div>
+                    <div class="cart__total">
+                        <h6>Cart total</h6>
+                        <ul>
+                            <li>Subtotal <span>₹{{ cart_subtotal|floatformat:2 }}</span></li>
+                            <li>Shipping <span>₹{{ shipping_cost|floatformat:2 }}</span></li>
+                            <li>Tax <span>₹{{ tax_amount|floatformat:2 }}</span></li>
+                            <li class="cart_total_final">Total <span>₹{{ order_total|floatformat:2 }}</span></li>
+                        </ul>
+                        <a href="" class="primary-btn">Proceed to checkout</a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+<script type="text/javascript" src="https://cdn.jsdelivr.net/npm/toastify-js"></script>
+
+<script>
+    function confirmRemoval(productTitle, formId) {
+        Swal.fire({
+            title: 'Remove Item?',
+            text: "Do you want to remove " + productTitle + " from your cart?",
+            icon: 'warning',
+            showCancelButton: true,
+            confirmButtonColor: '#d33', 
+            cancelButtonColor: '#3085d6', 
+            confirmButtonText: 'Yes, Remove It',
+            cancelButtonText: 'Cancel'
+        }).then((result) => {
+            if (result.isConfirmed) {
+                document.getElementById(formId).submit();
+            }
+        });
+    }
+
+    // Toastify notification logic
+    document.addEventListener('DOMContentLoaded', function() {
+        const urlParams = new URLSearchParams(window.location.search);
+        const removedItemTitle = urlParams.get('cart_removed');
+
+        if (removedItemTitle) {
+            Toastify({
+                text: removedItemTitle + " was removed from your cart.",
+                duration: 3000,
+                close: true,
+                gravity: "top", 
+                position: "right", 
+                style: {
+                    background: "linear-gradient(to right, #ff416c, #ff4b2b)",
+                },
+            }).showToast();
+
+            // Clean the URL parameter
+            history.replaceState(null, null, window.location.pathname);
+        }
+        
+        // You might need to initialize the Pro-Qty-2 logic here if it's JS-based
+        // Example: ₹('.pro-qty-2').prepend('<span class="fa fa-angle-left dec qtybtn"></span>');
+        // Example: ₹('.pro-qty-2').append('<span class="fa fa-angle-right inc qtybtn"></span>');
+    });
+</script>
+
+<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+    <script type="text/javascript" src="https://cdn.jsdelivr.net/npm/toastify-js"></script>
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+
+    <script>
+        function confirmRemoval(productTitle, formId) {
+            Swal.fire({
+                title: 'Remove Item?',
+                text: "Do you want to remove " + productTitle + " from your cart?",
+                icon: 'warning',
+                showCancelButton: true,
+                confirmButtonColor: '#d33', 
+                cancelButtonColor: '#3085d6', 
+                confirmButtonText: 'Yes, Remove It',
+                cancelButtonText: 'Cancel'
+            }).then((result) => {
+                if (result.isConfirmed) {
+                    document.getElementById(formId).submit();
+                }
+            });
+        }
+
+        // Initialize quantity controls and price calculation
+        document.addEventListener('DOMContentLoaded', function() {
+            const urlParams = new URLSearchParams(window.location.search);
+            const removedItemTitle = urlParams.get('cart_removed');
+
+            if (removedItemTitle) {
+                Toastify({
+                    text: removedItemTitle + " was removed from your cart.",
+                    duration: 3000,
+                    close: true,
+                    gravity: "top", 
+                    position: "right", 
+                    style: {
+                        background: "linear-gradient(to right, #ff416c, #ff4b2b)",
+                    },
+                }).showToast();
+
+                // Clean the URL parameter
+                history.replaceState(null, null, window.location.pathname);
+            }
+            
+            // Initialize quantity controls
+            initializeQuantityControls();
+            
+            // Update cart button event
+            document.getElementById('update-cart-btn').addEventListener('click', function(e) {
+                e.preventDefault();
+                updateCartOnServer();
+            });
+        });
+
+        function initializeQuantityControls() {
+            // Add increment/decrement buttons
+            $('.pro-qty-2').each(function() {
+                if (!$(this).find('.qtybtn').length) {
+                    $(this).prepend('<span class="fa fa-angle-left dec qtybtn"></span>');
+                    $(this).append('<span class="fa fa-angle-right inc qtybtn"></span>');
+                }
+            });
+            
+            // Handle quantity button clicks
+            $('.pro-qty-2').on('click', '.qtybtn', function () {
+                var $button = $(this);
+                var $input = $button.parent().find('input');
+                var oldValue = parseFloat($input.val());
+                var itemKey = $input.data('item-key');
+                var price = getItemPrice(itemKey);
+                
+                if ($button.hasClass('inc')) {
+                    var newVal = oldValue + 1;
+                } else {
+                    // Don't allow decrementing below one
+                    if (oldValue > 1) {
+                        var newVal = oldValue - 1;
+                    } else {
+                        newVal = 1;
+                    }
+                }
+                
+                $input.val(newVal);
+                updateItemTotal(itemKey, newVal, price);
+                updateCartTotals();
+            });
+            
+            // Handle direct input changes
+            $('.cart-quantity-input').on('change', function() {
+                var $input = $(this);
+                var itemKey = $input.data('item-key');
+                var newVal = parseInt($input.val());
+                var price = getItemPrice(itemKey);
+                
+                if (isNaN(newVal) || newVal < 1) {
+                    newVal = 1;
+                    $input.val(1);
+                }
+                
+                updateItemTotal(itemKey, newVal, price);
+                updateCartTotals();
+            });
+        }
+        
+        // Get price for an item
+        function getItemPrice(itemKey) {
+            var priceElement = document.querySelector('.item-price[data-item-key="' + itemKey + '"]');
+            return parseFloat(priceElement.textContent);
+        }
+        
+        // Update item total
+        function updateItemTotal(itemKey, quantity, price) {
+            var total = quantity * price;
+            $('#total-' + itemKey).text(total.toFixed(2));
+        }
+        
+        // Update cart totals
+        function updateCartTotals() {
+            var subtotal = 0;
+            
+            // Calculate subtotal
+            $('.cart-quantity-input').each(function() {
+                var itemKey = $(this).data('item-key');
+                var quantity = parseInt($(this).val());
+                var price = getItemPrice(itemKey);
+                subtotal += quantity * price;
+            });
+            
+            // Get shipping cost and tax rate from the page
+            var shippingCost = parseFloat(document.getElementById('shipping-cost').textContent);
+            var taxRate = 0.12; // Assuming 12% tax rate
+            
+            // Calculate tax
+            var taxAmount = subtotal * taxRate;
+            
+            // Calculate order total
+            var orderTotal = subtotal + shippingCost + taxAmount;
+            
+            // Update display
+            $('#cart-subtotal').text(subtotal.toFixed(2));
+            $('#tax-amount').text(taxAmount.toFixed(2));
+            $('#order-total').text(orderTotal.toFixed(2));
+        }
+        
+        // Update cart on server (you'll need to implement this based on your backend)
+        function updateCartOnServer() {
+            var cartData = [];
+            
+            $('.cart-quantity-input').each(function() {
+                var itemKey = $(this).data('item-key');
+                var quantity = parseInt($(this).val());
+                
+                cartData.push({
+                    item_key: itemKey,
+                    quantity: quantity
+                });
+            });
+            
+            // Send AJAX request to update cart on server
+            fetch('/update-cart/', {  // Replace with your actual endpoint
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-CSRFToken': getCSRFToken()
+                },
+                body: JSON.stringify({
+                    cart_items: cartData
+                })
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    Toastify({
+                        text: "Cart updated successfully!",
+                        duration: 3000,
+                        close: true,
+                        gravity: "top", 
+                        position: "right", 
+                        style: {
+                            background: "linear-gradient(to right, #00b09b, #96c93d)",
+                        },
+                    }).showToast();
+                } else {
+                    Toastify({
+                        text: "Error updating cart. Please try again.",
+                        duration: 3000,
+                        close: true,
+                        gravity: "top", 
+                        position: "right", 
+                        style: {
+                            background: "linear-gradient(to right, #ff416c, #ff4b2b)",
+                        },
+                    }).showToast();
+                }
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                Toastify({
+                    text: "Error updating cart. Please try again.",
+                    duration: 3000,
+                    close: true,
+                    gravity: "top", 
+                    position: "right", 
+                    style: {
+                        background: "linear-gradient(to right, #ff416c, #ff4b2b)",
+                    },
+                }).showToast();
+            });
+        }
+        
+        // Helper function to get CSRF token
+        function getCSRFToken() {
+            var name = 'csrftoken';
+            var cookieValue = null;
+            if (document.cookie && document.cookie !== '') {
+                var cookies = document.cookie.split(';');
+                for (var i = 0; i < cookies.length; i++) {
+                    var cookie = cookies[i].trim();
+                    if (cookie.substring(0, name.length + 1) === (name + '=')) {
+                        cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+                        break;
+                    }
+                }
+            }
+            return cookieValue;
+        }
+    </script>
+{% endblock %}

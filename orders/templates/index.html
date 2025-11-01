@@ -89,6 +89,154 @@
         1px 1px 0 #000;
 }
 
+.hero__items,
+.hero__items .set-bg {
+    border-radius: 12px;
+    overflow: hidden;
+}
+
+/* Product Images - Featured & Regular */
+.product__item__pic,
+.product__item__pic.set-bg,
+.featured-card-image {
+    border-radius: 10px;
+    overflow: hidden;
+}
+
+/* Hot Deal Product Images */
+.categories_hot_deal img {
+    border-radius: 15px;
+    box-shadow: 0 5px 20px rgba(0,0,0,0.1);
+}
+
+/* Instagram Gallery Images */
+.instagram_pic_item,
+.instagram_pic_item.set-bg {
+    border-radius: 8px;
+    overflow: hidden;
+}
+
+/* Blog Post Images */
+.blog_item_pic,
+.blog_item_pic.set-bg {
+    border-radius: 10px;
+    overflow: hidden;
+}
+
+/* Banner Section Images */
+.banner__item,
+.banner_item_pic,
+.banner_item_pic.set-bg {
+    border-radius: 12px;
+    overflow: hidden;
+}
+
+
+
+/* Product Cards - Complete Styling */
+.product__item {
+    border-radius: 12px;
+    overflow: hidden;
+    transition: all 0.3s ease;
+    background: #fff;
+}
+
+.featured-card {
+    border-radius: 12px;
+    overflow: hidden;
+}
+
+/* Blog Items */
+.blog__item {
+    border-radius: 10px;
+    overflow: hidden;
+    box-shadow: 0 2px 10px rgba(0,0,0,0.08);
+    transition: all 0.3s ease;
+}
+
+.blog__item:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 5px 20px rgba(0,0,0,0.15);
+}
+
+/* Instagram Section Enhancements */
+.instagram__pic {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 15px;
+}
+
+.instagram_pic_item {
+    position: relative;
+    padding-bottom: 100%;
+    transition: all 0.3s ease;
+}
+
+.instagram_pic_item:hover {
+    transform: scale(1.05);
+    box-shadow: 0 8px 25px rgba(0,0,0,0.2);
+}
+
+/* Hot Deal Section Polish */
+.categories_hot_deal {
+    position: relative;
+    padding: 20px;
+    text-align: center;
+}
+
+.hot_deal_sticker {
+    border-radius: 8px;
+}
+
+/* Responsive Adjustments */
+@media (max-width: 768px) {
+    .product__item__pic,
+    .featured-card-image,
+    .blog_item_pic {
+        border-radius: 8px;
+    }
+    
+    .hero__items {
+        border-radius: 8px;
+    }
+    
+    .instagram__pic {
+        grid-template-columns: repeat(2, 1fr);
+        gap: 10px;
+    }
+}
+
+@media (max-width: 480px) {
+    .instagram__pic {
+        grid-template-columns: repeat(2, 1fr);
+        gap: 8px;
+    }
+    
+    .product__item__pic,
+    .featured-card-image {
+        border-radius: 6px;
+    }
+}
+
+/* Additional Polish - Smooth Transitions */
+.set-bg {
+    transition: transform 0.3s ease;
+}
+
+.product__item:hover .product__item__pic,
+.featured-card:hover .featured-card-image {
+    transform: scale(1.02);
+}
+
+/* Ensure labels stay within rounded corners */
+.label,
+.featured-card-label {
+    border-radius: 4px;
+    margin: 8px;
+}
+
+
+
 /* Animation styles */
 @keyframes fadeInUp {
     from {
@@ -375,76 +523,277 @@
 .featured-card-label.sale {
     background: #ff0000;
 }
+/* For Feature Products and Our Products images */
+.featured-card-image, 
+.product__item__pic {
+    position: relative; /* Essential for absolute children */
+}
+
+/* Style to make the image-link cover the entire image area */
+.image-link {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    z-index: 2; /* Lower than action icons, higher than the image */
+}
+
+/* Ensure the action icons are clickable above the image-link */
+.product__hover {
+    z-index: 3; /* Must be higher than image-link's z-index: 2 */
+    /* Adjust position/opacity transitions as needed, but z-index is key */
+}
+
+/* For the Featured Card Wishlist icon, which is positioned differently */
+.featured-card .product__hover {
+    z-index: 10; /* Make sure it's on top */
+    /* You already have 'position: absolute;' and coordinates on the inline style */
+}
+
+/* Make sure the image link doesn't block the label */
+.featured-card-label {
+    z-index: 11;
+}
+
+.swiper-button-next,
+.swiper-button-prev {
+  color: #fff !important;
+  background: none;
+  width: 30px;
+  height: 30px;
+  transition: all 0.3s ease;
+}
+
+.swiper-button-next::after,
+.swiper-button-prev::after {
+  font-size: 22px;
+  font-weight: 600;
+}
+
+.swiper-button-next:hover,
+.swiper-button-prev:hover {
+  color: #f8f9fa !important; /* lighter white on hover */
+  transform: scale(1.1);
+}
+
+/* Optional: reposition slightly */
+.swiper-button-next {
+  right: 10px;
+}
+.swiper-button-prev {
+  left: 10px;
+}
+
+/* Featured Products Carousel Styles */
+.featured-swiper {
+  padding: 20px 0;
+}
+
+.featured-swiper .swiper-slide {
+  height: auto;
+  display: flex;
+  align-items: stretch;
+}
+
+.featured-swiper .product__item {
+  margin: 0 10px;
+  width: calc(100% - 20px);
+}
+
+@media (max-width: 768px) {
+  .featured-swiper .product__item {
+    margin: 0 5px;
+    width: calc(100% - 10px);
+  }
+}
+
 </style>
 
+<section class="categories-section py-5" data-aos="fade-up">
+  <div class="container-fluid px-5">
+    <div class="row mb-4">
+      <div class="col-lg-12 text-center">
+        <h3 class="section-title mb-1" data-aos="fade-up">
+          <b>Shop By Category</b>
+        </h3>
+        <p class="text-muted" style="font-size: 15px;">Explore our top categories and find what suits you best.</p>
+      </div>
+    </div>
+
+    <div class="row g-4 justify-content-center">
+      {% for category in categories %}
+      <div class="col-xl-3 col-lg-4 col-md-6">
+        <div class="category-card position-relative overflow-hidden rounded-4 shadow-sm">
+          <a href="{% url 'category_products' category.id %}" class="text-decoration-none text-white d-block h-100">
+            {% if category.photo %}
+              <img src="{{ category.photo.url }}" alt="{{ category.title }}" class="category-img">
+            {% else %}
+              <img src="{% static 'images/default-category.png' %}" alt="{{ category.title }}" class="category-img">
+            {% endif %}
+            <div class="category-overlay d-flex flex-column justify-content-end p-3">
+              <h4 class="fw-bold mb-1">{{ category.title }}</h4>
+              {% if category.summary %}
+                <p class="small mb-0">{{ category.summary|truncatechars:70 }}</p>
+              {% endif %}
+            </div>
+          </a>
+        </div>
+      </div>
+      {% empty %}
+      <div class="col-12 text-center">
+        <p class="text-muted">No categories available.</p>
+      </div>
+      {% endfor %}
+    </div>
+  </div>
+</section>
+
+<!-- ====== Category Section Styling ====== -->
+<style>
+.categories-section {
+  background-color: #f8f9fa;
+}
+
+.section-title {
+  font-size: 2rem;
+  font-weight: 700;
+  letter-spacing: 0.5px;
+  text-transform: uppercase;
+}
+
+.category-card {
+  height: 260px;
+  position: relative;
+  border-radius: 16px;
+  transition: all 0.4s ease;
+}
+
+.category-img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  transition: transform 0.5s ease;
+  border-radius: 16px;
+}
+
+.category-overlay {
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  background: linear-gradient(to top, rgba(0, 0, 0, 0.7), rgba(0,0,0,0));
+  color: #fff;
+  border-radius: 0 0 16px 16px;
+  padding: 20px;
+  transition: all 0.4s ease;
+}
+
+.category-card:hover .category-img {
+  transform: scale(1.07);
+}
+
+.category-card:hover .category-overlay {
+  background: linear-gradient(to top, rgba(0, 0, 0, 0.85), rgba(0,0,0,0.15));
+}
+
+.category-card:hover {
+  transform: translateY(-6px);
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.15);
+}
+
+/* ✅ Wider look on large screens */
+@media (min-width: 1400px) {
+  .col-xl-3 {
+    flex: 0 0 28%;
+    max-width: 28%;
+  }
+}
+
+/* ✅ On medium and small screens */
+@media (max-width: 991px) {
+  .category-card {
+    height: 220px;
+  }
+}
+@media (max-width: 767px) {
+  .category-card {
+    height: 200px;
+  }
+}
+</style>
+
+
+<!-- Featured Products Carousel Section -->
 <section class="product spad mt-5">
     <div class="container">
+        <!-- Section Title -->
         <div class="row mb-4">
             <div class="col-lg-12">
-                <h3 class="section-title mb-1" data-aos="fade-up"><b>Feature Products</b></h3>
+                <h3 class="section-title mb-1" data-aos="fade-up">
+                    <b>Feature Products</b>
+                </h3>
             </div>
         </div>
 
-        <div class="row position-relative">
-            {% for product in products|slice:":4" %}
-            <div class="col-lg-3 col-md-6 col-sm-6"
-                 data-aos="fade-up" data-aos-duration="800" data-aos-delay="{% widthratio forloop.counter0 1 100 %}">
-                
-                <div class="featured-card">
-                    
-                    <div class="featured-card-image"
-                         style="background-image: url('{% if product.photo %}{{ product.photo.url }}{% else %}{% static 'frontend/img/product/placeholder.jpg' %}{% endif %}');">
-                        
-                        {% if product.is_new %}<span class="featured-card-label">New</span>
-                        {% elif product.is_sale %}<span class="featured-card-label sale">Sale</span>
-                        {% endif %}
+        <!-- Featured Products Swiper -->
+        <div class="featured-swiper">
+            <div class="swiper myFeaturedSwiper">
+                <div class="swiper-wrapper">
+                    {% for product in featured_products %}
+                    <div class="swiper-slide">
+                        <div class="product__item {% if product.is_sale %}sale{% endif %}" style="position: relative; overflow: hidden;">
+                            <!-- Image Container -->
+                            <div class="product__item__pic set-bg"
+                                 data-setbg="{% if product.photo %}{{ product.photo.url }}{% else %}{% static 'frontend/img/product/placeholder.jpg' %}{% endif %}">
+                                {% if product.is_new %}
+                                    <span class="label">New</span>
+                                {% elif product.is_sale %}
+                                    <span class="label">Sale</span>
+                                {% endif %}
 
-                        <div class="product__hover" style="position: absolute;top: 10px; right: 87%; opacity: 1; transform: none;">
-                            <ul style="padding: 0; margin: 0; list-style: none;">
-                                <li>
-                                    {% if user.is_authenticated %}
-                                    <a href="#" class="wishlist-btn" data-product-id="{{ product.pk }}">
-                                        {% if product.pk in wishlisted_ids %}
-                                            <i class="fa fa-heart" style="color: #ff0000; font-size: 18px; text-shadow: none;"></i>
+                                <!-- Hover Icons (top-right corner) -->
+                                <ul class="product__hover" style="top: 10px; right: 10px;">
+                                    <li>
+                                        {% if user.is_authenticated %}
+                                        <a href="#" class="wishlist-btn" data-product-id="{{ product.pk }}">
+                                            {% if product.pk in wishlisted_ids %}
+                                                <i class="fa fa-heart" style="color: #ff0000; font-size: 18px;"></i>
+                                            {% else %}
+                                                <i class="fa fa-heart heart-outlined" style="font-size: 18px; color: #fff;"></i>
+                                            {% endif %}
+                                        </a>
                                         {% else %}
+                                        <a href="{% url 'login' %}">
                                             <i class="fa fa-heart heart-outlined" style="font-size: 18px; color: #fff;"></i>
+                                        </a>
                                         {% endif %}
-                                    </a>
-                                    {% else %}
-                                    <a href="{% url 'login' %}">
-                                        <i class="fa fa-heart heart-outlined" style="font-size: 18px; color: #fff;"></i>
-                                    </a>
-                                    {% endif %}
-                                </li>
-                            </ul>
-                        </div>
-                        
-                        <a href="{% url 'product_detail' product.pk %}" class="image-link" style="z-index: 1;"></a>
-                    </div>
-                    
-                    <div class="featured-card-body">
-                        <h6>{{ product.title }}</h6>
-                        
-                        <div class="featured-card-price">
-                            <h5>₹{{ product.price|floatformat:2 }}</h5>
-                        </div>
-                        
-                        <div class="featured-card-actions">
-                            <a href="{% url 'product_detail' product.pk %}" class="primary-btn">
-                                <i class="fa fa-shopping-cart"></i> View
-                            </a>
+                                    </li>
+                                </ul>
+
+                                <!-- Clickable overlay for image only -->
+                                <a href="{% url 'product_detail' product.pk %}" 
+                                   class="image-link" 
+                                   style="position: absolute; inset: 0; z-index: 1;"></a>
+                            </div>
+
+                            <!-- Product Details -->
+                            <div class="product__item__text" style="position: relative; z-index: 2; background: #fff; padding: 10px 0; text-align: center;">
+                                <h5 style="margin-bottom: 5px; color: #222; font-weight: 500;">{{ product.title }}</h5>
+                                <h5 style="color: #000;">₹{{ product.price|floatformat:2 }}</h5>
+                            </div>
                         </div>
                     </div>
+                    {% empty %}
+                    <div class="swiper-slide">
+                        <p class="text-center">No featured products available.</p>
+                    </div>
+                    {% endfor %}
                 </div>
-
+                <!-- Swiper navigation -->
+                <div class="swiper-button-next featured-next"></div>
+                <div class="swiper-button-prev featured-prev"></div>
             </div>
-            {% endfor %}
-
-            {% if total_products_count > 4 %}
-            <div class="col-12 d-flex justify-content-end mt-2" data-aos="fade-up" data-aos-delay="500">
-                <a href="{% url 'shop_all' %}" class="read-more-link">Read More</a>
-            </div>
-            {% endif %}
         </div>
     </div>
 </section>
@@ -490,8 +839,7 @@
                                 </a>
                                 {% endif %}
                             </li>
-                            <li><a href="#"><img src="{% static 'frontend/img/icon/compare.png' %}" alt=""><span>Compare</span></a></li>
-                            <li><a href="#"><img src="{% static 'frontend/img/icon/search.png' %}" alt=""></a></li>
+                          
                         </ul>
 
                         <!-- Clickable overlay for image -->
@@ -536,132 +884,128 @@
             {% endfor %}
 
             {% if total_products_count > 8 %}
-            <div class="col-12 d-flex justify-content-end mt-2">
-                <a href="{% url 'shop_all' %}" class="read-more-link">Read More</a>
-            </div>
+          <div class="col-12 d-flex justify-content-end mt-2">
+  <a href="{% url 'shop_all' %}" 
+     class="read-more-link" 
+     style="color:#333; font-weight:500; text-decoration:none; transition:all 0.3s ease;"
+     onmouseout="this.style.color='#333'; this.style.textDecoration='none';">
+     Read More
+  </a>
+</div>
+
             {% endif %}
         </div>
     </div>
 </section>
 <section class="categories spad">
-    <div class="container">
-        <div class="row">
+  <div class="container">
+    <div class="swiper myHotSwiper">
+      <div class="swiper-wrapper">
+        {% for product in hot_discounted_products %}
+        <div class="swiper-slide">
+          <div class="row align-items-center">
+            <!-- Left Text -->
             <div class="col-lg-3" data-aos="fade-right" data-aos-duration="800">
-                <div class="categories__text">
-                    <h2>Clothings Hot <br /> <span>Shoe Collection</span> <br /> Accessories</h2>
-                </div>
+              <div class="categories__text">
+                <h2>
+                  {{ product.category.name|default:"Clothings" }} Hot <br />
+                  <span>{{ product.title|truncatechars:18 }}</span><br />
+                  Accessories
+                </h2>
+              </div>
             </div>
+
+            <!-- Product Image -->
             <div class="col-lg-4" data-aos="fade-up" data-aos-duration="800" data-aos-delay="200">
-                <div class="categories_hot_deal">
-                    <img src="/static/frontend/img/product-sale.png" alt="">
-                    <div class="hot_deal_sticker">
-                        <span>Sale Of</span>
-                        <h5>$29.99</h5>
-                    </div>
+              <div class="categories_hot_deal">
+                <img src="{{ product.photo.url }}" alt="{{ product.title }}">
+                {% if product.discount %}
+                <div class="hot_deal_sticker">
+                  <span>Sale Of</span>
+                  <h5>{{ product.discount }}% OFF</h5>
                 </div>
+                {% endif %}
+              </div>
             </div>
+
+            <!-- Product Info -->
             <div class="col-lg-4 offset-lg-1" data-aos="fade-left" data-aos-duration="800" data-aos-delay="400">
-                <div class="categories_deal_countdown">
-                    <span>Deal Of The Week</span>
-                    <h2>Multi-pocket Chest Bag Black</h2>
-                    <div class="categories_dealcountdown_timer" id="countdown">
-                        <div class="cd-item">
-                            <span>3</span>
-                            <p>Days</p>
-                        </div>
-                        <div class="cd-item">
-                            <span>1</span>
-                            <p>Hours</p>
-                        </div>
-                        <div class="cd-item">
-                            <span>50</span>
-                            <p>Minutes</p>
-                        </div>
-                        <div class="cd-item">
-                            <span>18</span>
-                            <p>Seconds</p>
-                        </div>
-                    </div>
-                    <a href="#" class="primary-btn">Shop now</a>
+              <div class="categories_deal_countdown">
+                <span>Deal Of The Week</span>
+                <h2>{{ product.title }}</h2>
+                <p>{{ product.summary|truncatechars:60 }}</p>
+                <div class="categories_dealcountdown_timer" id="countdown-{{ forloop.counter }}" data-end-date="{{ product.deal_end_date|date:'c' }}">
+                  <div class="cd-item"><span>0</span><p>Days</p></div>
+                  <div class="cd-item"><span>0</span><p>Hours</p></div>
+                  <div class="cd-item"><span>0</span><p>Minutes</p></div>
+                  <div class="cd-item"><span>0</span><p>Seconds</p></div>
                 </div>
+                <a href="{% url 'product_detail' product.id %}" class="primary-btn">Shop now</a>
+              </div>
             </div>
+          </div>
         </div>
+        {% endfor %}
+      </div>
+
+      <!-- Swiper navigation -->
+      <div class="swiper-button-next"></div>
+      <div class="swiper-button-prev"></div>
     </div>
+  </div>
 </section>
-<section class="instagram spad" style="overflow: hidden;">
-    <div class="container">
-        <div class="row">
-            <div class="col-lg-8">
-                <div class="instagram__pic">
-                    <div class="instagram_pic_item set-bg"
-                         data-setbg="/static/frontend/img/instagram/instagram-1.jpg" data-aos="zoom-in" data-aos-duration="800"></div>
-                    <div class="instagram_pic_item set-bg"
-                         data-setbg="/static/frontend/img/instagram/instagram-2.jpg" data-aos="zoom-in" data-aos-duration="800" data-aos-delay="100"></div>
-                    <div class="instagram_pic_item set-bg"
-                         data-setbg="/static/frontend/img/instagram/instagram-3.jpg" data-aos="zoom-in" data-aos-duration="800" data-aos-delay="200"></div>
-                    <div class="instagram_pic_item set-bg"
-                         data-setbg="/static/frontend/img/instagram/instagram-4.jpg" data-aos="zoom-in" data-aos-duration="800" data-aos-delay="300"></div>
-                    <div class="instagram_pic_item set-bg"
-                         data-setbg="/static/frontend/img/instagram/instagram-5.jpg" data-aos="zoom-in" data-aos-duration="800" data-aos-delay="400"></div>
-                    <div class="instagram_pic_item set-bg"
-                         data-setbg="/static/frontend/img/instagram/instagram-6.jpg" data-aos="zoom-in" data-aos-duration="800" data-aos-delay="500"></div>
-                </div>
-            </div>
-            <div class="col-lg-4" style="overflow: hidden;">
-                <div class="instagram__text" data-aos="fade-left" data-aos-duration="800" data-aos-delay="300">
-                    <h2>Instagram</h2>
-                    <p>Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut
-                        labore et dolore magna aliqua.</p>
-                    <h3>#Male_Fashion</h3>
-                </div>
-            </div>
-        </div>
-    </div>
-</section>
-<section class="latest spad">
-    <div class="container">
-        <div class="row">
-            <div class="col-lg-12">
-                <div class="section-title" data-aos="fade-up">
-                    <span>Latest News</span>
-                    <h2>Fashion New Trends</h2>
-                </div>
-            </div>
-        </div>
-        <div class="row">
-            <div class="col-lg-4 col-md-6 col-sm-6" data-aos="fade-up" data-aos-duration="800">
-                <div class="blog__item">
-                    <div class="blog_item_pic set-bg" data-setbg="/static/frontend/img/blog/blog-1.jpg"></div>
-                    <div class="blog_item_text">
-                        <span><img src="/static/frontend/img/icon/calendar.png" alt=""> 16 February 2020</span>
-                        <h5>What Curling Irons Are The Best Ones</h5>
-                        <a href="#">Read More</a>
-                    </div>
-                </div>
-            </div>
-            <div class="col-lg-4 col-md-6 col-sm-6" data-aos="fade-up" data-aos-duration="800" data-aos-delay="200">
-                <div class="blog__item">
-                    <div class="blog_item_pic set-bg" data-setbg="/static/frontend/img/blog/blog-2.jpg"></div>
-                    <div class="blog_item_text">
-                        <span><img src="/static/frontend/img/icon/calendar.png" alt=""> 21 February 2020</span>
-                        <h5>Eternity Bands Do Last Forever</h5>
-                        <a href="#">Read More</a>
-                    </div>
-                </div>
-            </div>
-            <div class="col-lg-4 col-md-6 col-sm-6" data-aos="fade-up" data-aos-duration="800" data-aos-delay="400">
-                <div class="blog__item">
-                    <div class="blog_item_pic set-bg" data-setbg="/static/frontend/img/blog/blog-3.jpg"></div>
-                    <div class="blog_item_text">
-                        <span><img src="/static/frontend/img/icon/calendar.png" alt=""> 28 February 2020</span>
-                        <h5>The Health Benefits Of Sunglasses</h5>
-                        <a href="#">Read More</a>
-                    </div>
-                </div>
-            </div>
-        </div>
-    </div>
-</section>
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/swiper@11/swiper-bundle.min.css" />
+<script src="https://cdn.jsdelivr.net/npm/swiper@11/swiper-bundle.min.js"></script>
+
+<script>
+  var swiper = new Swiper(".myHotSwiper", {
+    slidesPerView: 1,
+    spaceBetween: 30,
+    loop: true,
+    autoplay: {
+      delay: 4000,
+      disableOnInteraction: false,
+    },
+    navigation: {
+      nextEl: ".swiper-button-next",
+      prevEl: ".swiper-button-prev",
+    },
+  });
+
+  // Featured Products Swiper
+  var featuredSwiper = new Swiper(".myFeaturedSwiper", {
+    slidesPerView: 4,
+    spaceBetween: 30,
+    loop: true,
+    autoplay: {
+      delay: 3000,
+      disableOnInteraction: false,
+    },
+    navigation: {
+      nextEl: ".featured-next",
+      prevEl: ".featured-prev",
+    },
+    breakpoints: {
+      320: {
+        slidesPerView: 1,
+        spaceBetween: 10
+      },
+      768: {
+        slidesPerView: 2,
+        spaceBetween: 20
+      },
+      1024: {
+        slidesPerView: 3,
+        spaceBetween: 25
+      },
+      1200: {
+        slidesPerView: 4,
+        spaceBetween: 30
+      }
+    }
+  });
+</script>
+
 <div class="search-model">
     <div class="h-100 d-flex align-items-center justify-content-center">
         <div class="search-close-switch">+</div>
@@ -745,6 +1089,41 @@ $(document).ready(function() {
             badge.hide();
         }
     }
+
+    // Dynamic Countdown Timer
+    function updateCountdown(endDate, timerElement) {
+        const end = new Date(endDate).getTime();
+        const now = new Date().getTime();
+        const distance = end - now;
+
+        if (distance < 0) {
+            // Deal expired
+            timerElement.html('<div class="cd-item"><span>0</span><p>Days</p></div><div class="cd-item"><span>0</span><p>Hours</p></div><div class="cd-item"><span>0</span><p>Minutes</p></div><div class="cd-item"><span>0</span><p>Seconds</p></div><div style="text-align: center; color: red; font-weight: bold;">Deal Expired!</div>');
+            return;
+        }
+
+        const days = Math.floor(distance / (1000 * 60 * 60 * 24));
+        const hours = Math.floor((distance % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
+        const minutes = Math.floor((distance % (1000 * 60 * 60)) / (1000 * 60));
+        const seconds = Math.floor((distance % (1000 * 60)) / 1000);
+
+        timerElement.find('.cd-item:nth-child(1) span').text(days);
+        timerElement.find('.cd-item:nth-child(2) span').text(hours);
+        timerElement.find('.cd-item:nth-child(3) span').text(minutes);
+        timerElement.find('.cd-item:nth-child(4) span').text(seconds);
+    }
+
+    // Initialize countdown for each product
+    $('.categories_dealcountdown_timer').each(function() {
+        const endDate = $(this).data('end-date');
+        if (endDate) {
+            updateCountdown(endDate, $(this));
+            // Update every second
+            setInterval(function() {
+                updateCountdown(endDate, $(this));
+            }.bind(this), 1000);
+        }
+    });
 });
 </script>
 

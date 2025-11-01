@@ -22,15 +22,33 @@ from django.template.loader import render_to_string
 from django.db import transaction
 from django.db.models import Max 
 from eshop_app.models import GeneralFAQ
+from decimal import Decimal, ROUND_HALF_UP
+from django.contrib import messages
 
 
 
 def index(request):
     filter_type = request.GET.get('filter', 'all')
-    
+
+    # Base queryset
     all_products = Product.objects.filter(status='active')
+
+    # Featured Products
     featured_products = Product.objects.filter(is_featured=True, status='active').order_by('-created_at')
 
+    # Hot & Discounted Products for Carousel
+    hot_discounted_products = (
+        Product.objects.filter(
+            Q(condition__iexact='Hot') | Q(discount__isnull=False),
+            status='active',
+            deal_end_date__isnull=False
+        )
+        .exclude(discount=0)
+        .filter(deal_end_date__gte=timezone.now())
+        .order_by('-discount', '-created_at')[:10]
+    )
+
+    # Filtering logic for main product grid
     if filter_type == 'new-arrivals':
         all_products = all_products.filter(
             created_at__gte=timezone.now() - timedelta(days=7)
@@ -41,66 +59,208 @@ def index(request):
         all_products = all_products.order_by('-created_at')
 
     homepage_products = all_products[:9]
+
+    # Banners
     banners = Banner.objects.all()
-    
+
+    # ✅ Fetch only Parent Categories (Main Categories like Men, Women, Kids)
+    parent_categories = Category.objects.filter(is_parent=True, status='active').order_by('title')
+
+    # Wishlist logic
     if request.user.is_authenticated:
         wishlisted_ids = Wishlist.objects.filter(user=request.user).values_list('product_id', flat=True)
     else:
         wishlisted_ids = []
-    
+
     context = {
         'products': homepage_products,
         'total_products_count': all_products.count(),
         'filter_type': filter_type,
         'banners': banners,
-        'featured_products': featured_products,  # All featured products
+        'featured_products': featured_products,
         'wishlisted_ids': wishlisted_ids,
+        'hot_discounted_products': hot_discounted_products,
+        'categories': parent_categories,  # ✅ pass to template
     }
-    
+
     return render(request, 'index.html', context)
 
+def category_products(request, id):
+    # --- Get main category ---
+    main_category = get_object_or_404(Category, pk=id, status='active')
 
+    # --- Get all query parameters ---
+    query = request.GET.get('q', '')
+    brand_id = request.GET.get('brand')
+    min_price = request.GET.get('min_price')
+    max_price = request.GET.get('max_price')
+    size = request.GET.get('size')
+    color = request.GET.get('color')
+    sort_option = request.GET.get('sort', 'low_to_high')
+    subcategory_id = request.GET.get('subcategory')
+
+    # --- Base queryset ---
+    products = Product.objects.filter(status='active')
+
+    # --- Category & Subcategory Filtering ---
+    if subcategory_id and subcategory_id != '':  # Fixed: Check for empty string too
+        # Filter by selected subcategory
+        products = products.filter(
+            Q(category_id=subcategory_id) | Q(child_category_id=subcategory_id)
+        )
+        selected_subcat_id = int(subcategory_id)  # Convert to int for comparison
+    else:
+        # Include main category and all its children
+        child_ids = main_category.children.filter(status='active').values_list('id', flat=True)
+        products = products.filter(
+            Q(category_id=main_category.id) |
+            Q(category_id__in=child_ids) |
+            Q(child_category_id__in=child_ids)
+        )
+        selected_subcat_id = None
+
+    # --- Brand filter ---
+    if brand_id:
+        try:
+            brand_id_int = int(brand_id)
+            products = products.filter(brand_id=brand_id_int)
+            selected_brand_id = brand_id_int
+        except (ValueError, TypeError):
+            brand_id = None
+            selected_brand_id = None
+    else:
+        selected_brand_id = None
+
+    # --- Search ---
+    if query:
+        products = products.filter(
+            Q(title__icontains=query) | Q(description__icontains=query)
+        )
+
+    # --- Price range filter ---
+    if min_price:
+        try:
+            products = products.filter(price__gte=Decimal(min_price))
+        except (ValueError, TypeError):
+            min_price = None
+    if max_price:
+        try:
+            products = products.filter(price__lte=Decimal(max_price))
+        except (ValueError, TypeError):
+            max_price = None
+
+    # --- Size filter ---
+    if size:
+        products = products.filter(size__icontains=size)
+
+    # --- Color filter ---
+    if color:
+        products = products.filter(color_data__icontains=color)
+
+    # --- Sorting logic ---
+    if sort_option == 'low_to_high':
+        products = products.order_by('price')
+    elif sort_option == 'high_to_low':
+        products = products.order_by('-price')
+    else:
+        products = products.order_by('-created_at')
+
+    # --- Sidebar Data ---
+    subcategories = main_category.children.filter(status='active')
+    brands = Brand.objects.filter(status='active').order_by('title')
+    sizes_list = ['xs', 's', 'm', 'l', 'xl', '2xl', 'xxl', '3xl', '4xl']
+    colors_list = ['c-1', 'c-2', 'c-3', 'c-4', 'c-5', 'c-6', 'c-7', 'c-8', 'c-9']
+
+    # --- Wishlist Data ---
+    if request.user.is_authenticated:
+        wishlisted_ids = list(
+            Wishlist.objects.filter(user=request.user).values_list('product_id', flat=True)
+        )
+    else:
+        wishlisted_ids = []
+
+    # --- Context ---
+    context = {
+        'main_category': main_category,
+        'subcategories': subcategories,
+        'products': products,
+        'brands': brands,
+        'selected_brand_id': selected_brand_id,
+        'selected_min_price': min_price,
+        'selected_max_price': max_price,
+        'selected_size': size,
+        'selected_color': color,
+        'sizes_list': sizes_list,
+        'colors_list': colors_list,
+        'search_query': query,
+        'selected_sort': sort_option,
+        'wishlisted_ids': wishlisted_ids,
+        'selected_subcat_id': selected_subcat_id,  # This will be None when no subcategory is selected
+    }
+
+    return render(request, 'category_products.html', context)
 
 
 def product_detail_view(request, pk):
     product = get_object_or_404(Product, pk=pk)
 
+    # ✅ Handle sizes cleanly
     sizes = [s.strip() for s in product.size.split(',')] if product.size else []
 
     colors = []
     primary_color = None
     gallery_images = []
 
-    # Get all color groups
-    if product.color_data:
+    # ✅ Build color-based gallery
+    if hasattr(product, 'color_data') and product.color_data:
         for color in product.color_data:
-            color_name = color['name']
+            color_name = color.get('name')
+            if not color_name:
+                continue
+
             media = product.media_files.filter(
                 file_type='image',
                 color_name__iexact=color_name
             )
 
             if media.exists():
-                # Sort: primary first, then others
                 ordered = list(media.order_by('-is_primary', '-id'))
                 color['images'] = [m.file.url for m in ordered]
                 color['thumb'] = ordered[0].file.url
                 colors.append(color)
 
-        # Pick first color as default (main display)
         if colors:
             primary_color = colors[0]['name']
             gallery_images = colors[0]['images']
 
-    # Fallback: no color-specific images
+    # ✅ Fallback: no color-specific images
     if not gallery_images:
         gallery_images = [
             m.file.url for m in product.media_files.filter(file_type='image').order_by('-is_primary', '-id')
         ]
 
-    # ✅ Mark which color is currently displayed
+    # ✅ Mark active color
     for color in colors:
         color['is_current'] = (color['name'] == primary_color)
+
+    # ✅ Get related products
+    top_category = product.category
+    while top_category and top_category.parent:
+        top_category = top_category.parent
+
+    subcategories = Category.objects.filter(parent=top_category)
+
+    related_products = Product.objects.filter(
+        Q(category=top_category) | Q(category__in=subcategories)
+    ).exclude(pk=pk).order_by('-id')[:8]
+
+    # ✅ Get wishlisted items for current user
+    if request.user.is_authenticated:
+        wishlisted_ids = list(
+            Wishlist.objects.filter(user=request.user).values_list('product_id', flat=True)
+        )
+    else:
+        wishlisted_ids = []
 
     context = {
         "product": product,
@@ -108,6 +268,8 @@ def product_detail_view(request, pk):
         "colors": colors,
         "gallery_images": gallery_images,
         "primary_color": primary_color,
+        "related_products": related_products,
+        "wishlisted_ids": wishlisted_ids,
     }
 
     return render(request, "product_details.html", context)
@@ -170,10 +332,8 @@ def cart_preview(request):
 
 
 @login_required
+@login_required
 def shopping_cart_view(request):
-    """
-    Display the shopping cart for the logged-in user.
-    """
     cart_items = Cart.objects.filter(user=request.user).select_related('product')
 
     if not cart_items.exists():
@@ -181,79 +341,87 @@ def shopping_cart_view(request):
 
     cart_subtotal = Decimal('0.00')
     total_shipping = Decimal('0.00')
+    product_discount_total = Decimal('0.00')
     all_free_shipping = True
     enriched_items = []
 
+    # --- Calculate per-item and subtotal ---
     for item in cart_items:
-        line_total = item.subtotal
-        cart_subtotal += line_total
-
-        # ✅ Determine per-product shipping
         product = item.product
-        product_shipping = Decimal('0.00')
+        qty = item.quantity or 1
+        price = Decimal(product.price or 0).quantize(Decimal('0.01'), rounding=ROUND_HALF_UP)
+        discount_percent = Decimal(product.discount or 0)
 
-        # Check if product has free shipping
+        per_unit_discount = (price * discount_percent / 100).quantize(Decimal('0.01'), rounding=ROUND_HALF_UP) if discount_percent > 0 else Decimal('0.00')
+        line_original = (price * qty).quantize(Decimal('0.01'), rounding=ROUND_HALF_UP)
+        line_discount = (per_unit_discount * qty).quantize(Decimal('0.01'), rounding=ROUND_HALF_UP)
+        line_after_discount = (line_original - line_discount).quantize(Decimal('0.01'), rounding=ROUND_HALF_UP)
+
+        cart_subtotal += line_after_discount
+        product_discount_total += line_discount
+
+        # Shipping
         if hasattr(product, 'shipping_label') and product.shipping_label == 'free':
             product_shipping = Decimal('0.00')
         else:
-            # Use product.shipping_charge if available, else fallback
-            product_shipping = Decimal(str(getattr(product, 'shipping_charge', 10.00)))
+            product_shipping = Decimal(str(getattr(product, 'shipping_charge', 10.00))).quantize(Decimal('0.01'))
             all_free_shipping = False
 
         total_shipping += product_shipping
 
-        # ✅ Use selected image if available, otherwise fall back to product main image
-        if item.selected_image:
-            image_url = item.selected_image
-        else:
-            try:
-                image_url = product.photo.url
-            except Exception:
-                image_url = ""
+        image_url = item.selected_image or (getattr(product.photo, 'url', '') if getattr(product, 'photo', None) else "")
 
         enriched_items.append({
             'product': product,
-            'quantity': item.quantity,
+            'quantity': qty,
             'size': item.size or 'N/A',
             'color': item.color or 'N/A',
-            'price': product.price,
-            'line_total': line_total,
+            'price': price,
+            'discount_percent': discount_percent,
+            'per_unit_discount': per_unit_discount,
+            'line_original': line_original,
+            'line_discount': line_discount,
+            'line_after_discount': line_after_discount,
             'item_id': item.id,
             'shipping_charge': product_shipping,
-            'selected_image': image_url,  # ✅ Added field for display in template
+            'selected_image': image_url,
         })
 
-    # ✅ If all items are free shipping
     if all_free_shipping:
         total_shipping = Decimal('0.00')
 
-    # ✅ Compute totals
-    order_total = cart_subtotal + total_shipping
-
-    # ✅ Handle applied coupon
+    # --- Apply coupon if present ---
     applied_coupon = request.session.get('applied_coupon')
-    discount_amount = Decimal('0.00')
+    coupon_amount = Decimal('0.00')
 
     if applied_coupon:
-        discount_amount = Decimal(applied_coupon['discount_amount'])
-        order_total -= discount_amount
+        discount_type = applied_coupon.get('discount_type')
+        discount_value = Decimal(applied_coupon.get('discount_value') or 0)
+        
+        # Calculate coupon discount based on CART SUBTOTAL only (before shipping)
+        if discount_type == 'percent':
+            coupon_amount = (cart_subtotal * discount_value / Decimal('100')).quantize(Decimal('0.01'), rounding=ROUND_HALF_UP)
+        else:
+            coupon_amount = min(discount_value, cart_subtotal).quantize(Decimal('0.01'), rounding=ROUND_HALF_UP)
 
-    # ✅ Get active coupons for dropdown
+        # Calculate final total: (subtotal - coupon) + shipping
+        order_total = (cart_subtotal - coupon_amount + total_shipping).quantize(Decimal('0.01'), rounding=ROUND_HALF_UP)
+    else:
+        order_total = (cart_subtotal + total_shipping).quantize(Decimal('0.01'), rounding=ROUND_HALF_UP)
+
+    # --- Coupons list ---
     now = timezone.now()
-    coupons = Coupon.objects.filter(
-        is_active=True,
-        start_date__lte=now,
-        end_date__gte=now
-    )
+    coupons = Coupon.objects.filter(is_active=True, start_date__lte=now, end_date__gte=now)
 
     context = {
         'cart_items': enriched_items,
-        'cart_subtotal': cart_subtotal,
-        'shipping_cost': total_shipping,
+        'cart_subtotal': cart_subtotal.quantize(Decimal('0.01')),
+        'shipping_cost': total_shipping.quantize(Decimal('0.01')),
+        'product_discount_total': product_discount_total.quantize(Decimal('0.01')),
         'order_total': order_total,
         'coupons': coupons,
         'applied_coupon': applied_coupon,
-        'discount_amount': discount_amount,
+        'discount_amount': coupon_amount,
     }
 
     return render(request, 'shopping_cart.html', context)
@@ -271,35 +439,68 @@ def apply_coupon(request):
                 end_date__gte=now
             )
         except Coupon.DoesNotExist:
+            messages.error(request, "Invalid coupon code.")
             request.session.pop('applied_coupon', None)
             return redirect('shopping_cart')
 
-        # Calculate subtotal
-        cart_items = Cart.objects.filter(user=request.user)
-        subtotal = sum([item.subtotal for item in cart_items])
+        cart_items = Cart.objects.filter(user=request.user).select_related('product')
 
-        # Check minimum order condition
-        if subtotal < coupon.min_order_amount:
+        # Calculate cart subtotal EXACTLY the same way as shopping_cart_view
+        cart_subtotal = Decimal('0.00')
+        total_shipping = Decimal('0.00')
+        all_free_shipping = True
+
+        for item in cart_items:
+            product = item.product
+            qty = item.quantity or 1
+            price = Decimal(product.price or 0).quantize(Decimal('0.01'), rounding=ROUND_HALF_UP)
+            discount_percent = Decimal(product.discount or 0)
+
+            # Calculate exactly like shopping_cart_view
+            per_unit_discount = (price * discount_percent / 100).quantize(Decimal('0.01'), rounding=ROUND_HALF_UP) if discount_percent > 0 else Decimal('0.00')
+            line_original = (price * qty).quantize(Decimal('0.01'), rounding=ROUND_HALF_UP)
+            line_discount = (per_unit_discount * qty).quantize(Decimal('0.01'), rounding=ROUND_HALF_UP)
+            line_after_discount = (line_original - line_discount).quantize(Decimal('0.01'), rounding=ROUND_HALF_UP)
+
+            cart_subtotal += line_after_discount
+
+            # Shipping calculation
+            if hasattr(product, 'shipping_label') and product.shipping_label == 'free':
+                product_shipping = Decimal('0.00')
+            else:
+                product_shipping = Decimal(str(getattr(product, 'shipping_charge', 10.00))).quantize(Decimal('0.01'))
+                all_free_shipping = False
+            total_shipping += product_shipping
+
+        if all_free_shipping:
+            total_shipping = Decimal('0.00')
+
+        # Check minimum order amount based on SUBTOTAL (not including shipping)
+        if cart_subtotal < coupon.min_order_amount:
+            messages.error(request, f"Coupon requires minimum order of ₹{coupon.min_order_amount}")
             request.session.pop('applied_coupon', None)
             return redirect('shopping_cart')
 
-        # ✅ Calculate discount based on type
+        # Calculate discount amount based on SUBTOTAL only
         if coupon.discount_type == 'percent':
-            discount_amount = (subtotal * coupon.discount_value / Decimal('100')).quantize(Decimal('0.01'))
-        else:  # fixed discount
-            discount_amount = coupon.discount_value
+            discount_amount = (cart_subtotal * coupon.discount_value / Decimal('100')).quantize(Decimal('0.01'), rounding=ROUND_HALF_UP)
+        else:
+            discount_amount = min(coupon.discount_value, cart_subtotal).quantize(Decimal('0.01'), rounding=ROUND_HALF_UP)
 
-        # Save applied coupon info in session
+        # Store in session
         request.session['applied_coupon'] = {
             'code': coupon.code,
             'discount_type': coupon.discount_type,
             'discount_value': str(coupon.discount_value),
-            'discount_amount': str(discount_amount)
+            'discount_amount': str(discount_amount),
+            'min_order_amount': str(coupon.min_order_amount),
         }
 
+        messages.success(request, f"Coupon {coupon.code} applied successfully!")
         return redirect('shopping_cart')
 
     return redirect('shopping_cart')
+
 
 def remove_coupon(request):
     """
@@ -370,39 +571,82 @@ def shop_all_products(request):
 
     # Base queryset
     products = Product.objects.filter(status='active')
+    
+    # Context variables for tracking selected filters
+    selected_category = None
+    selected_parent_id = None
+    is_parent_active = False  # Define at function scope
 
     # --- Apply Filters ---
     
     # Category filter
     if category_id:
-        category = get_object_or_404(Category, pk=category_id, status='active')
-        # Include main category + child categories
-        if category.children.exists():
-            child_ids = category.children.values_list('id', flat=True)
-            all_ids = list(child_ids) + [category.id]
-            products = products.filter(category_id__in=all_ids)
-        else:
-            products = products.filter(category_id=category.id)
+        try:
+            category = Category.objects.get(pk=category_id, status='active')
+            selected_category = category
+            
+            # Determine the set of category IDs to filter products by
+            if category.is_parent:
+                # If parent is selected, include products assigned to parent OR any child
+                child_ids = category.children.filter(status='active').values_list('id', flat=True)
+                
+                # Filter products that have:
+                # 1. category_id = parent.id OR
+                # 2. category_id in child_ids OR
+                # 3. child_category_id in child_ids
+                products = products.filter(
+                    Q(category_id=category.id) |
+                    Q(category_id__in=child_ids) |
+                    Q(child_category_id__in=child_ids)
+                )
+                selected_parent_id = category.id
+                is_parent_active = True
+            else:
+                # If subcategory (child) is selected, show products assigned to this child
+                # Products can be assigned via category_id OR child_category_id
+                products = products.filter(
+                    Q(category_id=category.id) | 
+                    Q(child_category_id=category.id)
+                )
+                # Find the parent of the subcategory for sidebar highlighting
+                if category.parent:
+                    selected_parent_id = category.parent.id
+                    is_parent_active = True
+        except Category.DoesNotExist:
+            category_id = None
     
     # Brand filter
     if brand_id:
-        products = products.filter(brand_id=brand_id)
+        try:
+            brand_id_int = int(brand_id)
+            products = products.filter(brand_id=brand_id_int)
+        except (ValueError, TypeError):
+            brand_id = None
     
     # Search query
     if query:
-        products = products.filter(title__icontains=query)
+        products = products.filter(
+            Q(title__icontains=query) | 
+            Q(description__icontains=query)
+        )
     
     # Price range filter
     if min_price:
-        products = products.filter(price__gte=min_price)
+        try:
+            products = products.filter(price__gte=Decimal(min_price))
+        except (ValueError, TypeError):
+            min_price = None
     if max_price:
-        products = products.filter(price__lte=max_price)
+        try:
+            products = products.filter(price__lte=Decimal(max_price))
+        except (ValueError, TypeError):
+            max_price = None
     
-    # Size filter
+    # Size filter - handle comma-separated sizes in product
     if size:
         products = products.filter(size__icontains=size)
     
-    # Color filter
+    # Color filter - search in color_data JSONField
     if color:
         products = products.filter(color_data__icontains=color)
 
@@ -415,23 +659,43 @@ def shop_all_products(request):
         products = products.order_by('-created_at')
 
     # --- Sidebar data ---
-    parent_cats = Category.objects.filter(is_parent=True, status='active')
-    brands = Brand.objects.filter(status='active')
+    parent_cats = Category.objects.filter(
+        is_parent=True, 
+        status='active'
+    ).prefetch_related('children')
+    
+    brands = Brand.objects.filter(status='active').order_by('title')
 
     # --- Sizes and colors ---
     sizes_list = ['xs', 's', 'm', 'l', 'xl', '2xl', 'xxl', '3xl', '4xl']
-    colors_list = ['c-1', 'c-2', 'c-3', 'c-4', 'c-5', 'c-6', 'c-7', 'c-8', 'c-9']
+    colors_list = ['c-1', 'c-2', 'c-3', 'c-4', 'c-5', 'c-6', 'c-7', 'c-8', 'c-9'] 
 
     # --- Wishlist data ---
     if request.user.is_authenticated:
-        wishlisted_ids = Wishlist.objects.filter(user=request.user).values_list('product_id', flat=True)
+        wishlisted_ids = list(
+            Wishlist.objects.filter(user=request.user).values_list('product_id', flat=True)
+        )
     else:
         wishlisted_ids = []
+
+    # Convert brand_id to int for template comparison
+    selected_brand_id = None
+    if brand_id:
+        try:
+            selected_brand_id = int(brand_id)
+        except (ValueError, TypeError):
+            pass
 
     context = {
         'products': products,
         'parent_cats': parent_cats,
         'brands': brands,
+        'selected_category': selected_category,
+        'selected_parent_id': selected_parent_id,
+        'selected_brand_id': selected_brand_id,
+        'is_parent_active': is_parent_active,
+        
+        # Filter values
         'selected_min_price': min_price,
         'selected_max_price': max_price,
         'selected_size': size,
@@ -440,7 +704,7 @@ def shop_all_products(request):
         'colors_list': colors_list,
         'search_query': query,
         'selected_sort': sort_option,
-        'wishlisted_ids': list(wishlisted_ids),
+        'wishlisted_ids': wishlisted_ids,
     }
 
     return render(request, 'shop_all.html', context)
@@ -448,34 +712,73 @@ def shop_all_products(request):
 
 
 def shop_by_category(request, category_id):
+    """
+    Display products filtered by category (handles both parent and child categories)
+    """
+    # Get main or subcategory
     category = get_object_or_404(Category, pk=category_id, status='active')
 
-    # Include main category + child categories
-    if category.children.exists():
-        child_ids = category.children.values_list('id', flat=True)
-        all_ids = list(child_ids) + [category.id]
-        products = Product.objects.filter(category_id__in=all_ids, status='active')
+    # If it's a parent category, include all child categories + itself
+    if category.is_parent:
+        child_ids = category.children.filter(status='active').values_list('id', flat=True)
+        
+        # Products can be assigned to:
+        # 1. Parent category directly (category_id = parent.id)
+        # 2. Child category via category_id
+        # 3. Child category via child_category_id
+        products = Product.objects.filter(
+            Q(category_id=category.id) |
+            Q(category_id__in=child_ids) |
+            Q(child_category_id__in=child_ids),
+            status='active'
+        ).distinct()
     else:
-        products = Product.objects.filter(category_id=category.id, status='active')
+        # Subcategory – show products assigned via category_id OR child_category_id
+        products = Product.objects.filter(
+            Q(category_id=category.id) | 
+            Q(child_category_id=category.id),
+            status='active'
+        ).distinct()
 
+    # Sidebar data
     parent_cats = Category.objects.filter(is_parent=True, status='active')
-    brands = Brand.objects.filter(status='active')  # Always pass brands to sidebar
+    brands = Brand.objects.filter(status='active')
+
+    # Wishlist data
+    if request.user.is_authenticated:
+        wishlisted_ids = list(
+            Wishlist.objects.filter(user=request.user).values_list('product_id', flat=True)
+        )
+    else:
+        wishlisted_ids = []
 
     context = {
         'products': products,
         'parent_cats': parent_cats,
         'brands': brands,
         'selected_category': category,
-        'selected_brand': None,
+        'wishlisted_ids': wishlisted_ids,
     }
     return render(request, 'shop_all.html', context)
 
 
 def shop_by_brand(request, brand_id):
+    """
+    Display products filtered by brand
+    """
     brand = get_object_or_404(Brand, pk=brand_id, status='active')
     products = Product.objects.filter(brand=brand, status='active')
+    
     parent_cats = Category.objects.filter(is_parent=True, status='active')
     brands = Brand.objects.filter(status='active')
+
+    # Wishlist data
+    if request.user.is_authenticated:
+        wishlisted_ids = list(
+            Wishlist.objects.filter(user=request.user).values_list('product_id', flat=True)
+        )
+    else:
+        wishlisted_ids = []
 
     context = {
         'products': products,
@@ -483,15 +786,27 @@ def shop_by_brand(request, brand_id):
         'brands': brands,
         'selected_category': None,
         'selected_brand': brand,
+        'wishlisted_ids': wishlisted_ids,
     }
     return render(request, 'shop_all.html', context)
 
 
 def shop_by_color(request, color):
+    """
+    Display products filtered by color
+    """
     products = Product.objects.filter(color_data__icontains=color, status='active')
 
     parent_cats = Category.objects.filter(is_parent=True, status='active')
     brands = Brand.objects.filter(status='active')
+
+    # Wishlist data
+    if request.user.is_authenticated:
+        wishlisted_ids = list(
+            Wishlist.objects.filter(user=request.user).values_list('product_id', flat=True)
+        )
+    else:
+        wishlisted_ids = []
 
     context = {
         'products': products,
@@ -501,16 +816,28 @@ def shop_by_color(request, color):
         'selected_category': None,
         'selected_brand': None,
         'selected_size': None,
+        'wishlisted_ids': wishlisted_ids,
     }
     return render(request, 'shop_all.html', context)
 
 
 # --- Shop by Size ---
 def shop_by_size(request, size):
+    """
+    Display products filtered by size
+    """
     products = Product.objects.filter(size__icontains=size, status='active')
 
     parent_cats = Category.objects.filter(is_parent=True, status='active')
     brands = Brand.objects.filter(status='active')
+
+    # Wishlist data
+    if request.user.is_authenticated:
+        wishlisted_ids = list(
+            Wishlist.objects.filter(user=request.user).values_list('product_id', flat=True)
+        )
+    else:
+        wishlisted_ids = []
 
     context = {
         'products': products,
@@ -520,16 +847,31 @@ def shop_by_size(request, size):
         'selected_category': None,
         'selected_brand': None,
         'selected_color': None,
+        'wishlisted_ids': wishlisted_ids,
     }
     return render(request, 'shop_all.html', context)
 
 
-# --- Shop by Price ---
 def shop_by_price(request, min_price, max_price):
-    products = Product.objects.filter(price__gte=min_price, price__lte=max_price, status='active')
+    """
+    Display products filtered by price range
+    """
+    products = Product.objects.filter(
+        price__gte=min_price, 
+        price__lte=max_price, 
+        status='active'
+    )
 
     parent_cats = Category.objects.filter(is_parent=True, status='active')
     brands = Brand.objects.filter(status='active')
+
+    # Wishlist data
+    if request.user.is_authenticated:
+        wishlisted_ids = list(
+            Wishlist.objects.filter(user=request.user).values_list('product_id', flat=True)
+        )
+    else:
+        wishlisted_ids = []
 
     context = {
         'products': products,
@@ -540,6 +882,7 @@ def shop_by_price(request, min_price, max_price):
         'selected_brand': None,
         'selected_color': None,
         'selected_size': None,
+        'wishlisted_ids': wishlisted_ids,
     }
     return render(request, 'shop_all.html', context)
 
@@ -898,6 +1241,7 @@ def track_order_view(request):
 
 def return_policy_view(request):
     return render(request, 'return_policy.html')
+
 
 
 

@@ -36,5 +36,10 @@ urlpatterns = [
     path('shipping-policy/', views.shipping_policy_view, name='shipping_policy'),
     path('track-order/', views.track_order_view, name='track_order'),
     path('return_policy/', views.return_policy_view, name='return_policy'),
+    path('category/<int:id>/', views.category_products, name='category_products'),
+    
+
+    
+    
 
 ]

@@ -48,11 +48,9 @@
                     <thead class="table">
                         <tr>
                             <th>Title</th>
-                            <th>Summary</th>
                             <th>Parent</th>
                             <th>Is Parent</th>
                             <th>Status</th>
-                            <th>Image</th>
                             <th>Created At</th>
                             <th>Action</th>
                         </tr>
@@ -61,7 +59,7 @@
                         {% for category in categories %}
                         <tr>
                             <td>{{ category.title }}</td>
-                            <td>{{ category.summary|default:"-" }}</td>
+            
                             <td>
                                 {% if category.parent %}
                                 {{ category.parent.title }}
@@ -82,15 +80,7 @@
                                     {{ category.status|title }}
                                 </span>
                             </td>
-                            <td>
-                                {% if category.photo %}
-                                <img src="{{ category.photo.url }}" width="100" class="img-thumbnail"
-                                    style="cursor:pointer;" data-bs-toggle="modal" data-bs-target="#imageModal"
-                                    data-bs-src="{{ category.photo.url }}">
-                                {% else %}
-                                -
-                                {% endif %}
-                            </td>
+                            
                             <td>{{ category.created_at|date:"d M Y H:i" }}</td>
                             <td style="white-space: nowrap;">
     <a href="{% url 'category_edit' category.id %}" class="btn btn-sm btn-primary"><i class="fas fa-edit"></i></a>

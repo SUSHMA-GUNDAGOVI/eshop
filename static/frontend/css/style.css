@@ -749,6 +749,7 @@ ol {
 	overflow: hidden;
 	padding-top: 150px;
 	padding-bottom: 125px;
+	
 }
 
 .categories__text {
@@ -763,7 +764,6 @@ ol {
 	top: 0;
 	height: 300px;
 	width: 600px;
-	background: #ffffff;
 	z-index: -1;
 	content: "";
 }

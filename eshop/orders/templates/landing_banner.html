@@ -1,0 +1,189 @@
+<div class="carousel">
+    <div class="carousel-inner" id="carousel-inner">
+        <!-- Banner items will be injected here via JS -->
+    </div>
+
+    <div class="carousel-arrow prev"><i class="fas fa-chevron-left"></i></div>
+    <div class="carousel-arrow next"><i class="fas fa-chevron-right"></i></div>
+
+    <div class="carousel-controls" id="carousel-controls">
+        <!-- Dots will be injected here via JS -->
+    </div>
+</div>
+
+<style>
+.carousel {
+    position: relative;
+    width: 100%;
+    height: 500px; /* adjust as needed */
+    overflow: hidden;
+}
+
+.carousel-inner {
+    width: 100%;
+    height: 100%;
+    position: relative;
+}
+
+.carousel-item {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background-size: cover;
+    background-position: center;
+    transition: opacity 0.5s ease-in-out;
+    opacity: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.carousel-item.active {
+    opacity: 1;
+    z-index: 1;
+}
+
+.carousel-content {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    width: 90%;
+    max-width: 1200px;
+    color: #fff;
+}
+
+.carousel-text h1 {
+    font-size: 3rem;
+    margin-bottom: 10px;
+}
+
+.carousel-text p.subtitle {
+    font-size: 1.2rem;
+    margin-bottom: 15px;
+}
+
+.btn-shop {
+    background-color: #ff7f50;
+    color: #fff;
+    padding: 10px 20px;
+    text-decoration: none;
+    border-radius: 5px;
+}
+
+.carousel-arrow {
+    position: absolute;
+    top: 50%;
+    transform: translateY(-50%);
+    cursor: pointer;
+    font-size: 2rem;
+    color: #fff;
+    z-index: 2;
+}
+
+.carousel-arrow.prev {
+    left: 20px;
+}
+
+.carousel-arrow.next {
+    right: 20px;
+}
+
+.carousel-controls {
+    position: absolute;
+    bottom: 15px;
+    left: 50%;
+    transform: translateX(-50%);
+    display: flex;
+    gap: 10px;
+}
+
+.carousel-dot {
+    width: 12px;
+    height: 12px;
+    border-radius: 50%;
+    background-color: rgba(255,255,255,0.5);
+    cursor: pointer;
+}
+
+.carousel-dot.active {
+    background-color: #fff;
+}
+</style>
+
+<script>
+document.addEventListener('DOMContentLoaded', function () {
+    const carouselInner = document.getElementById('carousel-inner');
+    const carouselControls = document.getElementById('carousel-controls');
+    const prevBtn = document.querySelector('.carousel-arrow.prev');
+    const nextBtn = document.querySelector('.carousel-arrow.next');
+
+    let currentIndex = 0;
+    let banners = [];
+
+    fetch('http://127.0.0.1:8001/orders/banners/')
+        .then(response => response.json())
+        .then(data => {
+            banners = data;
+            renderBanners();
+            startAutoSlide();
+        })
+        .catch(error => console.error('Error fetching banners:', error));
+
+    function renderBanners() {
+        carouselInner.innerHTML = '';
+        carouselControls.innerHTML = '';
+
+        banners.forEach((banner, index) => {
+            const item = document.createElement('div');
+            item.className = 'carousel-item' + (index === 0 ? ' active' : '');
+            item.style.backgroundImage = `url(${banner.image_url})`;
+
+            item.innerHTML = `
+                <div class="carousel-content">
+                    <div class="carousel-text">
+                        <h1>${banner.title}</h1>
+                        <p class="subtitle">${banner.description}</p>
+                        <a href="${banner.link || '#'}" class="btn-shop">SHOP NOW</a>
+                    </div>
+                </div>
+            `;
+
+            carouselInner.appendChild(item);
+
+            const dot = document.createElement('div');
+            dot.className = 'carousel-dot' + (index === 0 ? ' active' : '');
+            dot.addEventListener('click', () => goToSlide(index));
+            carouselControls.appendChild(dot);
+        });
+    }
+
+    function goToSlide(index) {
+        const items = document.querySelectorAll('.carousel-item');
+        const dots = document.querySelectorAll('.carousel-dot');
+
+        items.forEach((item, i) => item.classList.toggle('active', i === index));
+        dots.forEach((dot, i) => dot.classList.toggle('active', i === index));
+
+        currentIndex = index;
+    }
+
+    prevBtn.addEventListener('click', () => {
+        currentIndex = (currentIndex - 1 + banners.length) % banners.length;
+        goToSlide(currentIndex);
+    });
+
+    nextBtn.addEventListener('click', () => {
+        currentIndex = (currentIndex + 1) % banners.length;
+        goToSlide(currentIndex);
+    });
+
+    function startAutoSlide() {
+        setInterval(() => {
+            currentIndex = (currentIndex + 1) % banners.length;
+            goToSlide(currentIndex);
+        }, 5000);
+    }
+});
+</script>

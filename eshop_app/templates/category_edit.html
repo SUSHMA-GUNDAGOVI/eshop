@@ -1,11 +1,13 @@
-{% extends "admin_base.html" %}
-{% block title %}Edit Category - E-Shop{% endblock %}
+{% extends 'admin_base.html' %}
+
+{% block title %}Edit Category{% endblock %}
 
 {% block content %}
 <div class="container-fluid">
+
     <!-- Page Heading -->
     <div class="d-flex align-items-center justify-content-between mb-3">
-        <h1 class="h3 text-gray-800">Edit Category</h1>
+        <h1 class="h3 text-gray-800">Category Management</h1>
     </div>
 
     <!-- Edit Category Form -->
@@ -14,91 +16,106 @@
             <h6 class="m-0 font-weight-bold text-primary">Edit Category</h6>
         </div>
         <div class="card-body">
-            {% if error_message %}
-            <div class="alert alert-danger">{{ error_message }}</div>
+            {% if error %}
+                <div class="alert alert-danger">{{ error }}</div>
             {% endif %}
-            {% if success_message %}
-            <div class="alert alert-success">{{ success_message }}</div>
+            {% if success %}
+                <div class="alert alert-success">{{ success }}</div>
             {% endif %}
 
             <form method="post" enctype="multipart/form-data">
                 {% csrf_token %}
 
+                <!-- Category Title -->
                 <div class="form-group">
-                    <label for="inputTitle">Title <span class="text-danger">*</span></label>
-                    <input id="inputTitle" type="text" name="title" placeholder="Enter title"
-                        value="{{ category.title }}" class="form-control" required>
+                    <label for="id_title">Category Title <span class="text-danger">*</span></label>
+                    <input type="text" class="form-control" id="id_title" name="title"
+                           value="{{ category.title }}" required>
                 </div>
 
+                <!-- Is Parent Checkbox -->
                 <div class="form-group">
-                    <label for="summary">Summary</label>
-                    <textarea class="form-control" id="summary" name="summary">{{ category.summary }}</textarea>
+                    <div class="custom-control custom-checkbox">
+                        <input type="checkbox" class="custom-control-input" id="id_is_parent"
+                               name="is_parent" value="1"
+                               {% if category.is_parent %}checked{% endif %}>
+                        <label class="custom-control-label" for="id_is_parent">Is Parent Category?</label>
+                    </div>
                 </div>
 
-                <div class="form-group">
-                    <label for="is_parent">Is Parent Category</label><br>
-                    <input type="checkbox" name="is_parent" id="is_parent" value="1" 
-                           {% if category.is_parent %}checked{% endif %} 
-                           onchange="toggleParentSelect()"> Yes
-                </div>
-
-                <div class="form-group" id="parentCategoryGroup" 
-                     {% if category.is_parent %}style="display: none;"{% endif %}>
-                    <label for="parent_id">Parent Category</label>
-                    <select name="parent_id" id="parent_id" class="form-control">
-                        <option value="">--Select parent category--</option>
+                <!-- Parent Category Dropdown -->
+                <div class="form-group" id="parent_category_group"
+                     {% if category.is_parent %}style="display:none;"{% endif %}>
+                    <label for="id_parent_id">Select Parent Category <span class="text-danger">*</span></label>
+                    <select class="form-control" id="id_parent_id" name="parent_id">
+                        <option value="">--- Select Parent ---</option>
                         {% for cat in parent_cats %}
-                        <option value="{{ cat.id }}" 
-                                {% if category.parent_id == cat.id %}selected{% endif %}>
-                            {{ cat.title }}
-                        </option>
+                            <option value="{{ cat.id }}" 
+                                    {% if category.parent_id == cat.id %}selected{% endif %}>
+                                {{ cat.title }}
+                            </option>
                         {% endfor %}
                     </select>
                 </div>
 
+                <!-- Category Image Upload -->
+                <div class="form-group" id="photo_group">
+                    <label for="id_photo">Upload Category Image</label>
+                    <input type="file" class="form-control-file" id="id_photo" name="photo" accept="image/*">
+
+                    {% if category.photo %}
+                        <div class="mt-2">
+                            <img src="{{ category.photo.url }}" alt="{{ category.title }}" 
+                                 class="img-thumbnail" style="max-width: 150px;">
+                        </div>
+                        <small class="form-text text-muted">
+                            Leave blank to keep the current image.
+                        </small>
+                    {% endif %}
+                </div>
+
+                <!-- Status -->
                 <div class="form-group">
-                    <label for="status">Status <span class="text-danger">*</span></label>
-                    <select name="status" class="form-control" required>
+                    <label for="id_status">Status <span class="text-danger">*</span></label>
+                    <select class="form-control" id="id_status" name="status" required>
                         <option value="active" {% if category.status == 'active' %}selected{% endif %}>Active</option>
                         <option value="inactive" {% if category.status == 'inactive' %}selected{% endif %}>Inactive</option>
                     </select>
                 </div>
 
-                <div class="form-group">
-                    <label for="photo">Category Image</label>
-                    <input id="photo" type="file" name="photo" class="form-control-file">
-                    {% if category.photo %}
-                    <img src="{{ category.photo.url }}" alt="{{ category.title }}" class="img-thumbnail mt-2"
-                        style="max-width: 150px;">
-                    {% endif %}
-                    <small class="form-text text-muted">Leave blank to keep current image.</small>
-                </div>
-
+                <!-- Submit Buttons -->
                 <button type="submit" class="btn btn-success mt-3">💾 Update Category</button>
                 <a href="{% url 'category_list' %}" class="btn btn-secondary mt-3">Cancel</a>
             </form>
         </div>
     </div>
 </div>
-{% endblock %}
 
-{% block scripts %}
+<!-- Dynamic Script -->
 <script>
-    function toggleParentSelect() {
-        const isParent = document.getElementById('is_parent').checked;
-        const parentGroup = document.getElementById('parentCategoryGroup');
-        
-        if (isParent) {
-            parentGroup.style.display = 'none';
-            document.getElementById('parent_id').value = '';
-        } else {
-            parentGroup.style.display = 'block';
-        }
-    }
+    document.addEventListener('DOMContentLoaded', function () {
+        const isParentCheckbox = document.getElementById('id_is_parent');
+        const parentCategoryGroup = document.getElementById('parent_category_group');
+        const photoGroup = document.getElementById('photo_group');
+        const parentIdSelect = document.getElementById('id_parent_id');
 
-    // Initialize on page load
-    document.addEventListener('DOMContentLoaded', function() {
-        toggleParentSelect();
+        function toggleParentField() {
+            if (isParentCheckbox.checked) {
+                // ✅ It's a parent category
+                parentCategoryGroup.style.display = 'none';
+                parentIdSelect.removeAttribute('required');
+                photoGroup.style.display = 'block';
+            } else {
+                // ✅ It's a subcategory
+                parentCategoryGroup.style.display = 'block';
+                parentIdSelect.setAttribute('required', 'required');
+                photoGroup.style.display = 'none';
+            }
+        }
+
+        toggleParentField();
+        isParentCheckbox.addEventListener('change', toggleParentField);
     });
 </script>
+
 {% endblock %}
